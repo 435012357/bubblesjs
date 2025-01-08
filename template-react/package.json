@@ -3,15 +3,20 @@
   "private": true,
   "version": "1.0.0",
   "scripts": {
+    "dev": "rsbuild dev --open",
+    "dev:prod": "rsbuild dev --env-mode production",
     "build": "rsbuild build",
     "check": "biome check --write",
-    "dev": "rsbuild dev --open",
     "format": "prettier --write .",
-    "preview": "rsbuild preview"
+    "preview": "rsbuild preview",
+    "reinstall": "rimraf pnpm-lock.yaml && rimraf node_modules && pnpm install"
   },
   "dependencies": {
+    "antd": "^5.23.0",
+    "dayjs": "^1.11.13",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "zustand": "^5.0.3"
   },
   "devDependencies": {
     "@biomejs/biome": "^1.9.3",
@@ -19,7 +24,10 @@
     "@rsbuild/plugin-react": "^1.0.7",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
+    "@unocss/postcss": "^0.65.4",
     "prettier": "^3.3.3",
-    "typescript": "^5.7.2"
+    "typescript": "^5.7.2",
+    "unocss": "^0.65.4",
+    "unplugin-auto-import": "^19.0.0"
   }
 }
