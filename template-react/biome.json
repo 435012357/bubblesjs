@@ -1,30 +1,101 @@
 {
-  "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
-  "organizeImports": {
-    "enabled": true
-  },
-  "vcs": {
-    "enabled": true,
-    "clientKind": "git",
-    "useIgnoreFile": true
+  "files": {
+    "ignoreUnknown": true,
+    "ignore": ["dist/*", "node_modules", "package.json"]
   },
   "formatter": {
-    "indentStyle": "space"
+    "enabled": true,
+    "indentStyle": "space",
+    "lineWidth": 100,
+    "indentWidth": 2
   },
   "javascript": {
     "formatter": {
       "quoteStyle": "single"
     }
   },
-  "css": {
-    "parser": {
-      "cssModules": true
-    }
+  "organizeImports": {
+    "enabled": false
   },
   "linter": {
-    "enabled": true,
     "rules": {
-      "recommended": true
+      "style": {
+        "useImportType": "off",
+        "useNumberNamespace": "off",
+        "useNodejsImportProtocol": "off",
+        "noNonNullAssertion": "off",
+        "noUnusedTemplateLiteral": "off"
+      },
+      "complexity": {
+        "noUselessTypeConstraint": "off",
+        "noForEach": "off"
+      },
+      "correctness": {
+        "useExhaustiveDependencies": "off"
+      },
+      "suspicious": {
+        "noGlobalIsNan": "off",
+        "noGlobalIsFinite": "off",
+        "noExplicitAny": "off",
+        "noArrayIndexKey": "off",
+        "noConfusingVoidType": "off",
+        "noThenProperty": "off"
+      },
+      "performance": {
+        "noDelete": "off",
+        "noAccumulatingSpread": "off"
+      },
+      "a11y": {
+        "noAriaHiddenOnFocusable": "off",
+        "noLabelWithoutControl": "off",
+        "useFocusableInteractive": "off",
+        "useKeyWithClickEvents": "off",
+        "useSemanticElements": "off"
+      }
     }
-  }
+  },
+  "css": {
+    "formatter": {
+      "quoteStyle": "single"
+    }
+  },
+  "overrides": [
+    {
+      "include": ["**/*.test.ts", "**/*.test.tsx", "tests/**/*", "scripts/**/*"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noParameterAssign": "off"
+          },
+          "suspicious": {
+            "noThenProperty": "off",
+            "noImplicitAnyLet": "off"
+          },
+          "complexity": {
+            "noUselessFragments": "off"
+          },
+          "a11y": {
+            "useValidAnchor": "off",
+            "useAnchorContent": "off",
+            "useKeyWithClickEvents": "off"
+          }
+        }
+      }
+    },
+    {
+      "include": ["components/*/demo/*"],
+      "linter": {
+        "rules": {
+          "correctness": {
+            "noVoidTypeReturn": "off"
+          },
+          "a11y": {
+            "useValidAnchor": "off",
+            "useAnchorContent": "off",
+            "useKeyWithClickEvents": "off"
+          }
+        }
+      }
+    }
+  ]
 }
