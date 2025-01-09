@@ -12,10 +12,13 @@
     "reinstall": "rimraf pnpm-lock.yaml && rimraf node_modules && pnpm install"
   },
   "dependencies": {
+    "ahooks": "^3.8.4",
     "antd": "^5.23.0",
+    "axios": "^1.7.9",
     "dayjs": "^1.11.13",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "react-router": "^7.1.1",
     "zustand": "^5.0.3"
   },
   "devDependencies": {
