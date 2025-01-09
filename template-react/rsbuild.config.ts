@@ -1,5 +1,4 @@
-import { defineConfig } from "@rsbuild/core";
-import path from "path";
+import path from "node:path";
 import { pluginReact } from "@rsbuild/plugin-react";
 import AutoImport from "unplugin-auto-import/rspack";
 
