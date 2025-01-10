@@ -1,9 +1,15 @@
-import { createBrowserRouter } from 'react-router';
+import { createBrowserRouter, type RouteObject } from 'react-router';
 
-const routes = [
+export const lazyLoad = (path: string) => {
+  const Module = () => import(`@/pages/${path}.tsx`);
+  return <Module />;
+};
+
+const routes: RouteObject[] = [
   {
     path: '/',
-    element: <div>Hello world!</div>,
+    id: 'home',
+    element: lazyLoad('home'),
   },
 ];
 
