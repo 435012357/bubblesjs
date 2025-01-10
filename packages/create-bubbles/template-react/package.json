@@ -23,6 +23,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^1.9.3",
+    "@commitlint/config-conventional": "^19.6.0",
     "@ianvs/prettier-plugin-sort-imports": "^4.4.0",
     "@rsbuild/core": "^1.1.8",
     "@rsbuild/plugin-react": "^1.0.7",

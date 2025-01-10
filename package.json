@@ -1,0 +1,67 @@
+{
+  "name": "@bubblesjs/bubbles-monorepo",
+  "private": true,
+  "engines": {
+    "node": "^18.0.0 || ^20.0.0 || >=22.0.0"
+  },
+  "homepage": "",
+  "repository": {
+    "type": "git",
+    "url": ""
+  },
+  "keywords": [
+    "template",
+    "react-template",
+    "bubbles"
+  ],
+  "scripts": {
+    "preinstall": "npx only-allow pnpm",
+    "format": "prettier --write --cache .",
+    "lint": "biomejs --cache .",
+    "typecheck": "tsc -p scripts --noEmit && pnpm -r --parallel run typecheck",
+    "docs": "pnpm --filter=docs run docs",
+    "docs-build": "pnpm --filter=docs run docs-build",
+    "docs-serve": "pnpm --filter=docs run docs-serve",
+    "build": "pnpm -r --filter='./packages/*' run build",
+    "dev": "pnpm -r --parallel --filter='./packages/*' run dev",
+    "release": "tsx scripts/release.ts",
+    "ci-publish": "tsx scripts/publishCI.ts",
+    "ci-docs": "pnpm build && pnpm docs-build"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^1.9.4",
+    "@commitlint/config-conventional": "^19.6.0",
+    "lefthook": "^1.10.1"
+  },
+  "simple-git-hooks": {
+    "pre-commit": "pnpm exec lint-staged --concurrent false"
+  },
+  "packageManager": "pnpm@9.15.3",
+  "pnpm": {
+    "peerDependencyRules": {
+      "allowedVersions": {
+        "vite": "*"
+      },
+      "ignoreMissing": [
+        "@algolia/client-search",
+        "postcss",
+        "search-insights"
+      ]
+    },
+    "packageExtensions": {
+      "sass-embedded": {
+        "peerDependencies": {
+          "source-map-js": "*"
+        },
+        "peerDependenciesMeta": {
+          "source-map-js": {
+            "optional": true
+          }
+        }
+      }
+    }
+  },
+  "stackblitz": {
+    "startCommand": "pnpm --filter='./packages/vite' run dev"
+  }
+}

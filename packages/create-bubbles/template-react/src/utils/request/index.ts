@@ -1,40 +1,40 @@
-import type { AxiosRequestConfig } from 'axios'
+import type { AxiosRequestConfig } from 'axios';
 
-import request, { type CustomConfig } from './axios'
+import request, { type CustomConfig } from './axios';
 
 interface createAxiosType {
   get: (
     config: {
-      url: string
-      params?: AxiosRequestConfig['params']
-      config?: AxiosRequestConfig<any>
+      url: string;
+      params?: AxiosRequestConfig['params'];
+      config?: AxiosRequestConfig<any>;
     },
     option?: CustomConfig,
-  ) => Promise<any>
+  ) => Promise<any>;
   post: (
     config: {
-      url: string
-      data?: AxiosRequestConfig['data']
-      config?: AxiosRequestConfig<any>
+      url: string;
+      data?: AxiosRequestConfig['data'];
+      config?: AxiosRequestConfig<any>;
     },
     option?: CustomConfig,
-  ) => Promise<any>
+  ) => Promise<any>;
   put: (
     config: {
-      url: string
-      data?: AxiosRequestConfig['data']
-      config?: AxiosRequestConfig<any>
+      url: string;
+      data?: AxiosRequestConfig['data'];
+      config?: AxiosRequestConfig<any>;
     },
     option?: CustomConfig,
-  ) => Promise<any>
+  ) => Promise<any>;
   delete: (
     config: {
-      url: string
-      data?: AxiosRequestConfig['data']
-      config?: AxiosRequestConfig<any>
+      url: string;
+      data?: AxiosRequestConfig['data'];
+      config?: AxiosRequestConfig<any>;
     },
     option?: CustomConfig,
-  ) => Promise<any>
+  ) => Promise<any>;
 }
 
 const createAxios: createAxiosType = {
@@ -55,6 +55,6 @@ const createAxios: createAxiosType = {
     config: { url: string; config?: AxiosRequestConfig<any> },
     customConfig?: CustomConfig,
   ) => request(customConfig).delete(config.url, config?.config),
-}
+};
 
-export default createAxios
+export default createAxios;
