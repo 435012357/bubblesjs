@@ -39,9 +39,6 @@
   "packageManager": "pnpm@9.15.3",
   "pnpm": {
     "peerDependencyRules": {
-      "allowedVersions": {
-        "vite": "*"
-      },
       "ignoreMissing": [
         "@algolia/client-search",
         "postcss",
@@ -60,8 +57,5 @@
         }
       }
     }
-  },
-  "stackblitz": {
-    "startCommand": "pnpm --filter='./packages/vite' run dev"
   }
 }
