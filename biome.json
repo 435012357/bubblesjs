@@ -1,7 +1,7 @@
 {
   "files": {
     "ignoreUnknown": true,
-    "ignore": ["dist/*", "node_modules", "package.json"]
+    "ignore": ["dist/*", "node_modules", "package.json", "*.js"]
   },
   "formatter": {
     "enabled": true,

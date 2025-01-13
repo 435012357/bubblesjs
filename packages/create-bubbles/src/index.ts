@@ -33,14 +33,7 @@ Options:
 
 Available templates:
 ${yellow('react-ts-biomejs-rsbuild     react')}
-${green('vue-ts         vue')}
-${cyan('react-ts       react')}
-${cyan('react-swc-ts   react-swc')}
-${magenta('preact-ts      preact')}
-${redBright('lit-ts         lit')}
-${red('svelte-ts      svelte')}
-${blue('solid-ts       solid')}
-${blueBright('qwik-ts        qwik')}`;
+${green('react-ts-biomejs-vite     react')}`;
 
 type ColorFunc = (str: string | number) => string;
 type Framework = {
@@ -63,30 +56,14 @@ const FRAMEWORKS: Framework[] = [
     color: cyan,
     variants: [
       {
-        name: 'react-ts',
-        display: 'TypeScript',
+        name: 'react-rsbuild',
+        display: 'react + ts + biomejs + rsbuild',
         color: blue,
       },
       {
-        name: 'react-swc-ts',
-        display: 'TypeScript + SWC',
+        name: 'react-vite',
+        display: 'react + ts + biomejs + vite',
         color: blue,
-      },
-      {
-        name: 'react',
-        display: 'JavaScript',
-        color: yellow,
-      },
-      {
-        name: 'react-swc',
-        display: 'JavaScript + SWC',
-        color: yellow,
-      },
-      {
-        name: 'custom-react-router',
-        display: 'React Router v7 ↗',
-        color: cyan,
-        customCommand: 'npm create react-router@latest TARGET_DIR',
       },
     ],
   },
@@ -101,7 +78,7 @@ const renameFiles: Record<string, string | undefined> = {
   _gitignore: '.gitignore',
 };
 
-const defaultTargetDir = 'vite-project';
+const defaultTargetDir = 'template-project';
 
 async function init() {
   const argTargetDir = formatTargetDir(argv._[0]);
@@ -215,6 +192,7 @@ async function init() {
     return;
   }
 
+  console.log(result);
   // user choice associated with prompts
   const { framework, overwrite, packageName, variant } = result;
 
