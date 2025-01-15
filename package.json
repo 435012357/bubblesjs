@@ -7,7 +7,7 @@
   "homepage": "",
   "repository": {
     "type": "git",
-    "url": ""
+    "url": "git+https://github.com/435012357/bubblesjs.git"
   },
   "keywords": [
     "template",
