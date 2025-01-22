@@ -1,6 +1,6 @@
 {
   "name": "create-bubbles",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "type": "module",
   "bin": {
     "create-bubbles": "index.js"
@@ -12,7 +12,7 @@
   ],
   "scripts": {
     "dev": "unbuild --stub",
-    "build": "unbuild --stub",
+    "build": "unbuild",
     "typecheck": "tsc --noEmit",
     "prepublishOnly": "npm run build"
   },
@@ -25,6 +25,7 @@
   },
   "devDependencies": {
     "@types/minimist": "^1.2.5",
+    "@types/node": "^22.10.7",
     "@types/prompts": "^2.4.9",
     "cross-spawn": "^7.0.6",
     "minimist": "^1.2.8",
