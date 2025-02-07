@@ -1,7 +1,8 @@
 {
-  "name": "utils",
-  "version": "1.0.0",
+  "name": "@bubblesjs/utils",
+  "version": "0.0.1",
   "type": "module",
+  "private": false,
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -26,5 +27,7 @@
     "prettier": "^3.4.1",
     "typescript": "^5.7.3"
   },
-  "private": true
+  "dependencies": {
+    "axios": "^1.7.9"
+  }
 }
