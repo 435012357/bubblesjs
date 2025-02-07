@@ -31,7 +31,8 @@
   "devDependencies": {
     "@biomejs/biome": "^1.9.4",
     "@commitlint/config-conventional": "^19.6.0",
-    "lefthook": "^1.10.1"
+    "lefthook": "^1.10.1",
+    "prettier": "^3.4.2"
   },
   "simple-git-hooks": {
     "pre-commit": "pnpm exec lint-staged --concurrent false"
