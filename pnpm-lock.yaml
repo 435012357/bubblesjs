@@ -4,8 +4,6 @@ settings:
   autoInstallPeers: false
   excludeLinksFromLockfile: false
 
-packageExtensionsChecksum: 632c5477927702fb9badd3e595784820
-
 importers:
 
   .:
@@ -62,6 +60,12 @@ importers:
       unbuild:
         specifier: ^3.2.0
         version: 3.2.0(typescript@5.7.3)
+
+  packages/create-bubbles/template-react-rsbuild:
+    dependencies:
+      '@bubblesjs/utils':
+        specifier: ^0.0.1
+        version: 0.0.1
 
   packages/utils:
     dependencies:
@@ -218,6 +222,9 @@ packages:
     engines: {node: '>=14.21.3'}
     cpu: [x64]
     os: [win32]
+
+  '@bubblesjs/utils@0.0.1':
+    resolution: {integrity: sha512-JOeWbIw2uBSimG2UDaNhxqdsjMDPL1lNdvL99YXwF3ykviMv+aAfP5y7rjVriKHP4LUBkEnC/Cio6eDufKVmNQ==, tarball: https://registry.npmjs.org/@bubblesjs/utils/-/utils-0.0.1.tgz}
 
   '@bufbuild/protobuf@2.2.3':
     resolution: {integrity: sha512-tFQoXHJdkEOSwj5tRIZSPNUuXK3RaR7T1nUrPgbYX1pUbvqqaaZAsfo+NXBPsz5rZMSKVFrgK1WL8Q/MSLvprg==}
@@ -2801,6 +2808,12 @@ snapshots:
 
   '@biomejs/cli-win32-x64@1.9.4':
     optional: true
+
+  '@bubblesjs/utils@0.0.1':
+    dependencies:
+      axios: 1.7.9
+    transitivePeerDependencies:
+      - debug
 
   '@bufbuild/protobuf@2.2.3': {}
 

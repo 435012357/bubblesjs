@@ -11,7 +11,7 @@ interface codeMap {
 }
 
 interface getRequestOption {
-  url?: string;
+  baseUrl?: string;
   timeout?: number;
   commonHeaders?: Record<string, string | (() => string)>;
   requestErrorInterceptor?: (error: any) => void;
@@ -33,7 +33,7 @@ const getRequest = (option: getRequestOption) => {
   const isTransformResponse = option?.isTransformResponse ?? true;
   const isShowSuccessMessage = option?.isShowSuccessMessage ?? true;
   const request = createRequest({
-    baseURL: option?.url ?? '/',
+    baseURL: option?.baseUrl ?? '/',
     timeout: option?.timeout ?? 0,
     requestInterceptor: (config) => {
       for (const [key, value] of Object.entries(option?.commonHeaders ?? {})) {
