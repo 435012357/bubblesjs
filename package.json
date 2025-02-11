@@ -26,10 +26,13 @@
     "dev": "pnpm -r --parallel --filter='./packages/*' run dev",
     "release": "tsx scripts/release.ts",
     "ci-publish": "tsx scripts/publishCI.ts",
-    "ci-docs": "pnpm build && pnpm docs-build"
+    "ci-docs": "pnpm build && pnpm docs-build",
+    "changeset": "changeset",
+    "version": "changeset version && npm install"
   },
   "devDependencies": {
     "@biomejs/biome": "^1.9.4",
+    "@changesets/cli": "^2.27.12",
     "@commitlint/config-conventional": "^19.6.0",
     "lefthook": "^1.10.1",
     "prettier": "^3.4.2"
