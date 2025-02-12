@@ -33,5 +33,9 @@
     "prompts": "^2.4.2",
     "typescript": "^5.7.3",
     "unbuild": "^3.2.0"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
   }
 }

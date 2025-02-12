@@ -40,7 +40,7 @@
   "simple-git-hooks": {
     "pre-commit": "pnpm exec lint-staged --concurrent false"
   },
-  "packageManager": "pnpm@9.15.3",
+  "packageManager": "pnpm@10.0.0",
   "pnpm": {
     "peerDependencyRules": {
       "ignoreMissing": [
