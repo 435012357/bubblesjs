@@ -4,7 +4,7 @@ settings:
   autoInstallPeers: false
   excludeLinksFromLockfile: false
 
-packageExtensionsChecksum: 632c5477927702fb9badd3e595784820
+packageExtensionsChecksum: sha256-BLDZCgUIohvBXMHo3XFOlGLzGXRyK3sDU0nMBRk9APY=
 
 importers:
 
@@ -19,6 +19,9 @@ importers:
       '@commitlint/config-conventional':
         specifier: ^19.6.0
         version: 19.6.0
+      '@ianvs/prettier-plugin-sort-imports':
+        specifier: ^4.4.1
+        version: 4.4.1(prettier@3.4.2)
       lefthook:
         specifier: ^1.10.1
         version: 1.10.1
@@ -65,12 +68,6 @@ importers:
       unbuild:
         specifier: ^3.2.0
         version: 3.2.0(typescript@5.7.3)
-
-  packages/create-bubbles/template-react-rsbuild:
-    dependencies:
-      '@bubblesjs/utils':
-        specifier: ^0.0.1
-        version: 0.0.1
 
   packages/utils:
     dependencies:
@@ -230,9 +227,6 @@ packages:
     engines: {node: '>=14.21.3'}
     cpu: [x64]
     os: [win32]
-
-  '@bubblesjs/utils@0.0.1':
-    resolution: {integrity: sha512-JOeWbIw2uBSimG2UDaNhxqdsjMDPL1lNdvL99YXwF3ykviMv+aAfP5y7rjVriKHP4LUBkEnC/Cio6eDufKVmNQ==, tarball: https://registry.npmjs.org/@bubblesjs/utils/-/utils-0.0.1.tgz}
 
   '@bufbuild/protobuf@2.2.3':
     resolution: {integrity: sha512-tFQoXHJdkEOSwj5tRIZSPNUuXK3RaR7T1nUrPgbYX1pUbvqqaaZAsfo+NXBPsz5rZMSKVFrgK1WL8Q/MSLvprg==}
@@ -449,6 +443,15 @@ packages:
     engines: {node: '>=18'}
     cpu: [x64]
     os: [win32]
+
+  '@ianvs/prettier-plugin-sort-imports@4.4.1':
+    resolution: {integrity: sha512-F0/Hrcfpy8WuxlQyAWJTEren/uxKhYonOGY4OyWmwRdeTvkh9mMSCxowZLjNkhwi/2ipqCgtXwwOk7tW0mWXkA==}
+    peerDependencies:
+      '@vue/compiler-sfc': 2.7.x || 3.x
+      prettier: 2 || 3
+    peerDependenciesMeta:
+      '@vue/compiler-sfc':
+        optional: true
 
   '@jridgewell/gen-mapping@0.3.8':
     resolution: {integrity: sha512-imAbBGkb+ebQyxKgzv5Hu2nmROxoDOXHh80evxdoXNOrvAnVx7zimzc1Oo5h9RlfV4vPXaE2iM5pOFbvOCClWA==}
@@ -3094,12 +3097,6 @@ snapshots:
   '@biomejs/cli-win32-x64@1.9.4':
     optional: true
 
-  '@bubblesjs/utils@0.0.1':
-    dependencies:
-      axios: 1.7.9
-    transitivePeerDependencies:
-      - debug
-
   '@bufbuild/protobuf@2.2.3': {}
 
   '@changesets/apply-release-plan@7.0.8':
@@ -3328,6 +3325,17 @@ snapshots:
 
   '@esbuild/win32-x64@0.24.2':
     optional: true
+
+  '@ianvs/prettier-plugin-sort-imports@4.4.1(prettier@3.4.2)':
+    dependencies:
+      '@babel/generator': 7.26.3
+      '@babel/parser': 7.26.3
+      '@babel/traverse': 7.26.4
+      '@babel/types': 7.26.3
+      prettier: 3.4.2
+      semver: 7.6.3
+    transitivePeerDependencies:
+      - supports-color
 
   '@jridgewell/gen-mapping@0.3.8':
     dependencies:

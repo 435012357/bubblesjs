@@ -24,7 +24,7 @@
     "docs-serve": "pnpm --filter=docs run docs-serve",
     "build": "pnpm -r --filter='./packages/*' run build",
     "dev": "pnpm -r --parallel --filter='./packages/*' run dev",
-    "release": "tsx scripts/release.ts",
+    "release": "pnpm --recursive --stream build && changeset",
     "ci-publish": "tsx scripts/publishCI.ts",
     "ci-docs": "pnpm build && pnpm docs-build",
     "changeset": "changeset",
@@ -34,6 +34,7 @@
     "@biomejs/biome": "^1.9.4",
     "@changesets/cli": "^2.27.12",
     "@commitlint/config-conventional": "^19.6.0",
+    "@ianvs/prettier-plugin-sort-imports": "^4.4.1",
     "lefthook": "^1.10.1",
     "prettier": "^3.4.2"
   },
