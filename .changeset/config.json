@@ -3,7 +3,7 @@
   "changelog": [
     "@changesets/changelog-github",
     {
-      "repo": "bubblesjs"
+      "repo": "435012357/bubblesjs"
     }
   ],
   "commit": false,
