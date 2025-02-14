@@ -1,5 +1,11 @@
 # @bubblesjs/utils
 
+## 0.0.4
+
+### Patch Changes
+
+- [`ba26d27`](https://github.com/435012357/bubblesjs/commit/ba26d27b0f7e27ff286097385b71935106858bc8) Thanks [@435012357](https://github.com/435012357)! - 自动发布第十二次
+
 ## 0.0.3
 
 ### Patch Changes
