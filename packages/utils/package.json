@@ -1,6 +1,6 @@
 {
   "name": "@bubblesjs/utils",
-  "version": "0.0.5",
+  "version": "0.0.2",
   "type": "module",
   "private": false,
   "exports": {

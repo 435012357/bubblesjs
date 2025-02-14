@@ -1,7 +1,7 @@
 # @bubblesjs/utils
 
-## 0.0.5
+## 0.0.2
 
 ### Patch Changes
 
-- 自动化发布测试
+- 拉取github 提交信息
