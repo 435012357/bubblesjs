@@ -2,21 +2,17 @@
 **/*.svg
 CODEOWNERS
 .dockerignore
-Dockerfile.ui-test
-.dumi/tmp
-.dumi/tmp-production
-!dumi
-# AUTHORS.txt
+AUTHORS.txt
 lib/
 es/
 dist/
-# _site/
-# server
-# coverage/
-# CNAME
+_site/
+server
+coverage/
+CNAME
 LICENSE
 yarn.lock
-# netlify.toml
+netlify.toml
 yarn-error.log
 *.sh
 *.snap
