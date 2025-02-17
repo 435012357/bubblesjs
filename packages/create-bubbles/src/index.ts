@@ -67,6 +67,23 @@ const FRAMEWORKS: Framework[] = [
       },
     ],
   },
+  {
+    name: 'vue',
+    display: 'Vue',
+    color: green,
+    variants: [
+      {
+        name: 'vue-rsbuild',
+        display: 'vue + ts + biomejs + rsbuild',
+        color: blue,
+      },
+      {
+        name: 'vue-vite',
+        display: 'vue + ts + biomejs + vite',
+        color: blue,
+      },
+    ],
+  },
 ];
 
 const TEMPLATES = FRAMEWORKS.map((f) => f.variants.map((v) => v.name)).reduce(
