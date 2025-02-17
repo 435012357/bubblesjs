@@ -2,8 +2,10 @@
   "name": "create-bubbles",
   "version": "0.0.2",
   "type": "module",
+  "license": "MIT",
+  "author": "Evan You",
   "bin": {
-    "create-bubbles": "index.js"
+    "create-vite": "index.js"
   },
   "files": [
     "index.js",
@@ -21,21 +23,17 @@
   },
   "repository": {
     "type": "git",
-    "directory": "packages/create-bubbles"
+    "url": "git+https://github.com/vitejs/vite.git",
+    "directory": "packages/create-vite"
   },
   "devDependencies": {
+    "@types/cross-spawn": "^6.0.6",
     "@types/minimist": "^1.2.5",
-    "@types/node": "^22.10.7",
     "@types/prompts": "^2.4.9",
     "cross-spawn": "^7.0.6",
     "minimist": "^1.2.8",
     "picocolors": "^1.1.1",
     "prompts": "^2.4.2",
-    "typescript": "^5.7.3",
-    "unbuild": "^3.2.0"
-  },
-  "publishConfig": {
-    "access": "public",
-    "registry": "https://registry.npmjs.org/"
+    "unbuild": "^3.3.1"
   }
 }
