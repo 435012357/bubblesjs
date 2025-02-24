@@ -1,5 +1,15 @@
 # @bubblesjs/utils
 
+## 0.0.5
+
+### Patch Changes
+
+- [`3f6195d`](https://github.com/435012357/bubblesjs/commit/3f6195d61f39c910378a2a585306059c5f683e43) Thanks [@435012357](https://github.com/435012357)! - 自动发布测试 utils
+
+- [`e8014d8`](https://github.com/435012357/bubblesjs/commit/e8014d8ee6723ba4e6daabd2e2ec2231423123ba) Thanks [@435012357](https://github.com/435012357)! - 重新发包
+
+- [`2feabdc`](https://github.com/435012357/bubblesjs/commit/2feabdc13232cc0eb0a66a3609f2ed28e8d378b6) Thanks [@435012357](https://github.com/435012357)! - 手动发布
+
 ## 0.0.4
 
 ### Patch Changes
