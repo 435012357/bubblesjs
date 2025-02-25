@@ -12,7 +12,9 @@
   "keywords": [
     "template",
     "react-template",
-    "bubbles"
+    "bubbles",
+    "utils",
+    "bubbles-utils"
   ],
   "scripts": {
     "preinstall": "npx only-allow pnpm",
