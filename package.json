@@ -22,7 +22,7 @@
     "lint": "biomejs --cache .",
     "typecheck": "tsc -p scripts --noEmit && pnpm -r --parallel run typecheck",
     "docs": "pnpm --filter=docs run docs",
-    "docs-build": "pnpm --filter=docs run docs-build",
+    "docs:build": "pnpm --filter=docs run docs:build",
     "docs-serve": "pnpm --filter=docs run docs-serve",
     "build": "pnpm -r --filter='./packages/*' run build",
     "dev": "pnpm -r --parallel --filter='./packages/*' run dev",
