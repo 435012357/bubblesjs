@@ -2,7 +2,7 @@ import * as path from 'node:path';
 import { defineConfig } from 'rspress/config';
 
 export default defineConfig({
-  root: path.join(__dirname, 'bubblesjs'),
+  root: path.join(__dirname, 'docs'),
   title: 'Bubbles',
   icon: '/rspress-icon.png',
   logo: {
