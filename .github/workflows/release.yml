@@ -32,7 +32,17 @@ jobs:
           version: 10.x
       
       - name: Install Dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install
+
+      - name: Build Docs
+        run: pnpm run docs:build
+      
+      - name: Deploy Docs
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          publish_dir: docs/doc_build
+          commit_message: Update Github gh-pages
+          github_token: ${{ secrets.GITHUB_TOKEN }}
       
       # https://github.com/changesets/action
       # 自动创建发布 PR 或 发布 npm
@@ -45,14 +55,5 @@ jobs:
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Build Docs
-        run: pnpm run docs-build
-
-      - name: Deploy Docs
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: docs/doc_build
 
 
