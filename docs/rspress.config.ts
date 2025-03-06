@@ -3,12 +3,12 @@ import { defineConfig } from 'rspress/config';
 
 export default defineConfig({
   root: path.join(__dirname, 'docs'),
-  base: '/',
+  base: '.',
   title: 'Bubbles',
-  icon: '/rspress-icon.png',
+  icon: 'https://assets.rspack.dev/rsbuild/favicon-128x128.png',
   logo: {
-    light: '/rspress-light-logo.png',
-    dark: '/rspress-dark-logo.png',
+    light: 'https://assets.rspack.dev/rsbuild/navbar-logo-light.png',
+    dark: 'https://assets.rspack.dev/rsbuild/navbar-logo-dark.png',
   },
   lang: 'zh',
   locales: [
