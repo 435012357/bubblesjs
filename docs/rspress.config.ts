@@ -3,7 +3,7 @@ import { defineConfig } from 'rspress/config';
 
 export default defineConfig({
   root: path.join(__dirname, 'docs'),
-  base: '.',
+  base: '/bubblesjs/',
   title: 'Bubbles',
   icon: 'https://assets.rspack.dev/rsbuild/favicon-128x128.png',
   logo: {
