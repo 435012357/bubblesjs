@@ -2,3 +2,4 @@ packages:
   - 'packages/*'
   - doc
   - docs
+  - packages/create-bubbles/template-*
