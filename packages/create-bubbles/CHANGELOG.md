@@ -1,5 +1,11 @@
 # create-bubbles
 
+## 0.0.5
+
+### Patch Changes
+
+- [`dc9aa41`](https://github.com/435012357/bubblesjs/commit/dc9aa41cccf9118a3fe7a2ea2c29498aec90bde2) Thanks [@435012357](https://github.com/435012357)! - 更新vue rsbuild 模板
+
 ## 0.0.4
 
 ### Patch Changes
