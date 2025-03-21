@@ -1,5 +1,11 @@
 # create-bubbles
 
+## 0.0.6
+
+### Patch Changes
+
+- [`8c132c3`](https://github.com/435012357/bubblesjs/commit/8c132c3f3fd4fc6e27fb83aea7d56902ae6c25d9) Thanks [@435012357](https://github.com/435012357)! - 更改vue 模板
+
 ## 0.0.5
 
 ### Patch Changes
