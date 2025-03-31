@@ -1,7 +1,18 @@
 {
   "files": {
     "ignoreUnknown": true,
-    "ignore": ["dist/*", "node_modules", "package.json", "*.js"]
+    "ignore": [
+      ".dumi/tmp*",
+      ".dumi/scripts/clarity.js",
+      "dist/*",
+      "es/**/*",
+      "lib/**/*",
+      "_site/**/*",
+      "node_modules",
+      "server",
+      "scripts/previewEditor/**/*",
+      "package.json"
+    ]
   },
   "formatter": {
     "enabled": true,
@@ -11,7 +22,8 @@
   },
   "javascript": {
     "formatter": {
-      "quoteStyle": "single"
+      "quoteStyle": "single",
+      "semicolons": "asNeeded"
     }
   },
   "organizeImports": {
@@ -61,7 +73,7 @@
   },
   "overrides": [
     {
-      "include": ["**/*.test.ts", "**/*.test.tsx", "tests/**/*", "scripts/**/*"],
+      "include": ["**/*.test.ts", "**/*.test.tsx", "tests/**/*", "scripts/**/*", ".dumi/**/*"],
       "linter": {
         "rules": {
           "style": {

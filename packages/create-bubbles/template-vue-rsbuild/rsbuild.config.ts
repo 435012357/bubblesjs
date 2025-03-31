@@ -1,6 +1,6 @@
-import { defineConfig } from '@rsbuild/core';
-import { pluginVue } from '@rsbuild/plugin-vue';
-import AutoImport from 'unplugin-auto-import/rspack';
+import { defineConfig } from '@rsbuild/core'
+import { pluginVue } from '@rsbuild/plugin-vue'
+import AutoImport from 'unplugin-auto-import/rspack'
 
 export default defineConfig({
   html: {
@@ -25,4 +25,4 @@ export default defineConfig({
       ],
     },
   },
-});
+})

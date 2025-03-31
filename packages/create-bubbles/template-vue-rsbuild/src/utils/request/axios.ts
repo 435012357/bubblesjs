@@ -1,4 +1,4 @@
-import { message } from 'antd'
+import { message } from 'ant-design-vue'
 import axios, { type AxiosResponse } from 'axios'
 
 import { router } from '@/router'
@@ -21,7 +21,8 @@ const unAuthFunc = () => {
   router.navigate('/login')
 }
 export default (customConfig?: CustomConfig) => {
-  const token = useUserStore((state) => state.token)
+  const userStore = useUserStore()
+  const token = userStore.token
 
   const instance = axios.create({
     baseURL: import.meta.env.PUBLIC_API_AFFIX,
