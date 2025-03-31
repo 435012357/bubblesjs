@@ -1,5 +1,11 @@
 # create-bubbles
 
+## 0.0.7
+
+### Patch Changes
+
+- [`b206d67`](https://github.com/435012357/bubblesjs/commit/b206d6773c07356ff210671acd81697855274649) Thanks [@435012357](https://github.com/435012357)! - 模板更新rsbuild1.3.1
+
 ## 0.0.6
 
 ### Patch Changes
