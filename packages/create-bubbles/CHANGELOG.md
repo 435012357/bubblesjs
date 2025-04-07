@@ -1,5 +1,11 @@
 # create-bubbles
 
+## 0.0.9
+
+### Patch Changes
+
+- vue 模板更新
+
 ## 0.0.8
 
 ### Patch Changes
