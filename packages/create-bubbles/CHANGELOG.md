@@ -1,5 +1,13 @@
 # create-bubbles
 
+## 0.0.11
+
+### Patch Changes
+
+- [`33a7b8f`](https://github.com/435012357/bubblesjs/commit/33a7b8ff1b69b0c290a035f0482a759e4bee278d) Thanks [@435012357](https://github.com/435012357)! - 修改 lock 文件
+
+- [`eee435b`](https://github.com/435012357/bubblesjs/commit/eee435b77dd8b37fb3db9b1ba1618ed997d6deff) Thanks [@435012357](https://github.com/435012357)! - 修改 npmrc
+
 ## 0.0.10
 
 ### Patch Changes
