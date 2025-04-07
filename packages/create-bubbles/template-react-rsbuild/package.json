@@ -1,6 +1,5 @@
 {
   "name": "template-react",
-  "private": true,
   "version": "1.0.0",
   "scripts": {
     "dev": "rsbuild dev --open",
