@@ -1,13 +1,10 @@
-# Local
-.DS_Store
-*.local
-*.log*
-
-# Dist
 node_modules
-dist/
+*.local
+*.lock
 
-# IDE
-.vscode/*
-!.vscode/extensions.json
-.idea
+# Build files
+dist
+
+# 压缩文件
+*.rar
+*.zip

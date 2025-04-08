@@ -1,13 +1,9 @@
 <script setup lang="ts">
-defineOptions({ name: 'home' });
+defineOptions({ name: 'home' })
 </script>
 
 <template>
-  <div class="index-container">
-      
-  </div>
+  <div class="index-container">111</div>
 </template>
 
-<style lang="scss" scoped>
-
-</style>
+<style lang="scss" scoped></style>
