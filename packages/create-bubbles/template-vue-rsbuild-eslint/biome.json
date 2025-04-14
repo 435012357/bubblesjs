@@ -1,7 +1,15 @@
 {
   "files": {
     "ignoreUnknown": true,
-    "ignore": ["dist/*", "node_modules", "package.json"]
+    "ignore": [
+      "dist/*",
+      "es/**/*",
+      "lib/**/*",
+      "node_modules",
+      "server",
+      "scripts/previewEditor/**/*",
+      "package.json"
+    ]
   },
   "formatter": {
     "enabled": true,

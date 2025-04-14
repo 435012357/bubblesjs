@@ -4,7 +4,6 @@
   "trailingComma": "all",
   "printWidth": 100,
   "proseWrap": "never",
-  "semi": false,
   "importOrder": ["^(vue|vue-router)$", "^([a-z]|@[a-z])", "", ".*"],
   "plugins": ["@ianvs/prettier-plugin-sort-imports"],
   "overrides": [
