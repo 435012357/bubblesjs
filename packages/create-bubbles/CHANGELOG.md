@@ -1,5 +1,43 @@
 # create-bubbles
 
+## 0.0.12
+
+### Patch Changes
+
+- [`8dbcfee`](https://github.com/435012357/bubblesjs/commit/8dbcfeee5ce4cb7a9f566dc2635d0b42c7dc02ac) Thanks [@435012357](https://github.com/435012357)! - private true
+
+## 0.0.11
+
+### Patch Changes
+
+- [`33a7b8f`](https://github.com/435012357/bubblesjs/commit/33a7b8ff1b69b0c290a035f0482a759e4bee278d) Thanks [@435012357](https://github.com/435012357)! - 修改 lock 文件
+
+- [`eee435b`](https://github.com/435012357/bubblesjs/commit/eee435b77dd8b37fb3db9b1ba1618ed997d6deff) Thanks [@435012357](https://github.com/435012357)! - 修改 npmrc
+
+## 0.0.10
+
+### Patch Changes
+
+- [`34238c8`](https://github.com/435012357/bubblesjs/commit/34238c8334f904b855f5983f2e034d9deeda6316) Thanks [@435012357](https://github.com/435012357)! - vue 模板更新
+
+## 0.0.9
+
+### Patch Changes
+
+- vue 模板更新
+
+## 0.0.8
+
+### Patch Changes
+
+- [`14da278`](https://github.com/435012357/bubblesjs/commit/14da278d1859e3a92ee52f4ae177d7ff3f8fb3ef) Thanks [@435012357](https://github.com/435012357)! - vue 模板更改
+
+## 0.0.7
+
+### Patch Changes
+
+- [`b206d67`](https://github.com/435012357/bubblesjs/commit/b206d6773c07356ff210671acd81697855274649) Thanks [@435012357](https://github.com/435012357)! - 模板更新rsbuild1.3.1
+
 ## 0.0.6
 
 ### Patch Changes
