@@ -1,6 +1,7 @@
-import { defineConfig } from '@rsbuild/core';
-import { pluginReact } from '@rsbuild/plugin-react';
-import AutoImport from 'unplugin-auto-import/rspack';
+import { defineConfig } from '@rsbuild/core'
+import { pluginReact } from '@rsbuild/plugin-react'
+import AutoImport from 'unplugin-auto-import/rspack'
+import UnoCSS from '@unocss/postcss'
 
 export default defineConfig({
   html: {
@@ -12,7 +13,7 @@ export default defineConfig({
     },
   },
   server: {
-    port: process.env.PUBLIC_PORT,
+    port: Number(process.env.PUBLIC_PORT),
   },
   plugins: [pluginReact()],
   tools: {
@@ -24,5 +25,10 @@ export default defineConfig({
         }),
       ],
     },
+    postcss: {
+      postcssOptions: {
+        plugins: [UnoCSS()],
+      },
+    },
   },
-});
+})
