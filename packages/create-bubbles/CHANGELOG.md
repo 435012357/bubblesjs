@@ -1,5 +1,11 @@
 # create-bubbles
 
+## 0.0.15
+
+### Patch Changes
+
+- [`7d5c5a2`](https://github.com/435012357/bubblesjs/commit/7d5c5a22d3bf1f83a88770b7833f623cd5907b7a) Thanks [@435012357](https://github.com/435012357)! - 更新react 模板
+
 ## 0.0.14
 
 ### Patch Changes
