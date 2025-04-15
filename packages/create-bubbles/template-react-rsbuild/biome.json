@@ -1,7 +1,7 @@
 {
   "files": {
     "ignoreUnknown": true,
-    "ignore": ["dist/*", "node_modules", "package.json", "./src/types/auto-import.d.ts", "*.js"]
+    "ignore": ["dist/*", "node_modules", "package.json", "auto-import.d.ts", "*.js", ".vscode/*"]
   },
   "formatter": {
     "enabled": true,

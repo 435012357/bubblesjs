@@ -11,7 +11,8 @@
       "node_modules",
       "server",
       "scripts/previewEditor/**/*",
-      "package.json"
+      "package.json",
+      ".vscode/*"
     ]
   },
   "formatter": {
