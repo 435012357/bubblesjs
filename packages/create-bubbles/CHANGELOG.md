@@ -1,5 +1,13 @@
 # create-bubbles
 
+## 0.0.13
+
+### Patch Changes
+
+- [`643b2b8`](https://github.com/435012357/bubblesjs/commit/643b2b8b559dafa5f88190f27dbef8bb93771c6a) Thanks [@435012357](https://github.com/435012357)! - fix: create-bubbles
+
+- [#16](https://github.com/435012357/bubblesjs/pull/16) [`efc00f7`](https://github.com/435012357/bubblesjs/commit/efc00f703b9f05053e324fbfda9692f7f43d827d) Thanks [@github-actions](https://github.com/apps/github-actions)! - vue模板增加lefthook
+
 ## 0.0.12
 
 ### Patch Changes
