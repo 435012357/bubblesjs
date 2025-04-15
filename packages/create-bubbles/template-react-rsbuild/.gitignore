@@ -1,13 +1,7 @@
-# Local
-.DS_Store
-*.local
-*.log*
-
-# Dist
 node_modules
-dist/
+dist
+pnpm-lock.yaml
 
-# IDE
-.vscode/*
-!.vscode/extensions.json
-.idea
+*.zip
+*.rar
+*.local
