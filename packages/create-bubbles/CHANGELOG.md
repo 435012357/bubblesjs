@@ -1,5 +1,11 @@
 # create-bubbles
 
+## 0.0.16
+
+### Patch Changes
+
+- [`a179eda`](https://github.com/435012357/bubblesjs/commit/a179eda39b38de4c0da270f4d8d7e95abcf0a556) Thanks [@435012357](https://github.com/435012357)! - create bubbles 自动发布问题
+
 ## 0.0.15
 
 ### Patch Changes
