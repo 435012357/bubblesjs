@@ -1,27 +1,38 @@
-import { Suspense } from 'react';
-import { createBrowserRouter, type RouteObject } from 'react-router';
-
-import Loading from '@/components/Loading/PageLoading';
-
+import { createBrowserRouter, Navigate, type RouteObject } from 'react-router'
+import Layout from '@/layout/default'
+import { envVariables } from '@/utils/env'
 export const lazyLoad = (path: string) => {
-  const Module = lazy(() => import(`@/pages/${path}.tsx`));
-  return (
-    <Suspense fallback={<Loading />}>
-      <Module />
-    </Suspense>
-  );
-};
+  const Module = lazy(() => import(`@/pages/${path}.tsx`))
+  return <Module />
+}
+
+export const menuRoutes: RouteObject[] = [
+  {
+    path: 'home',
+    id: 'home',
+    handle: { title: '首页' },
+    element: lazyLoad('home/index'),
+  },
+]
 
 const routes: RouteObject[] = [
   {
     path: '/',
-    id: 'home',
-    element: lazyLoad('home/index'),
+    id: 'layout',
+    element: <Layout />,
+    children: [
+      {
+        path: '',
+        id: 'index',
+        element: <Navigate to={'/home'} />,
+      },
+      ...menuRoutes,
+    ],
   },
-];
+]
 
 export const router = createBrowserRouter(routes, {
-  basename: import.meta.env.PUBLIC_PATH,
-});
+  basename: envVariables.PUBLIC_PATH,
+})
 
-export default router;
+export default router

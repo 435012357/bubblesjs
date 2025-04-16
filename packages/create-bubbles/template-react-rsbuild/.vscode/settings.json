@@ -1,6 +1,6 @@
 {
   "editor.formatOnSave": true,
-  "editor.defaultFormatter": "biomejs.biome",// 控制相关文件嵌套展示
+  "editor.defaultFormatter": "biomejs.biome", // 控制相关文件嵌套展示
   "explorer.fileNesting.enabled": true,
   "explorer.fileNesting.expand": false,
   "explorer.fileNesting.patterns": {
@@ -10,12 +10,5 @@
     "package.json": "pnpm-lock.yaml",
     ".prettierrc": ".prettierignore"
   },
-  "cSpell.words": [
-    "ahooks",
-    "ianvs",
-    "lefthook",
-    "rsbuild",
-    "unocss",
-    "unplugin"
-  ],
+  "cSpell.words": ["ahooks", "ianvs", "lefthook", "rsbuild", "rspack", "unocss", "unplugin"]
 }

@@ -5,4 +5,6 @@ export default defineConfig({
     filesystem: ['**/*.{html,js,ts,jsx,tsx,vue,svelte,astro}'],
   },
   presets: [presetWind3()],
+  rules: [],
+  shortcuts: [['flex-center', 'flex items-center justify-center']],
 })
