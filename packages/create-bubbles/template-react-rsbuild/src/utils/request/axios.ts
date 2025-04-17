@@ -1,5 +1,6 @@
 import { message } from 'antd'
 import axios, { type AxiosResponse } from 'axios'
+import { envVariables } from '@/utils/env'
 
 import { router } from '@/router'
 import { useUserStore } from '@/store/modules/user'
@@ -24,7 +25,7 @@ export default (customConfig?: CustomConfig) => {
   const token = useUserStore((state) => state.token)
 
   const instance = axios.create({
-    baseURL: import.meta.env.PUBLIC_API_AFFIX,
+    baseURL: envVariables.PUBLIC_API_AFFIX,
   })
 
   instance.interceptors.request.use(

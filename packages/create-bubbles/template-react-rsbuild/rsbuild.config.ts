@@ -3,6 +3,7 @@ import { pluginReact } from '@rsbuild/plugin-react'
 import AutoImport from 'unplugin-auto-import/rspack'
 import UnoCSS from '@unocss/postcss'
 import { pluginSass } from '@rsbuild/plugin-sass'
+import { pluginSvgr } from '@rsbuild/plugin-svgr'
 
 export default defineConfig({
   html: {
@@ -23,6 +24,7 @@ export default defineConfig({
         // additionalData: `@import "@/styles/variables.scss";`,
       },
     }),
+    pluginSvgr(),
   ],
   tools: {
     rspack: {
