@@ -1,5 +1,11 @@
 # @bubblesjs/utils
 
+## 0.0.6
+
+### Patch Changes
+
+- [`d66cb62`](https://github.com/435012357/bubblesjs/commit/d66cb62d2ad85cf8fd36d02cafa35ad151a1cf7e) Thanks [@435012357](https://github.com/435012357)! - request 增加核心模块
+
 ## 0.0.5
 
 ### Patch Changes
