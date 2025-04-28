@@ -1,2 +1,1 @@
-export { default as getRequest } from './request';
-export { createRequest } from './request/axios';
+export { getRequest, type getRequestOption } from './request/core'
