@@ -1,5 +1,11 @@
 # create-bubbles
 
+## 0.0.19
+
+### Patch Changes
+
+- [`c617a45`](https://github.com/435012357/bubblesjs/commit/c617a454f42cc4f5c14cafa814107f60e4d04004) Thanks [@435012357](https://github.com/435012357)! - feat: upgrade rsbuild 1.3.20
+
 ## 0.0.18
 
 ### Patch Changes
