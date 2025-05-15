@@ -2,4 +2,4 @@ packages:
   - 'packages/*'
   - doc
   - docs
-  # - packages/create-bubbles/template-*
+  - packages/create-bubbles/template-*

@@ -1,6 +1,8 @@
 import { defineConfig } from '@rsbuild/core'
 import { pluginVue } from '@rsbuild/plugin-vue'
 import AutoImport from 'unplugin-auto-import/rspack'
+import UnoCSS from '@unocss/postcss'
+import { pluginSass } from '@rsbuild/plugin-sass'
 
 export default defineConfig({
   html: {
@@ -12,9 +14,9 @@ export default defineConfig({
     },
   },
   server: {
-    port: process.env.PUBLIC_PORT,
+    port: Number(process.env.PUBLIC_PORT),
   },
-  plugins: [pluginVue()],
+  plugins: [pluginVue(), pluginSass()],
   tools: {
     rspack: {
       plugins: [
@@ -23,6 +25,11 @@ export default defineConfig({
           dts: './src/types/auto-import.d.ts',
         }),
       ],
+    },
+    postcss: {
+      postcssOptions: {
+        plugins: [UnoCSS()],
+      },
     },
   },
 })
