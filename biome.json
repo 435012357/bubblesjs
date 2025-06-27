@@ -72,6 +72,11 @@
       "quoteStyle": "single"
     }
   },
+  "json": {
+    "parser": {
+      "allowComments": true
+    }
+  },
   "overrides": [
     {
       "include": ["**/*.test.ts", "**/*.test.tsx", "tests/**/*", "scripts/**/*", ".dumi/**/*"],
