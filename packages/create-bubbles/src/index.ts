@@ -60,11 +60,6 @@ const FRAMEWORKS: Framework[] = [
         display: 'react + ts + biomejs + rsbuild',
         color: blue,
       },
-      {
-        name: 'react-vite',
-        display: 'react + ts + biomejs + vite',
-        color: blue,
-      },
     ],
   },
   {
@@ -78,8 +73,8 @@ const FRAMEWORKS: Framework[] = [
         color: blue,
       },
       {
-        name: 'vue-vite',
-        display: 'vue + ts + biomejs + vite',
+        name: 'vue-rolldown-oxlint',
+        display: 'vue + ts + oxlint + vite-rolldown',
         color: blue,
       },
     ],

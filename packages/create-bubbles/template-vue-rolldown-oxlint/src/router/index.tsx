@@ -1,6 +1,7 @@
-import { createRouter, createWebHistory } from 'vue-router'
-import { routes } from './modules'
 import type { App } from 'vue'
+import { createRouter, createWebHistory } from 'vue-router'
+
+import { routes } from './modules'
 
 export const router = createRouter({
   history: createWebHistory(import.meta.env.PUBLIC_PATH),
