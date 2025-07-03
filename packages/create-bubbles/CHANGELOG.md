@@ -1,5 +1,11 @@
 # create-bubbles
 
+## 0.0.20
+
+### Patch Changes
+
+- [`29fd4e6`](https://github.com/435012357/bubblesjs/commit/29fd4e618366b274a43dbf1d0c3d28b4f92bbac0) Thanks [@435012357](https://github.com/435012357)! - feat: template add template-vue-rolldown-oxlint
+
 ## 0.0.19
 
 ### Patch Changes
