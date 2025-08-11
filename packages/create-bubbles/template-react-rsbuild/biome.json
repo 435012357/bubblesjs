@@ -1,22 +1,13 @@
 {
+  "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
   "files": {
-    "ignoreUnknown": true,
-    "ignore": ["dist/*", "node_modules", "package.json", "auto-import.d.ts", "*.js"]
+    "ignoreUnknown": true
   },
   "formatter": {
     "enabled": true,
     "indentStyle": "space",
     "lineWidth": 100,
     "indentWidth": 2
-  },
-  "javascript": {
-    "formatter": {
-      "quoteStyle": "single",
-      "semicolons": "asNeeded"
-    }
-  },
-  "organizeImports": {
-    "enabled": false
   },
   "linter": {
     "rules": {
@@ -29,10 +20,14 @@
       },
       "complexity": {
         "noUselessTypeConstraint": "off",
-        "noForEach": "off"
+        "noForEach": "off",
+        "useDateNow": "off"
       },
       "correctness": {
-        "useExhaustiveDependencies": "off"
+        "useExhaustiveDependencies": "off",
+        "useHookAtTopLevel": "off",
+        "noUnusedFunctionParameters": "off",
+        "noUnusedVariables": "off"
       },
       "suspicious": {
         "noGlobalIsNan": "off",
@@ -40,18 +35,27 @@
         "noExplicitAny": "off",
         "noArrayIndexKey": "off",
         "noConfusingVoidType": "off",
-        "noThenProperty": "off"
+        "noThenProperty": "off",
+        "noTemplateCurlyInString": "off"
       },
       "performance": {
         "noDelete": "off",
-        "noAccumulatingSpread": "off"
+        "noAccumulatingSpread": "off",
+        "noDynamicNamespaceImportAccess": "off"
       },
       "a11y": {
         "noAriaHiddenOnFocusable": "off",
         "noLabelWithoutControl": "off",
         "useFocusableInteractive": "off",
         "useKeyWithClickEvents": "off",
-        "useSemanticElements": "off"
+        "useSemanticElements": "off",
+        "noStaticElementInteractions": "off",
+        "useAriaPropsSupportedByRole": "off",
+        "useAriaPropsForRole": "off",
+        "useValidAnchor": "off"
+      },
+      "nursery": {
+        "useUniqueElementIds": "off"
       }
     }
   },
@@ -60,43 +64,19 @@
       "quoteStyle": "single"
     }
   },
-  "overrides": [
-    {
-      "include": ["**/*.test.ts", "**/*.test.tsx", "tests/**/*", "scripts/**/*"],
-      "linter": {
-        "rules": {
-          "style": {
-            "noParameterAssign": "off"
-          },
-          "suspicious": {
-            "noThenProperty": "off",
-            "noImplicitAnyLet": "off"
-          },
-          "complexity": {
-            "noUselessFragments": "off"
-          },
-          "a11y": {
-            "useValidAnchor": "off",
-            "useAnchorContent": "off",
-            "useKeyWithClickEvents": "off"
-          }
-        }
-      }
-    },
-    {
-      "include": ["components/*/demo/*"],
-      "linter": {
-        "rules": {
-          "correctness": {
-            "noVoidTypeReturn": "off"
-          },
-          "a11y": {
-            "useValidAnchor": "off",
-            "useAnchorContent": "off",
-            "useKeyWithClickEvents": "off"
-          }
-        }
+  "javascript": {
+    "jsxRuntime": "reactClassic",
+    "formatter": {
+      "quoteStyle": "single",
+      "semicolons": "asNeeded"
+    }
+  },
+  "assist": {
+    "enabled": true,
+    "actions": {
+      "source": {
+        "organizeImports": "off"
       }
     }
-  ]
+  }
 }
