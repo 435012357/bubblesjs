@@ -3,6 +3,8 @@ import { pluginVue } from '@rsbuild/plugin-vue'
 import AutoImport from 'unplugin-auto-import/rspack'
 import UnoCSS from '@unocss/postcss'
 import { pluginSass } from '@rsbuild/plugin-sass'
+import Components from 'unplugin-vue-components/rspack'
+import { ElementPlusResolver } from 'unplugin-vue-components/resolvers'
 
 export default defineConfig({
   html: {
@@ -24,6 +26,11 @@ export default defineConfig({
           imports: ['vue', 'vue-router'],
           dts: './src/types/auto-import.d.ts',
         }),
+        Components({
+          resolvers: [ElementPlusResolver()],
+          dts: './src/types/components.d.ts',
+        }),
+
       ],
     },
     postcss: {

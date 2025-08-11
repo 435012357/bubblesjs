@@ -1,4 +1,4 @@
-import { message } from 'ant-design-vue'
+import { message } from 'element-plus'
 import axios, { type AxiosResponse } from 'axios'
 
 import { router } from '@/router'

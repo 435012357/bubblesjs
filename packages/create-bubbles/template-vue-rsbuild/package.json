@@ -11,7 +11,7 @@
     "preview": "rsbuild preview"
   },
   "dependencies": {
-    "ant-design-vue": "^4.2.6",
+    "element-plus": "^2.10.6",
     "pinia": "^3.0.3",
     "vue": "^3.5.18",
     "vue-router": "^4.5.1"
@@ -27,6 +27,7 @@
     "prettier": "^3.6.2",
     "typescript": "^5.9.2",
     "unocss": "^66.4.2",
-    "unplugin-auto-import": "^20.0.0"
+    "unplugin-auto-import": "^20.0.0",
+    "unplugin-vue-components": "^29.0.0"
   }
 }
