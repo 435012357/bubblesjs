@@ -1,15 +1,62 @@
-## 创建 Bubbles 项目
-你可以使用 `create-rsbuild` 来创建一个 Rsbuild 项目，调用以下命令：
+# Quick Start
 
-<!-- import { PackageManagerTabs } from '@theme';
+Getting started with BubblesJS is easy! Let's create your first project.
 
-<PackageManagerTabs
-  command={{
-    npm: 'npm create rsbuild@latest',
-    yarn: 'yarn create rsbuild',
-    pnpm: 'pnpm create rsbuild@latest',
-    bun: 'bun create rsbuild@latest',
-  }}
-/> -->
+## Environment Requirements
 
-然后按照提示操作即可。
+- Node.js >= 18.0.0
+- Package manager: npm, yarn, pnpm, or bun
+
+## Create Project
+
+You can use `create-bubbles` to create a new BubblesJS project:
+
+```bash
+npm create bubbles@latest my-project
+# or
+yarn create bubbles my-project
+# or
+pnpm create bubbles@latest my-project
+# or
+bun create bubbles my-project
+```
+
+## Choose Template
+
+During project creation, you'll be prompted to select a template:
+
+- **React + Rsbuild**: Fast React development with Rsbuild
+- **Vue + Rsbuild**: Vue development with Rsbuild and auto-imports
+- **Vue + Vite**: Traditional Vue + Vite setup
+- **Vue + Rolldown + Oxlint**: Experimental build tools (Rolldown + Oxlint)
+
+## Start Development
+
+After project creation, navigate to your project directory and start the development server:
+
+```bash
+cd my-project
+npm install
+npm run dev
+```
+
+## Project Structure
+
+```
+my-project/
+├── src/
+│   ├── main.ts         # Entry point
+│   ├── App.vue         # Root component
+│   └── components/     # Components directory
+├── public/             # Static assets
+├── package.json        # Dependencies and scripts
+└── vite.config.ts      # Build configuration
+```
+
+## Next Steps
+
+- 🎯 [Learn about Templates](/templates/) - Explore available project templates
+- 📦 [Packages Documentation](/packages/) - Discover utility packages
+- 🔧 [API Reference](/api/) - Check out available APIs
+
+Happy coding! 🚀
