@@ -2,36 +2,37 @@
 pageType: home
 
 hero:
-  name: BubblesJs
-  text: everything to bubbles
-  tagline: 
+  name: BubblesJS
+  text: Modern Frontend Development Toolkit 🫧
+  tagline: Lightweight, fast, and extensible frontend development solution
   actions:
     - theme: brand
       text: Quick Start
       link: /guide/
     - theme: alt
       text: GitHub
-      link: https://github.com/web-infra-dev/rspress
+      link: https://github.com/435012357/bubblesjs
   image:
     src: /rspress-icon.png
-    alt: Logo
+    alt: BubblesJS Logo
+
 features:
-  - title: Blazing fast build speed
-    details: The core compilation module is based on the Rust front-end toolchain, providing a more ultimate development experience.
-    icon: 🏃🏻‍♀️
-  - title: Support for MDX content writing
-    details: MDX is a powerful way to write content, allowing you to use React components in Markdown.
+  - title: 🚀 Lightning Fast Setup
+    details: Create React or Vue projects in seconds with create-bubbles scaffolding tool, ready-to-use configurations
+    icon: 🚀
+  - title: 🛠️ Modern Toolchain
+    details: Built-in Rsbuild, UnoCSS, Biome and other cutting-edge tools for ultimate development experience
+    icon: 🛠️
+  - title: 📦 Utility Package
+    details: Provides @bubblesjs/utils package with network requests and other common utilities for rapid development
     icon: 📦
-  - title: Built-in full-text search
-    details: Automatically generates a full-text search index for you during construction, providing out-of-the-box full-text search capabilities.
+  - title: 🎨 UI Friendly
+    details: Supports Ant Design component library for beautiful and modern user interface design
     icon: 🎨
-  - title: Simpler I18n solution
-    details: With the built-in I18n solution, you can easily provide multi-language support for documents or components.
+  - title: 🌍 Multi-Framework Support
+    details: Supports both React and Vue frameworks to meet different technology stack requirements
     icon: 🌍
-  - title: Static site generation
-    details: In production, it automatically builds into static HTML files, which can be easily deployed anywhere.
-    icon: 🌈
-  - title: Providing multiple custom capabilities
-    details: Through its extension mechanism, you can easily extend theme UI and build process.
-    icon: 🔥
+  - title: 🔧 Highly Configurable
+    details: Flexible configuration options, supports custom build, styling and development workflows
+    icon: 🔧
 ---

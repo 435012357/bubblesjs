@@ -1,15 +1,70 @@
-## 创建 Bubbles 项目
-你可以使用 `create-rsbuild` 来创建一个 Rsbuild 项目，调用以下命令：
+# 快速开始
 
-<!-- import { PackageManagerTabs } from '@theme';
+## 环境要求
 
-<PackageManagerTabs
-  command={{
-    npm: 'npm create rsbuild@latest',
-    yarn: 'yarn create rsbuild',
-    pnpm: 'pnpm create rsbuild@latest',
-    bun: 'bun create rsbuild@latest',
-  }}
-/> -->
+在开始之前，请确保你的开发环境满足以下要求：
 
-然后按照提示操作即可。
+- **Node.js**: 版本 18 或更高版本
+- **包管理器**: npm、yarn、pnpm 或 bun
+
+## 创建 BubblesJS 项目
+
+使用 `create-bubbles` 脚手架工具来创建一个新项目：
+
+```bash
+# 使用 npm
+npm create bubbles@latest my-project
+
+# 使用 yarn  
+yarn create bubbles my-project
+
+# 使用 pnpm
+pnpm create bubbles@latest my-project
+
+# 使用 bun
+bun create bubbles@latest my-project
+```
+
+## 选择模板
+
+运行命令后，会出现交互式提示，让你选择：
+
+1. **框架选择**: React 或 Vue
+2. **构建工具**: Rsbuild（推荐）或 Vite
+3. **项目名称**: 输入你的项目名称
+
+## 启动开发服务器
+
+创建完成后，进入项目目录并启动开发服务器：
+
+```bash
+cd my-project
+
+# 安装依赖
+npm install
+
+# 启动开发服务器
+npm run dev
+```
+
+现在你可以在浏览器中访问 `http://localhost:3000` 查看你的应用！
+
+## 项目结构
+
+创建的项目包含以下核心文件和目录：
+
+```
+my-project/
+├── src/                # 源代码目录
+│   ├── App.tsx        # 主应用组件
+│   └── main.tsx       # 应用入口
+├── public/            # 静态资源
+├── package.json       # 项目配置
+└── rsbuild.config.ts  # 构建配置
+```
+
+## 下一步
+
+- 📖 查看 [包管理](/packages/) 了解可用的工具包
+- 🎨 查看 [模板](/templates/) 了解不同的项目模板
+- 🛠️ 查看 [API](/api/) 了解详细的 API 文档
