@@ -1,0 +1,42 @@
+{
+  "name": "create-bubbles",
+  "version": "0.0.1",
+  "type": "module",
+  "license": "MIT",
+  "author": "bubblesplant",
+  "bin": {
+    "create-bubbles": "index.js",
+    "cva": "index.js"
+  },
+  "files": [
+    "index.js",
+    "template-*",
+    "dist"
+  ],
+  "scripts": {
+    "dev": "tsdown --watch",
+    "build": "tsdown",
+    "typecheck": "tsc",
+    "prepublishOnly": "npm run build"
+  },
+  "engines": {
+    "node": "^20.19.0 || >=22.12.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/435012357/bubblesjs.git",
+    "directory": "packages/create-bubbles"
+  },
+  "bugs": {
+    "url": "https://github.com/435012357/bubblesjs/issues"
+  },
+  "homepage": "https://github.com/435012357/bubblesjs/tree/master/packages/create-bubbles#readme",
+  "funding": "https://github.com/435012357/bubblesjs",
+  "devDependencies": {
+    "tsdown": "^0.14.1"
+  },
+  "dependencies": {
+    "mri": "^1.2.0",
+    "picocolors": "^1.1.1"
+  }
+}
