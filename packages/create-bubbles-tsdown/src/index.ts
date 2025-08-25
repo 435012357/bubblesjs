@@ -2,6 +2,7 @@
 import gradient from 'gradient-string' // https://github.com/bokub/gradient-string
 import mri from 'mri' // http://github.com/lukeed/mri
 import * as prompts from '@clack/prompts'
+import fs from 'node:fs'
 
 // const { blue, blueBright, cyan, green, greenBright, magenta, red, redBright, reset, yellow } =
 //   colors // 终端输出添加颜色
@@ -75,6 +76,16 @@ const pkgFromUserAgent = (userAgent?: string): PkgInfo | void => {
   }
 }
 
+/**
+ * 要么没有文件要么只有一个.git 文件夹
+ * @param path
+ * @returns
+ */
+const isEmpty = (path: string) => {
+  const files = fs.readdirSync(path)
+  return files.length === 0 || (files.length === 1 && files[0] === '.git')
+}
+
 const init = async () => {
   console.log(argv)
   /**
@@ -90,14 +101,14 @@ const init = async () => {
   const argTargetDir = argv._[0] ? formatTargetDir(argv._[0]) : undefined
 
   const argTemplate = argv.template
-  const argOverwirte = argv.overwrite
+  const argOverwrite = argv.overwrite
 
   const defaultTargetDir = 'bubbles-project'
 
+  // 1. 先看有没有help 参数
   const help = argv.help
   if (help) {
-    // 标准输出 和 console.log 一样
-    process.stdout.write(helpMessage)
+    console.log(helpMessage)
     return
   }
 
@@ -106,7 +117,7 @@ const init = async () => {
   const pkgInfo = pkgFromUserAgent(process.env.npm_config_user_agent) // 获取用户
   const cancel = () => prompts.cancel('Operation cancelled')
 
-  // 1. get project name and target dir
+  // 2. 创建交互 让用户输入项目名 并提共默认值
   let targetDir = argTargetDir
   if (!targetDir) {
     const projectName = await prompts.text({
@@ -123,8 +134,32 @@ const init = async () => {
     targetDir = formatTargetDir(projectName)
   }
 
-  console.log('💦pkgInfo', process.env.npm_config_user_agent)
-  console.log('💦argTargetDir', argTargetDir)
+  // 2. 如果文件夹存在不为空
+  if (fs.existsSync(targetDir) && !isEmpty(targetDir)) {
+    const overwrite = argOverwrite
+      ? 'yes'
+      : await prompts.select({
+          message:
+            targetDir === '.'
+              ? 'Current directory'
+              : `Target directory "${targetDir}" is not empty. Please choose how to proceed:`,
+          options: [
+            {
+              label: 'Cancel operation',
+              value: 'no',
+            },
+            {
+              label: 'Remove existing files and continue',
+              value: 'yes',
+            },
+            {
+              label: 'Ignore files and continue',
+              value: 'ignore',
+            },
+          ],
+        })
+    if (prompts.isCancel(overwrite)) return cancel()
+  }
 }
 
 init().catch((e) => {
