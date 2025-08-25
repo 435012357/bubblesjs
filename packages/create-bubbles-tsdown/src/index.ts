@@ -3,6 +3,7 @@ import gradient from 'gradient-string' // https://github.com/bokub/gradient-stri
 import mri from 'mri' // http://github.com/lukeed/mri
 import * as prompts from '@clack/prompts'
 import fs from 'node:fs'
+import path from 'node:path'
 
 // const { blue, blueBright, cyan, green, greenBright, magenta, red, redBright, reset, yellow } =
 //   colors // 终端输出添加颜色
@@ -86,6 +87,18 @@ const isEmpty = (path: string) => {
   return files.length === 0 || (files.length === 1 && files[0] === '.git')
 }
 
+const emptyDir = (dir: string) => {
+  if (!fs.existsSync(dir)) {
+    return
+  }
+  for (const file of fs.readdirSync(dir)) {
+    if (file === '.git') {
+      continue
+    }
+    fs.rmSync(path.resolve(dir, file), { force: true, recursive: true })
+  }
+}
+
 const init = async () => {
   console.log(argv)
   /**
@@ -158,8 +171,20 @@ const init = async () => {
             },
           ],
         })
+    // 处理 目录中取消
     if (prompts.isCancel(overwrite)) return cancel()
+    switch (overwrite) {
+      case 'yes':
+        emptyDir(targetDir)
+        break
+      case 'no':
+        cancel()
+        return
+    }
   }
+
+  // 3. 获取包名
+  let packageName = path.basename(path.resolve(targetDir))
 }
 
 init().catch((e) => {
