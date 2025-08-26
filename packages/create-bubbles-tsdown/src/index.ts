@@ -1,9 +1,9 @@
 // import colors from 'picocolors' // https://github.com/alexeyraspopov/picocolors
-import gradient from 'gradient-string' // https://github.com/bokub/gradient-string
-import mri from 'mri' // http://github.com/lukeed/mri
-import * as prompts from '@clack/prompts'
-import fs from 'node:fs'
-import path from 'node:path'
+import fs from 'node:fs';
+import path from 'node:path';
+import * as prompts from '@clack/prompts';
+import gradient from 'gradient-string'; // https://github.com/bokub/gradient-string
+import mri from 'mri'; // http://github.com/lukeed/mri
 
 // const { blue, blueBright, cyan, green, greenBright, magenta, red, redBright, reset, yellow } =
 //   colors // 终端输出添加颜色
@@ -11,7 +11,7 @@ import path from 'node:path'
 const colorMap = {
   vue: gradient(['#42B883', 'white']),
   react: gradient(['#087EA4', 'white']),
-}
+};
 
 /**
  * process.argv 是 node index.js 前两个参数
@@ -21,16 +21,16 @@ const colorMap = {
  */
 
 const argv = mri<{
-  template?: string
-  help?: boolean
-  overwrite?: boolean
+  template?: string;
+  help?: boolean;
+  overwrite?: boolean;
 }>(process.argv.slice(2), {
   alias: { h: 'help', t: 'template' }, // 缩写 比如 -h 就像变成 h:true help:true
   boolean: ['help', 'overwrite'], // 指定 help overwrite 为 boolean 类型
   string: ['template'], // 指定 template 为 string 类型
-})
+});
 
-const cwd = process.cwd() // 执行命令的绝对路径 代指执行命令的地方
+const cwd = process.cwd(); // 执行命令的绝对路径 代指执行命令的地方
 
 const helpMessage = `\
 Usage: create-bubbles [OPTION]... [DIRECTORY]
@@ -45,7 +45,7 @@ Available templates:
 ${colorMap.vue('vue-rsbuild-biome        vue')}
 ${colorMap.vue('vue-rolldown-oxc         vue')}
 ${colorMap.react('react-rsbuild-biome       react')}
-${colorMap.react('react-rolldown-oxc       react')}`
+${colorMap.react('react-rolldown-oxc       react')}`;
 
 // const FRAMEWORK = [
 //  {
@@ -59,23 +59,23 @@ ${colorMap.react('react-rolldown-oxc       react')}`
  * @returns
  */
 const formatTargetDir = (targetDir: string) => {
-  return targetDir.trim().replace(/\/+$/g, '')
-}
+  return targetDir.trim().replace(/\/+$/g, '');
+};
 
 interface PkgInfo {
-  name: string
-  version: string
+  name: string;
+  version: string;
 }
 
 const pkgFromUserAgent = (userAgent?: string): PkgInfo | void => {
-  if (!userAgent) return
-  const pkgSpec = userAgent.split(' ')[0]
-  const pkgSpecArr = pkgSpec.split('/')
+  if (!userAgent) return;
+  const pkgSpec = userAgent.split(' ')[0];
+  const pkgSpecArr = pkgSpec.split('/');
   return {
     name: pkgSpecArr[0],
     version: pkgSpecArr[1],
-  }
-}
+  };
+};
 
 /**
  * 要么没有文件要么只有一个.git 文件夹
@@ -83,24 +83,37 @@ const pkgFromUserAgent = (userAgent?: string): PkgInfo | void => {
  * @returns
  */
 const isEmpty = (path: string) => {
-  const files = fs.readdirSync(path)
-  return files.length === 0 || (files.length === 1 && files[0] === '.git')
-}
+  const files = fs.readdirSync(path);
+  return files.length === 0 || (files.length === 1 && files[0] === '.git');
+};
+
+const removeFileSync = (filePath: string) => {
+  const stats = fs.statSync(filePath);
+  if (stats.isDirectory()) {
+    console.log('💦stats', stats);
+    // fs.rmdirSync(filePath);
+    fs.rmSync(filePath, { force: true, recursive: true });
+  } else {
+    fs.unlinkSync(filePath);
+  }
+};
 
 const emptyDir = (dir: string) => {
   if (!fs.existsSync(dir)) {
-    return
+    return;
   }
   for (const file of fs.readdirSync(dir)) {
     if (file === '.git') {
-      continue
+      continue;
     }
-    fs.rmSync(path.resolve(dir, file), { force: true, recursive: true })
+    console.log('💦path.resolve(dir, file)', path.resolve(dir, file));
+    // fs.rmSync(path.resolve(dir, file), { force: true, recursive: true });
+    removeFileSync(path.resolve(dir, file));
   }
-}
+};
 
 const init = async () => {
-  console.log(argv)
+  console.log(argv);
   /**
    * 取的是那些没有 --key value的参数 这里代指模板
    * bun index.js template-vue -t vue -s 12321  template-react
@@ -111,27 +124,27 @@ const init = async () => {
    * template: "vue",
    * }
    */
-  const argTargetDir = argv._[0] ? formatTargetDir(argv._[0]) : undefined
+  const argTargetDir = argv._[0] ? formatTargetDir(argv._[0]) : undefined;
 
-  const argTemplate = argv.template
-  const argOverwrite = argv.overwrite
+  const argTemplate = argv.template;
+  const argOverwrite = argv.overwrite;
 
-  const defaultTargetDir = 'bubbles-project'
+  const defaultTargetDir = 'bubbles-project';
 
   // 1. 先看有没有help 参数
-  const help = argv.help
+  const help = argv.help;
   if (help) {
-    console.log(helpMessage)
-    return
+    console.log(helpMessage);
+    return;
   }
 
   //   - pnpm exec node packages/create-bubbles-tsdown/index.js
   // - 或 npm exec node packages/create-bubbles-tsdown/index.js
-  const pkgInfo = pkgFromUserAgent(process.env.npm_config_user_agent) // 获取用户
-  const cancel = () => prompts.cancel('Operation cancelled')
+  const pkgInfo = pkgFromUserAgent(process.env.npm_config_user_agent); // 获取用户
+  const cancel = () => prompts.cancel('Operation cancelled');
 
   // 2. 创建交互 让用户输入项目名 并提共默认值
-  let targetDir = argTargetDir
+  let targetDir = argTargetDir;
   if (!targetDir) {
     const projectName = await prompts.text({
       message: 'Project name',
@@ -140,11 +153,11 @@ const init = async () => {
       validate: (value) => {
         return value.length === 0 || formatTargetDir(value).length > 0
           ? undefined
-          : 'Invalid project name'
+          : 'Invalid project name';
       },
-    })
-    if (prompts.isCancel(projectName)) return cancel()
-    targetDir = formatTargetDir(projectName)
+    });
+    if (prompts.isCancel(projectName)) return cancel();
+    targetDir = formatTargetDir(projectName);
   }
 
   // 2. 如果文件夹存在不为空
@@ -158,7 +171,7 @@ const init = async () => {
               : `Target directory "${targetDir}" is not empty. Please choose how to proceed:`,
           options: [
             {
-              label: 'Cancel operation',
+              label: `${colorMap.vue('Cancel operation')}`,
               value: 'no',
             },
             {
@@ -170,23 +183,23 @@ const init = async () => {
               value: 'ignore',
             },
           ],
-        })
+        });
     // 处理 目录中取消
-    if (prompts.isCancel(overwrite)) return cancel()
+    if (prompts.isCancel(overwrite)) return cancel();
     switch (overwrite) {
       case 'yes':
-        emptyDir(targetDir)
-        break
+        emptyDir(targetDir);
+        break;
       case 'no':
-        cancel()
-        return
+        cancel();
+        return;
     }
   }
 
   // 3. 获取包名
-  let packageName = path.basename(path.resolve(targetDir))
-}
+  let packageName = path.basename(path.resolve(targetDir));
+};
 
 init().catch((e) => {
-  console.error('💦', e)
-})
+  console.error('💦', e);
+});

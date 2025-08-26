@@ -33,6 +33,7 @@
   "homepage": "https://github.com/435012357/bubblesjs/tree/master/packages/create-bubbles#readme",
   "funding": "https://github.com/435012357/bubblesjs",
   "devDependencies": {
+    "@types/node": "^24.3.0",
     "tsdown": "^0.14.1"
   },
   "dependencies": {
