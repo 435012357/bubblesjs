@@ -88,11 +88,17 @@ const isEmpty = (path: string) => {
 };
 
 const removeFileSync = (filePath: string) => {
+  // fs.rmSync(filePath, { force: true, recursive: true });
+  // 处理中文目录和文件
   const stats = fs.statSync(filePath);
   if (stats.isDirectory()) {
-    console.log('💦stats', stats);
-    // fs.rmdirSync(filePath);
-    fs.rmSync(filePath, { force: true, recursive: true });
+    const items = fs.readdirSync(filePath);
+    for (const item of items) {
+      const itemPath = path.join(filePath, item);
+      removeFileSync(itemPath); // 递归删除子项
+    }
+    // 删除空目录
+    fs.rmdirSync(filePath);
   } else {
     fs.unlinkSync(filePath);
   }
@@ -102,14 +108,19 @@ const emptyDir = (dir: string) => {
   if (!fs.existsSync(dir)) {
     return;
   }
+
+  /**  保住最外层的git 目录  */
   for (const file of fs.readdirSync(dir)) {
     if (file === '.git') {
       continue;
     }
-    console.log('💦path.resolve(dir, file)', path.resolve(dir, file));
     // fs.rmSync(path.resolve(dir, file), { force: true, recursive: true });
     removeFileSync(path.resolve(dir, file));
   }
+};
+
+const isValidPackageName = (packageName: string) => {
+  return /^(?:@[a-z\d\-*~][a-z\d\-*._~]*\/)?[a-z\d\-~][a-z\d\-._~]*$/.test(packageName);
 };
 
 const init = async () => {
@@ -197,7 +208,13 @@ const init = async () => {
   }
 
   // 3. 获取包名
+  console.log('💦targetDir', targetDir);
+  console.log('💦targetDir', path.resolve(targetDir));
+  console.log('💦targetDir', path.basename(path.resolve(targetDir)));
+  /** 提取绝对路径最后的path 与 targetDir 不同 因为 targetDir 可以输入 xxx/xxx */
   let packageName = path.basename(path.resolve(targetDir));
+  if (!isValidPackageName(packageName)) {
+  }
 };
 
 init().catch((e) => {
