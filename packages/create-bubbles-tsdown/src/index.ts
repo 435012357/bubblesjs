@@ -132,6 +132,15 @@ const isValidPackageName = (packageName: string) => {
   return /^(?:@[a-z\d\-*~][a-z\d\-*._~]*\/)?[a-z\d\-~][a-z\d\-._~]*$/.test(packageName)
 }
 
+const toValidPackageName = (packageName: string) => {
+  return packageName
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, '-')
+    .replace(/^[._]/, '')
+    .replace(/[^a-z\d\-~]+g/, '-')
+}
+
 const init = async () => {
   console.log(argv)
   /**
@@ -216,7 +225,7 @@ const init = async () => {
     }
   }
 
-  // 3. 获取包名
+  // 3. 获取包名 package.json name
   console.log('💦targetDir', targetDir)
   console.log('💦targetDir', path.resolve(targetDir))
   console.log('💦targetDir', path.basename(path.resolve(targetDir)))
@@ -224,7 +233,22 @@ const init = async () => {
   let packageName = path.basename(path.resolve(targetDir))
   if (!isValidPackageName(packageName)) {
     console.log('💦名字有误')
+    const packageNameResult = await prompts.text({
+      message: 'Package name is invalid. please input again:',
+      defaultValue: toValidPackageName(packageName),
+      placeholder: toValidPackageName(packageName),
+      validate(dir) {
+        if (!isValidPackageName(dir)) {
+          return 'Invalid package.json name'
+        }
+      },
+    })
+    if (prompts.isCancel(packageNameResult)) return cancel()
+    packageName = packageNameResult
   }
+  console.log('packageName', packageName)
+
+  // 4. 选择模板
 }
 
 init().catch((e) => {
