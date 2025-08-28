@@ -1,17 +1,19 @@
 // import colors from 'picocolors' // https://github.com/alexeyraspopov/picocolors
-import fs from 'node:fs'
-import path from 'node:path'
-import * as prompts from '@clack/prompts'
-import gradient from 'gradient-string' // https://github.com/bokub/gradient-string
-import mri from 'mri' // http://github.com/lukeed/mri
+import fs from 'node:fs';
+import path from 'node:path';
+import * as prompts from '@clack/prompts';
+import gradient from 'gradient-string'; // https://github.com/bokub/gradient-string
+import mri from 'mri'; // http://github.com/lukeed/mri
+
+import type { Framework } from './interface';
 
 // const { blue, blueBright, cyan, green, greenBright, magenta, red, redBright, reset, yellow } =
 //   colors // 终端输出添加颜色
 
 const colorMap = {
-  vue: gradient(['#42B883', 'white']),
-  react: gradient(['#087EA4', 'white']),
-}
+  vue: gradient(['#42B883', 'white', '#42B883']),
+  react: gradient(['#087EA4', 'white', '#087EA4']),
+};
 
 /**
  * process.argv 是 node index.js 前两个参数
@@ -21,16 +23,16 @@ const colorMap = {
  */
 
 const argv = mri<{
-  template?: string
-  help?: boolean
-  overwrite?: boolean
+  template?: string;
+  help?: boolean;
+  overwrite?: boolean;
 }>(process.argv.slice(2), {
   alias: { h: 'help', t: 'template' }, // 缩写 比如 -h 就像变成 h:true help:true
   boolean: ['help', 'overwrite'], // 指定 help overwrite 为 boolean 类型
   string: ['template'], // 指定 template 为 string 类型
-})
+});
 
-const cwd = process.cwd() // 执行命令的绝对路径 代指执行命令的地方
+const cwd = process.cwd(); // 执行命令的绝对路径 代指执行命令的地方
 
 const helpMessage = `\
 Usage: create-bubbles [OPTION]... [DIRECTORY]
@@ -45,7 +47,7 @@ Available templates:
 ${colorMap.vue('vue-rsbuild-biome        vue')}
 ${colorMap.vue('vue-rolldown-oxc         vue')}
 ${colorMap.react('react-rsbuild-biome       react')}
-${colorMap.react('react-rolldown-oxc       react')}`
+${colorMap.react('react-rolldown-oxc       react')}`;
 
 // const FRAMEWORK = [
 //  {
@@ -59,23 +61,23 @@ ${colorMap.react('react-rolldown-oxc       react')}`
  * @returns
  */
 const formatTargetDir = (targetDir: string) => {
-  return targetDir.trim().replace(/\/+$/g, '')
-}
+  return targetDir.trim().replace(/\/+$/g, '');
+};
 
 interface PkgInfo {
-  name: string
-  version: string
+  name: string;
+  version: string;
 }
 
 const pkgFromUserAgent = (userAgent?: string): PkgInfo | void => {
-  if (!userAgent) return
-  const pkgSpec = userAgent.split(' ')[0]
-  const pkgSpecArr = pkgSpec.split('/')
+  if (!userAgent) return;
+  const pkgSpec = userAgent.split(' ')[0];
+  const pkgSpecArr = pkgSpec.split('/');
   return {
     name: pkgSpecArr[0],
     version: pkgSpecArr[1],
-  }
-}
+  };
+};
 
 /**
  * 要么没有文件要么只有一个.git 文件夹
@@ -83,41 +85,41 @@ const pkgFromUserAgent = (userAgent?: string): PkgInfo | void => {
  * @returns
  */
 const isEmpty = (path: string) => {
-  const files = fs.readdirSync(path)
-  return files.length === 0 || (files.length === 1 && files[0] === '.git')
-}
+  const files = fs.readdirSync(path);
+  return files.length === 0 || (files.length === 1 && files[0] === '.git');
+};
 
 const removeFileSync = (filePath: string) => {
   // fs.rmSync(filePath, { force: true, recursive: true });
   // 处理中文目录和文件
-  const stats = fs.statSync(filePath)
+  const stats = fs.statSync(filePath);
   if (stats.isDirectory()) {
-    const items = fs.readdirSync(filePath)
+    const items = fs.readdirSync(filePath);
     for (const item of items) {
-      const itemPath = path.join(filePath, item)
-      removeFileSync(itemPath) // 递归删除子项
+      const itemPath = path.join(filePath, item);
+      removeFileSync(itemPath); // 递归删除子项
     }
     // 删除空目录
-    fs.rmdirSync(filePath)
+    fs.rmdirSync(filePath);
   } else {
-    fs.unlinkSync(filePath)
+    fs.unlinkSync(filePath);
   }
-}
+};
 
 const emptyDir = (dir: string) => {
   if (!fs.existsSync(dir)) {
-    return
+    return;
   }
 
   /**  保住最外层的git 目录  */
   for (const file of fs.readdirSync(dir)) {
     if (file === '.git') {
-      continue
+      continue;
     }
     // fs.rmSync(path.resolve(dir, file), { force: true, recursive: true });
-    removeFileSync(path.resolve(dir, file))
+    removeFileSync(path.resolve(dir, file));
   }
-}
+};
 /**
  * 验证包名是否满足以 @ - * ~ 字母 数字 开头 并且
  * 第一个?: 代表非捕获模式 第二个代表 可有可无
@@ -129,20 +131,45 @@ const emptyDir = (dir: string) => {
  * @returns
  */
 const isValidPackageName = (packageName: string) => {
-  return /^(?:@[a-z\d\-*~][a-z\d\-*._~]*\/)?[a-z\d\-~][a-z\d\-._~]*$/.test(packageName)
-}
+  return /^(?:@[a-z\d\-*~][a-z\d\-*._~]*\/)?[a-z\d\-~][a-z\d\-._~]*$/.test(packageName);
+};
 
+/**
+ * 把不合法的包名元素替换掉
+ * @param packageName
+ * @returns
+ */
 const toValidPackageName = (packageName: string) => {
   return packageName
     .trim()
     .toLowerCase()
     .replace(/\s+/g, '-')
     .replace(/^[._]/, '')
-    .replace(/[^a-z\d\-~]+g/, '-')
-}
+    .replace(/[^a-z\d\-~]+g/, '-');
+};
+
+const FRAMEWORK: Framework[] = [
+  {
+    name: 'vue',
+    display: 'Vue',
+    color: colorMap.vue,
+    variants: [
+      {
+        name: 'vue-rsbuild-biome',
+        display: 'rsbuild + biome',
+        color: colorMap.vue,
+      },
+      {
+        name: 'vue-rolldown-oxc',
+        display: 'rolldown + oxc',
+        color: colorMap.vue,
+      },
+    ],
+  },
+];
 
 const init = async () => {
-  console.log(argv)
+  console.log(argv);
   /**
    * 取的是那些没有 --key value的参数 这里代指模板
    * bun index.js template-vue -t vue -s 12321  template-react
@@ -153,27 +180,27 @@ const init = async () => {
    * template: "vue",
    * }
    */
-  const argTargetDir = argv._[0] ? formatTargetDir(argv._[0]) : undefined
+  const argTargetDir = argv._[0] ? formatTargetDir(argv._[0]) : undefined;
 
-  const argTemplate = argv.template
-  const argOverwrite = argv.overwrite
+  const argTemplate = argv.template;
+  const argOverwrite = argv.overwrite;
 
-  const defaultTargetDir = 'bubbles-project'
+  const defaultTargetDir = 'bubbles-project';
 
   // 1. 先看有没有help 参数
-  const help = argv.help
+  const help = argv.help;
   if (help) {
-    console.log(helpMessage)
-    return
+    console.log(helpMessage);
+    return;
   }
 
   //   - pnpm exec node packages/create-bubbles-tsdown/index.js
   // - 或 npm exec node packages/create-bubbles-tsdown/index.js
-  const pkgInfo = pkgFromUserAgent(process.env.npm_config_user_agent) // 获取用户
-  const cancel = () => prompts.cancel('Operation cancelled')
+  const pkgInfo = pkgFromUserAgent(process.env.npm_config_user_agent); // 获取用户
+  const cancel = () => prompts.cancel('Operation cancelled');
 
   // 2. 创建交互 让用户输入项目名 并提共默认值
-  let targetDir = argTargetDir
+  let targetDir = argTargetDir;
   if (!targetDir) {
     const projectName = await prompts.text({
       message: 'Project name',
@@ -182,11 +209,11 @@ const init = async () => {
       validate: (value) => {
         return value.length === 0 || formatTargetDir(value).length > 0
           ? undefined
-          : 'Invalid project name'
+          : 'Invalid project name';
       },
-    })
-    if (prompts.isCancel(projectName)) return cancel()
-    targetDir = formatTargetDir(projectName)
+    });
+    if (prompts.isCancel(projectName)) return cancel();
+    targetDir = formatTargetDir(projectName);
   }
 
   // 2. 如果文件夹存在不为空
@@ -212,45 +239,49 @@ const init = async () => {
               value: 'ignore',
             },
           ],
-        })
+        });
     // 处理 目录中取消
-    if (prompts.isCancel(overwrite)) return cancel()
+    if (prompts.isCancel(overwrite)) return cancel();
     switch (overwrite) {
       case 'yes':
-        emptyDir(targetDir)
-        break
+        emptyDir(targetDir);
+        break;
       case 'no':
-        cancel()
-        return
+        cancel();
+        return;
     }
   }
 
   // 3. 获取包名 package.json name
-  console.log('💦targetDir', targetDir)
-  console.log('💦targetDir', path.resolve(targetDir))
-  console.log('💦targetDir', path.basename(path.resolve(targetDir)))
+  console.log('💦targetDir', targetDir);
+  console.log('💦targetDir', path.resolve(targetDir));
+  console.log('💦targetDir', path.basename(path.resolve(targetDir)));
   /** 提取绝对路径最后的path 与 targetDir 不同 因为 targetDir 可以输入 xxx/xxx */
-  let packageName = path.basename(path.resolve(targetDir))
+  let packageName = path.basename(path.resolve(targetDir));
   if (!isValidPackageName(packageName)) {
-    console.log('💦名字有误')
+    console.log('💦名字有误');
     const packageNameResult = await prompts.text({
       message: 'Package name is invalid. please input again:',
       defaultValue: toValidPackageName(packageName),
       placeholder: toValidPackageName(packageName),
       validate(dir) {
         if (!isValidPackageName(dir)) {
-          return 'Invalid package.json name'
+          return 'Invalid package.json name';
         }
       },
-    })
-    if (prompts.isCancel(packageNameResult)) return cancel()
-    packageName = packageNameResult
+    });
+    if (prompts.isCancel(packageNameResult)) return cancel();
+    packageName = packageNameResult;
   }
-  console.log('packageName', packageName)
+  console.log('packageName', packageName);
 
   // 4. 选择模板
-}
+  let template = argTemplate;
+  let hasInvalidArgTemplate = false;
+  // if(argTemplate &&)
+  console.log('template', template);
+};
 
 init().catch((e) => {
-  console.error('💦', e)
-})
+  console.error('💦', e);
+});
