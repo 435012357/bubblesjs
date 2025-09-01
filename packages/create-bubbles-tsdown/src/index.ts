@@ -11,8 +11,8 @@ import type { Framework } from './interface'
 //   colors // 终端输出添加颜色
 
 const colorMap = {
-  vue: gradient(['#42B883', 'white', '#42B883']),
-  react: gradient(['#087EA4', 'white', '#087EA4']),
+  vue: gradient(['#42B883', '#42B883']),
+  react: gradient(['#087EA4', '#087EA4']),
 }
 
 /**
@@ -185,6 +185,20 @@ const TEMPLATES = FRAMEWORKS.map((f) => f.variants.map((v) => `${f.name}-${v.nam
   [],
 )
 
+
+const getFullCustomCommand = (customCommand: string, pkgInfo?: PkgInfo) => {
+  const pkgManager = pkgInfo ? pkgInfo.name : 'npm'
+  const isYarn1 = pkgManager === 'yarn' && pkgInfo?.version.startsWith('1.')
+
+  return  (
+    customCommand.replace(/^npm create (?:-- )?/, () => {
+      if(pkgManager === 'bun') {
+        
+      }
+    })
+  )
+}
+
 const init = async () => {
   console.log(argv)
   /**
@@ -313,6 +327,16 @@ const init = async () => {
           value: framework,
         }
       }),
+    })
+    if (prompts.isCancel(framework)) return cancel()
+
+    const variant = await prompts.select({
+      message: 'Select a variant:',
+      options: framework.variants.map(variant => {
+        const variantColor = variant.color
+        const command = variant.customCommand ? getFullCustomCommand(variant.customCommand, pkgInfo).replace(/ TARGET_DIR$/, '')
+
+      })
     })
   }
   console.log('TEMPLATES', TEMPLATES)
