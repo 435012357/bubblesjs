@@ -13,6 +13,7 @@ import type { Framework } from './interface'
 const colorMap = {
   vue: gradient(['#42B883', '#42B883']),
   react: gradient(['#087EA4', '#087EA4']),
+  others: gradient(['#8B5CF6', '#A855F7']),
 }
 
 /**
@@ -69,7 +70,7 @@ interface PkgInfo {
   version: string
 }
 
-const pkgFromUserAgent = (userAgent?: string): PkgInfo | void => {
+const pkgFromUserAgent = (userAgent?: string): PkgInfo | undefined => {
   if (!userAgent) return
   const pkgSpec = userAgent.split(' ')[0]
   const pkgSpecArr = pkgSpec.split('/')
@@ -178,6 +179,19 @@ const FRAMEWORKS: Framework[] = [
       },
     ],
   },
+  {
+    name: 'others',
+    display: 'Others',
+    color: colorMap.others,
+    variants: [
+      {
+        name: 'create-eletron-vite',
+        display: 'Electron ↗',
+        color: colorMap.others,
+        customCommand: 'npm create electron-vite@lastest TARGET_DIR',
+      },
+    ],
+  },
 ]
 
 const TEMPLATES = FRAMEWORKS.map((f) => f.variants.map((v) => `${f.name}-${v.name}`)).reduce(
@@ -185,17 +199,35 @@ const TEMPLATES = FRAMEWORKS.map((f) => f.variants.map((v) => `${f.name}-${v.nam
   [],
 )
 
-
+/**
+ *
+ * @param customCommand
+ * @param pkgInfo  { name: 'pnpm', version: '10.0.0' }
+ * @returns
+ */
 const getFullCustomCommand = (customCommand: string, pkgInfo?: PkgInfo) => {
+  console.log('💦customCommand', customCommand, pkgInfo)
   const pkgManager = pkgInfo ? pkgInfo.name : 'npm'
   const isYarn1 = pkgManager === 'yarn' && pkgInfo?.version.startsWith('1.')
 
-  return  (
-    customCommand.replace(/^npm create (?:-- )?/, () => {
-      if(pkgManager === 'bun') {
-        
-      }
-    })
+  return (
+    customCommand
+      .replace(/^npm create (?:-- )?/, () => {
+        if (pkgManager === 'bun') {
+          return 'bun x create-'
+        }
+
+        if (pkgManager === 'pnpm') {
+          return 'pnpm create '
+        }
+
+        /** 这里的 -- 时参数分隔符 前面的给 npm create 后面的 给 create-vite 这个脚手架  */
+        return customCommand.startsWith('npm create -- ')
+          ? `${pkgManager} create -- `
+          : `${pkgManager} create `
+      })
+      // Only Yarn 1.x doesn't support `@version` in the `create` command
+      .replace('@latest', () => (isYarn1 ? '' : '@latest'))
   )
 }
 
@@ -284,13 +316,12 @@ const init = async () => {
   }
 
   // 3. 获取包名 package.json name
-  console.log('💦targetDir', targetDir)
-  console.log('💦targetDir', path.resolve(targetDir))
-  console.log('💦targetDir', path.basename(path.resolve(targetDir)))
+  // console.log('💦targetDir', targetDir)
+  // console.log('💦targetDir', path.resolve(targetDir))
+  // console.log('💦targetDir', path.basename(path.resolve(targetDir)))
   /** 提取绝对路径最后的path 与 targetDir 不同 因为 targetDir 可以输入 xxx/xxx */
   let packageName = path.basename(path.resolve(targetDir))
   if (!isValidPackageName(packageName)) {
-    console.log('💦名字有误')
     const packageNameResult = await prompts.text({
       message: 'Package name is invalid. please input again:',
       defaultValue: toValidPackageName(packageName),
@@ -304,7 +335,6 @@ const init = async () => {
     if (prompts.isCancel(packageNameResult)) return cancel()
     packageName = packageNameResult
   }
-  console.log('packageName', packageName)
 
   // 4. 选择模板
   let template = argTemplate
@@ -330,16 +360,25 @@ const init = async () => {
     })
     if (prompts.isCancel(framework)) return cancel()
 
+    console.log('💦pkgInfo', pkgInfo)
+
     const variant = await prompts.select({
       message: 'Select a variant:',
-      options: framework.variants.map(variant => {
+      options: framework.variants.map((variant) => {
         const variantColor = variant.color
-        const command = variant.customCommand ? getFullCustomCommand(variant.customCommand, pkgInfo).replace(/ TARGET_DIR$/, '')
-
-      })
+        const command = variant.customCommand
+          ? getFullCustomCommand(variant.customCommand, pkgInfo).replace(/ TARGET_DIR$/, '')
+          : undefined
+        return {
+          label: variantColor(variant.display || variant.name),
+          value: variant.name,
+          hint: command,
+        }
+      }),
     })
+    if (prompts.isCancel(variant)) return cancel()
+    template = variant
   }
-  console.log('TEMPLATES', TEMPLATES)
 }
 
 init().catch((e) => {
