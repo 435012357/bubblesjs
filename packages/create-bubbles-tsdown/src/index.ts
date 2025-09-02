@@ -228,6 +228,21 @@ const getFullCustomCommand = (customCommand: string, pkgInfo?: PkgInfo) => {
       })
       // Only Yarn 1.x doesn't support `@version` in the `create` command
       .replace('@latest', () => (isYarn1 ? '' : '@latest'))
+      .replace(/^npm exec/, () => {
+        // Prefer `pnpm dlx`, `yarn dlx`, or `bun x`
+        if (pkgManager === 'pnpm') {
+          return 'pnpm dlx'
+        }
+        if (pkgManager === 'yarn' && !isYarn1) {
+          return 'yarn dlx'
+        }
+        if (pkgManager === 'bun') {
+          return 'bun x'
+        }
+        // Use `npm exec` in all other cases
+        // including Yarn 1.x and other custom npm clients
+        return 'npm exec'
+      })
   )
 }
 
