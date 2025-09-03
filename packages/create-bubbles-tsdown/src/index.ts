@@ -33,7 +33,8 @@ const argv = mri<{
   string: ['template'], // 指定 template 为 string 类型
 })
 
-const cwd = process.cwd() // 执行命令的绝对路径 代指执行命令的地方
+/** 执行命令的绝对路径 代指执行命令的地方 */
+const cwd = process.cwd()
 
 const helpMessage = `\
 Usage: create-bubbles [OPTION]... [DIRECTORY]
@@ -278,6 +279,7 @@ const init = async () => {
   const cancel = () => prompts.cancel('Operation cancelled')
 
   // 2. 创建交互 让用户输入项目名 并提共默认值
+  /** 项目名 */
   let targetDir = argTargetDir
   if (!targetDir) {
     const projectName = await prompts.text({
@@ -393,7 +395,22 @@ const init = async () => {
     })
     if (prompts.isCancel(variant)) return cancel()
     template = variant
+    console.log('💦template', template)
   }
+
+  /** 合起来就是 项目文件夹的 绝对路径  */
+  const root = path.join(cwd, targetDir)
+  // recursive 递归 是防止用户输入的是 targetDir 是个多级目录 比如 abc/template-project
+  fs.mkdirSync(root, { recursive: true })
+
+  // determine template
+  let isReactSwc = false
+  if (template.includes('-swc')) {
+    isReactSwc = true
+    template = template.replace('-swc', '')
+  }
+
+  const pkgManager
 }
 
 init().catch((e) => {
