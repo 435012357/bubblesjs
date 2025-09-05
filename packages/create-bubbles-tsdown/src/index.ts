@@ -4,6 +4,7 @@ import path from 'node:path'
 import * as prompts from '@clack/prompts'
 import gradient from 'gradient-string' // https://github.com/bokub/gradient-string
 import mri from 'mri' // http://github.com/lukeed/mri
+import spawn from 'cross-spawn'
 
 import type { Framework } from './interface'
 
@@ -189,7 +190,7 @@ const FRAMEWORKS: Framework[] = [
         name: 'create-eletron-vite',
         display: 'Electron ↗',
         color: colorMap.others,
-        customCommand: 'npm create electron-vite@lastest TARGET_DIR',
+        customCommand: 'pnpm create electron-vite@latest TARGET_DIR',
       },
     ],
   },
@@ -410,7 +411,26 @@ const init = async () => {
     template = template.replace('-swc', '')
   }
 
-  const pkgManager
+  const pkgManager = pkgInfo ? pkgInfo.name : 'npm'
+
+  const { customCommand } =
+    FRAMEWORKS.flatMap((f) => f.variants).find((v) => v.name === template) ?? {}
+
+  if (customCommand) {
+    const fullCustomCommand = getFullCustomCommand(customCommand, pkgInfo)
+    const [command, ...args] = fullCustomCommand.split(' ')
+
+    // we replace TARGET_DIR here
+    const replacedArgs = args.map((arg) => arg.replace('TARGET_DIR', () => targetDir))
+
+    console.log('💦replacedArgs', replacedArgs)
+
+    /** 这里的  inherit 表示继承父进程的输入输出  */
+    const { status } = spawn.sync(command, replacedArgs, { stdio: 'inherit' })
+    process.exit(status ?? 0)
+  }
+
+  prompts.log.step(`scaffolding project in ${root}...`)
 }
 
 init().catch((e) => {
