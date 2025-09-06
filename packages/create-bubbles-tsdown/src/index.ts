@@ -119,7 +119,7 @@ const emptyDir = (dir: string) => {
     if (file === '.git') {
       continue
     }
-    // fs.rmSync(path.resolve(dir, file), { force: true, recursive: true });
+    // fs.rmSync(path.resolve(dir, file), { force: true, recursive: true })
     removeFileSync(path.resolve(dir, file))
   }
 }
