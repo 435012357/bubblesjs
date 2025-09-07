@@ -1,8 +1,6 @@
-import { type AlovaOptions, type AlovaGenerics, type Alova } from 'alova'
+import { type AlovaOptions, type AlovaGenerics, createAlova } from 'alova'
+import { deepMergeObject, isReadableStream } from '../../general'
 import adapterFetch from 'alova/fetch'
-import { deepMergeObject } from './utils'
-import { createRequestCore } from './core'
-import { axiosRequestAdapter } from '@alova/adapter-axios'
 
 interface statusMap {
   success?: number
@@ -14,25 +12,34 @@ interface codeMap {
   unAuthorized?: number[]
 }
 
-export interface getRequestOption<AG extends AlovaGenerics> {
+export interface baseRequestOption<AG extends AlovaGenerics> {
   baseUrl?: string
   timeout?: number
   commonHeaders?: Record<string, string | (() => string)>
-  successDefaultMessage?: string
   statusMap?: statusMap
   codeMap?: codeMap
   responseDataKey?: string
   responseMessageKey?: string
   isTransformResponse?: boolean
   isShowSuccessMessage?: boolean
+  successDefaultMessage?: string
+  errorDefaultMessage?: string
   statesHook?: AlovaOptions<AG>['statesHook']
   successMessageFunc?: (message: string) => void
   errorMessageFunc?: (message: string) => void
   unAuthorizedResponseFunc?: () => void
+  requestAdapter?: AlovaOptions<AG>['requestAdapter']
 }
 
-export const createInstance = (option) => {
-  const defaultOption = {
+export interface CustomConfig {
+  isTransformResponse?: boolean
+  isShowSuccessMessage?: boolean
+}
+
+type requestOption = baseRequestOption<AlovaGenerics> & CustomConfig
+
+export const createInstance = (option: requestOption) => {
+  const defaultOption: requestOption = {
     baseUrl: '/',
     timeout: 0,
     statusMap: {
@@ -48,32 +55,46 @@ export const createInstance = (option) => {
     isTransformResponse: true,
     isShowSuccessMessage: false,
     successDefaultMessage: '操作成功',
+    errorDefaultMessage: '服务异常',
     requestAdapter: adapterFetch(),
   }
 
-  const alovaOption = deepMergeObject(defaultOption, option)
+  console.log('💦', option.requestAdapter === adapterFetch())
+
+  const alovaOption: baseRequestOption<AlovaGenerics> & CustomConfig = deepMergeObject(
+    defaultOption,
+    option,
+  )
 
   const instance = createAlova({
     baseURL: alovaOption.baseUrl,
     timeout: alovaOption.timeout,
     statesHook: alovaOption?.statesHook,
-    requestAdapter: axiosRequestAdapter(),
+    requestAdapter: alovaOption.requestAdapter as AlovaOptions<AlovaGenerics>['requestAdapter'],
     beforeRequest: async (method) => {
       for (const [key, value] of Object.entries(option?.commonHeaders ?? {})) {
         method.config.headers[key] = typeof value === 'function' ? value() : value
       }
     },
     responded: {
-      onSuccess: (response, method) => {
-        const { status, data } = response
-        if (status !== option.statusMap?.success) {
-          if (option?.statusMap?.unAuthorized === status) {
-            option?.unAuthorizedResponseFunc?.()
-          }
-          throw Error(response.data)
-        }
+      onSuccess: async (response) => {
+        if (!alovaOption?.isTransformResponse) return response
+        // debugger
+        const { status } = response
 
-        if (!option?.isTransformResponse) return response
+        // 判断响应类型：如果使用 adapterFetch，response.data 是可读流，则调用 json()；否则直接使用 response.data
+        const data =
+          response?.body && isReadableStream(response.body)
+            ? await response.json() // adapterFetch 的响应，使用 json() 解析可读流
+            : response.data // 其他适配器的响应
+        // 不成功的情况
+        if (status !== alovaOption.statusMap?.success) {
+          // 如果后端使用status 字段来表示未授权，则返回401
+          if (alovaOption?.statusMap?.unAuthorized === status) {
+            alovaOption?.unAuthorizedResponseFunc?.()
+          }
+          throw Error(response)
+        }
 
         const { responseDataKey, codeMap, isShowSuccessMessage, responseMessageKey } = option
         const {
@@ -83,18 +104,20 @@ export const createInstance = (option) => {
         } = data
         if (!codeMap?.success?.includes(+code)) {
           if (codeMap?.unAuthorized?.includes(+code)) {
-            option?.unAuthorizedResponseFunc?.()
+            alovaOption?.unAuthorizedResponseFunc?.()
           }
-          throw Error(response)
+          throw Error(data[responseMessageKey as string] ?? alovaOption.errorDefaultMessage)
         }
         if (isShowSuccessMessage)
-          option?.successMessageFunc?.(responseMessage ?? option.successDefaultMessage)
+          alovaOption?.successMessageFunc?.(responseMessage ?? alovaOption.successDefaultMessage)
         return responseData
       },
-      onError: (error, _method) => {
-        option.errorMessageFunc?.(error.message)
+      onError: (error) => {
+        alovaOption.errorMessageFunc?.(
+          error.response?.data?.message ?? alovaOption.errorDefaultMessage,
+        )
       },
-      onComplete: (_method) => {},
+      // onComplete: (_method) => {},
     },
   })
 
@@ -102,14 +125,9 @@ export const createInstance = (option) => {
 }
 
 // 🚀 创建双重调用实例的工厂函数
-export const createDualCallInstance = (baseConfig) => {
+export const createDualCallInstance = (baseConfig: baseRequestOption<AlovaGenerics>) => {
   // 创建默认实例
   const defaultInstance = createInstance(baseConfig)
-
-  type CustomConfig = {
-    isTransformResponse?: boolean
-    isShowSuccessMessage?: boolean
-  }
 
   // 双重调用函数
   const dualInstance = (option?: CustomConfig) => {
@@ -121,23 +139,15 @@ export const createDualCallInstance = (baseConfig) => {
     return defaultInstance
   }
 
-  // 🎯 将默认实例的所有 HTTP 方法绑定到 dualInstance 上
-  const httpMethods = [
-    'Get',
-    'Post',
-    'Put',
-    'Delete',
-    'Patch',
-    'Head',
-    'Options',
-    'Request',
-  ] as const
-
-  httpMethods.forEach((method) => {
-    if (defaultInstance[method]) {
-      ;(dualInstance as any)[method] = defaultInstance[method].bind(defaultInstance)
-    }
-  })
+  // 🎯 直接绑定 HTTP 方法，无需复杂类型注释
+  dualInstance.Get = defaultInstance.Get.bind(defaultInstance)
+  dualInstance.Post = defaultInstance.Post.bind(defaultInstance)
+  dualInstance.Put = defaultInstance.Put.bind(defaultInstance)
+  dualInstance.Delete = defaultInstance.Delete.bind(defaultInstance)
+  dualInstance.Patch = defaultInstance.Patch.bind(defaultInstance)
+  dualInstance.Head = defaultInstance.Head.bind(defaultInstance)
+  dualInstance.Options = defaultInstance.Options.bind(defaultInstance)
+  dualInstance.Request = defaultInstance.Request.bind(defaultInstance)
 
   return dualInstance
 }

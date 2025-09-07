@@ -1,2 +1,2 @@
-export { getRequest, type getRequestOption } from './request/axios-core'
-export { alovaCore  }
+export * from './request'
+export * from './general'
