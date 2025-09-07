@@ -5,7 +5,7 @@ import * as prompts from '@clack/prompts'
 import gradient from 'gradient-string' // https://github.com/bokub/gradient-string
 import mri from 'mri' // http://github.com/lukeed/mri
 import spawn from 'cross-spawn'
-
+import fsPromise from 'node:fs/promises'
 import type { Framework } from './interface'
 
 // const { blue, blueBright, cyan, green, greenBright, magenta, red, redBright, reset, yellow } =
@@ -109,7 +109,7 @@ const removeFileSync = (filePath: string) => {
   }
 }
 
-const emptyDir = (dir: string) => {
+const emptyDir = async (dir: string) => {
   if (!fs.existsSync(dir)) {
     return
   }
@@ -119,8 +119,8 @@ const emptyDir = (dir: string) => {
     if (file === '.git') {
       continue
     }
-    // fs.rmSync(path.resolve(dir, file), { force: true, recursive: true })
-    removeFileSync(path.resolve(dir, file))
+    await fsPromise.rm(path.resolve(dir, file), { force: true, recursive: true })
+    // removeFileSync(path.resolve(dir, file))
   }
 }
 /**
