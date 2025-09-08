@@ -92,36 +92,13 @@ const isEmpty = (path: string) => {
   return files.length === 0 || (files.length === 1 && files[0] === '.git')
 }
 
-const removeFileSync = (filePath: string) => {
-  // fs.rmSync(filePath, { force: true, recursive: true });
-  // 处理中文目录和文件
-  const stats = fs.statSync(filePath)
-  if (stats.isDirectory()) {
-    const items = fs.readdirSync(filePath)
-    for (const item of items) {
-      const itemPath = path.join(filePath, item)
-      removeFileSync(itemPath) // 递归删除子项
-    }
-    // 删除空目录
-    fs.rmdirSync(filePath)
-  } else {
-    fs.unlinkSync(filePath)
-  }
-}
-
 const emptyDir = async (dir: string) => {
-  if (!fs.existsSync(dir)) {
-    return
-  }
-
-  /**  保住最外层的git 目录  */
-  for (const file of fs.readdirSync(dir)) {
-    if (file === '.git') {
-      continue
-    }
-    await fsPromise.rm(path.resolve(dir, file), { force: true, recursive: true })
-    // removeFileSync(path.resolve(dir, file))
-  }
+  await Promise.all(
+    fs
+      .readdirSync(dir)
+      .filter((file) => file !== '.git')
+      .map((file) => fs.promises.rm(path.resolve(dir, file), { recursive: true, force: true })),
+  )
 }
 /**
  * 验证包名是否满足以 @ - * ~ 字母 数字 开头 并且
