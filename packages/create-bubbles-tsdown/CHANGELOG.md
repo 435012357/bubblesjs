@@ -1,5 +1,11 @@
 # create-bubbles
 
+## 0.0.23
+
+### Patch Changes
+
+- [`1f702c6`](https://github.com/435012357/bubblesjs/commit/1f702c6051e2f7957348441eb407e7318089cd90) Thanks [@435012357](https://github.com/435012357)! - 改用tsdown进行构建
+
 ## 0.0.22
 
 ### Patch Changes
