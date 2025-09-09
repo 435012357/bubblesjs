@@ -2,7 +2,6 @@
   "name": "create-bubbles",
   "version": "0.0.22",
   "type": "module",
-  "license": "MIT",
   "author": "bubbles plant",
   "bin": {
     "create-bubbles": "index.js",
