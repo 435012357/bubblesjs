@@ -1,0 +1,10 @@
+node_modules
+*.local
+*.lock
+
+# Build files
+dist
+
+# 压缩文件
+*.rar
+*.zip

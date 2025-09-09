@@ -1,12 +1,12 @@
 {
   "name": "create-bubbles",
-  "version": "0.0.1",
+  "version": "0.0.22",
   "type": "module",
   "license": "MIT",
-  "author": "bubblesplant",
+  "author": "bubbles plant",
   "bin": {
     "create-bubbles": "index.js",
-    "cva": "index.js"
+    "cbp": "index.js"
   },
   "files": [
     "index.js",
@@ -42,5 +42,9 @@
     "gradient-string": "^3.0.0",
     "mri": "^1.2.0",
     "picocolors": "^1.1.1"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
   }
 }

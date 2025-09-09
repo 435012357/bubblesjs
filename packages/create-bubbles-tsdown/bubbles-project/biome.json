@@ -1,8 +1,7 @@
 {
   "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
   "files": {
-    "ignoreUnknown": true,
-    "includes": ["**", "!**/public/**/*", "!**/node_modules/**/*", "!**/dist/**/*"]
+    "ignoreUnknown": true
   },
   "formatter": {
     "enabled": true,
@@ -55,7 +54,9 @@
         "useAriaPropsForRole": "off",
         "useValidAnchor": "off"
       },
-      "nursery": "off"
+      "nursery": {
+        "useUniqueElementIds": "off"
+      }
     }
   },
   "css": {

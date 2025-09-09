@@ -5,8 +5,8 @@ import * as prompts from '@clack/prompts'
 import gradient from 'gradient-string' // https://github.com/bokub/gradient-string
 import mri from 'mri' // http://github.com/lukeed/mri
 import spawn from 'cross-spawn'
-import fsPromise from 'node:fs/promises'
 import type { Framework } from './interface'
+import { fileURLToPath } from 'node:url'
 
 // const { blue, blueBright, cyan, green, greenBright, magenta, red, redBright, reset, yellow } =
 //   colors // 终端输出添加颜色
@@ -135,12 +135,12 @@ const FRAMEWORKS: Framework[] = [
     color: colorMap.vue,
     variants: [
       {
-        name: 'rsbuild-biome',
+        name: 'vue-rsbuild-biome',
         display: 'rsbuild + biome',
         color: colorMap.vue,
       },
       {
-        name: 'rolldown-oxc',
+        name: 'vue-rolldown-oxc',
         display: 'rolldown + oxc',
         color: colorMap.vue,
       },
@@ -152,7 +152,7 @@ const FRAMEWORKS: Framework[] = [
     color: colorMap.react,
     variants: [
       {
-        name: 'rsbuild-biome',
+        name: 'react-rsbuild-biome',
         display: 'rsbuild-biome',
         color: colorMap.react,
       },
@@ -173,7 +173,7 @@ const FRAMEWORKS: Framework[] = [
   },
 ]
 
-const TEMPLATES = FRAMEWORKS.map((f) => f.variants.map((v) => `${f.name}-${v.name}`)).reduce(
+const TEMPLATES = FRAMEWORKS.map((f) => f.variants.map((v) => `${v.name}`)).reduce(
   (a, b) => a.concat(b),
   [],
 )
@@ -225,6 +225,59 @@ const getFullCustomCommand = (customCommand: string, pkgInfo?: PkgInfo) => {
   )
 }
 
+/**
+ * 历史遗留问题 npmjs 会把.gitignore 忽略掉，于是vite官方把.g
+ */
+const renameFiles: Record<string, string | undefined> = {
+  _gitignore: '.gitignore',
+}
+
+const copyDir = (srcDir: string, destDir: string) => {
+  fs.mkdirSync(destDir, { recursive: true })
+  for (const file of fs.readdirSync(srcDir)) {
+    const srcFile = path.resolve(srcDir, file)
+    const destFile = path.resolve(destDir, file)
+    copy(srcFile, destFile)
+  }
+}
+
+const copy = (src: string, dest: string) => {
+  const stat = fs.statSync(src)
+  if (stat.isDirectory()) {
+    copyDir(src, dest)
+  } else {
+    fs.copyFileSync(src, dest)
+  }
+}
+
+/**
+ * 修改文件内容
+ * @param file 文件路径
+ * @param callback 修改内容的回调 参数是当前内容
+ */
+const editFile = (file: string, callback: (content: string) => string) => {
+  const content = fs.readFileSync(file, 'utf-8')
+  fs.writeFileSync(file, callback(content), 'utf-8')
+}
+
+/**
+ * 对 react swc 的处理 就是将plugin-react 换成 plugin-react-swc
+ * @param src 源目录
+ * @param dest 目标目录
+ */
+const setupReactSwc = (root: string, isTs: boolean) => {
+  const reactSwcPluginVersion = '4.0.1'
+  editFile(path.resolve(root, 'package.json'), (content) => {
+    return content.replace(
+      /"@vitejs\/plugin-react": ".+?"/,
+      `"@vitejs/plugin-react-swc": "^${reactSwcPluginVersion}"`,
+    )
+  })
+  editFile(path.resolve(root, `vite.config.${isTs ? 'ts' : 'js'}`), (content) =>
+    content.replace('@vitejs/plugin-react', '@vitejs/plugin-react-swc'),
+  )
+}
+
 const init = async () => {
   console.log(argv)
   /**
@@ -251,8 +304,13 @@ const init = async () => {
     return
   }
 
-  //   - pnpm exec node packages/create-bubbles-tsdown/index.js
-  // - 或 npm exec node packages/create-bubbles-tsdown/index.js
+  /**
+   * 获取用户执行命令的包管理工具的详细信息 包含 name 和 版本
+   *
+   * - bun x  node packages/create-bubbles-tsdown/index.js
+   * - pnpm exec node packages/create-bubbles-tsdown/index.js
+   * - 或 npm exec node packages/create-bubbles-tsdown/index.js
+   */
   const pkgInfo = pkgFromUserAgent(process.env.npm_config_user_agent) // 获取用户
   const cancel = () => prompts.cancel('Operation cancelled')
 
@@ -373,7 +431,6 @@ const init = async () => {
     })
     if (prompts.isCancel(variant)) return cancel()
     template = variant
-    console.log('💦template', template)
   }
 
   /** 合起来就是 项目文件夹的 绝对路径  */
@@ -388,6 +445,9 @@ const init = async () => {
     template = template.replace('-swc', '')
   }
 
+  /**
+   * 用户输入命令的包管理工具
+   */
   const pkgManager = pkgInfo ? pkgInfo.name : 'npm'
 
   const { customCommand } =
@@ -408,6 +468,62 @@ const init = async () => {
   }
 
   prompts.log.step(`scaffolding project in ${root}...`)
+
+  /** 选则的模板地址  */
+  const templateDir = path.resolve(fileURLToPath(import.meta.url), '../..', `template-${template}`)
+  const write = (file: string, content?: string) => {
+    const targetPath = path.join(root, renameFiles[file] ?? file)
+    if (content) {
+      fs.writeFileSync(targetPath, content)
+    } else {
+      copy(path.join(templateDir, file), targetPath)
+    }
+  }
+
+  const files = fs.readdirSync(templateDir)
+  for (const file of files) {
+    if (file !== 'package.json') {
+      write(file)
+    }
+  }
+
+  // package.json 的 name 取用户输入的
+  const pkg = JSON.parse(fs.readFileSync(path.join(templateDir, 'package.json'), 'utf-8'))
+  pkg.name = packageName
+  /** null => replacer 主要是用于序列化的时候 做一些操作  数组 每一个属性都会执行该函数 如果是数组就是只有这些属性会留下
+   * 2 代表 缩进级别
+   */
+  write('package.json', `${JSON.stringify(pkg, null, 2)}\n`)
+
+  if (isReactSwc) {
+    setupReactSwc(root, template.endsWith('-ts'))
+  }
+
+  let doneMessage = ''
+
+  /** 克隆文件夹之后 目录的 的相对路径 其实就是 root 和 cwd 的差值  */
+  const cdProjectName = path.relative(cwd, root)
+  console.log('💦cwd', cwd)
+  console.log('💦root', root)
+  console.log('💦cdProjectName', cdProjectName)
+
+  doneMessage += `Done. Now run:\n`
+  if (root !== cwd) {
+    doneMessage += `\n cd ${cdProjectName.includes(' ') ? `"${cdProjectName}"` : cdProjectName} `
+  }
+  switch (pkgManager) {
+    case 'yarn':
+      doneMessage += `\n yarn`
+      doneMessage += `\n yarn dev`
+      break
+    default:
+      doneMessage += gradient(['pink', 'white'])(`\n  ${pkgManager} install`)
+      doneMessage += gradient(['pink', 'white'])(`\n  ${pkgManager} run dev`)
+      break
+  }
+
+  // 为什么不用 console.log 因为 prompts
+  prompts.outro(doneMessage)
 }
 
 init().catch((e) => {
