@@ -1,5 +1,11 @@
 # create-bubbles
 
+## 0.1.0
+
+### Minor Changes
+
+- [`fbf3eb4`](https://github.com/435012357/bubblesjs/commit/fbf3eb45fb73cdc604aa193c70f0e6f5096c31d2) Thanks [@435012357](https://github.com/435012357)! - use tsdown build
+
 ## 0.0.23
 
 ### Patch Changes

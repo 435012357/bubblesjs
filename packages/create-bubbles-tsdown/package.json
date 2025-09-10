@@ -1,6 +1,6 @@
 {
   "name": "create-bubbles",
-  "version": "0.0.23",
+  "version": "0.1.0",
   "type": "module",
   "author": "bubbles plant",
   "bin": {
