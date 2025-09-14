@@ -1,0 +1,659 @@
+# @bubblesjs/request
+
+基于 Alova 的现代化请求库，提供统一的请求和响应处理机制，支持多种适配器和灵活的配置选项。
+
+## 特性
+
+- 🚀 **现代化设计**：基于 Alova 构建，支持声明式请求和响应式特性
+- 🛠️ **灵活配置**：支持全局配置和运行时动态配置
+- 🔄 **双重调用模式**：支持默认实例和动态配置实例
+- 📝 **TypeScript**：完整的类型支持
+- 🎯 **智能错误处理**：统一的错误处理和消息提示机制
+- 🔌 **多适配器支持**：支持 fetch、axios 等多种请求适配器
+
+## 安装
+
+import { Tabs, Tab } from 'rspress/theme';
+
+<Tabs>
+  <Tab label="pnpm">
+    ```bash
+    pnpm add @bubblesjs/request alova
+    ```
+  </Tab>
+  <Tab label="npm">
+    ```bash
+    npm install @bubblesjs/request alova
+    ```
+  </Tab>
+  <Tab label="yarn">
+    ```bash
+    yarn add @bubblesjs/request alova
+    ```
+  </Tab>
+  <Tab label="bun">
+    ```bash
+    bun add @bubblesjs/request alova
+    ```
+  </Tab>
+</Tabs>
+
+## 快速开始
+
+### 基础使用
+
+```ts
+import { createInstance } from '@bubblesjs/request';
+
+// 创建请求实例
+const request = createInstance({
+  baseUrl: '/api',
+  commonHeaders: {
+    'Content-Type': 'application/json',
+    Authorization: () => `Bearer ${localStorage.getItem('token') || ''}`,
+  },
+  successMessageFunc: (msg) => {
+    console.log('✅ 成功:', msg);
+  },
+  errorMessageFunc: (msg) => {
+    console.error('❌ 错误:', msg);
+  },
+  unAuthorizedResponseFunc: () => {
+    // 处理未授权，例如跳转到登录页
+    window.location.href = '/login';
+  },
+});
+
+// 发起请求
+const userInfo = await request.Get('/user/info');
+const result = await request.Post('/user/update', {
+  body: { name: '张三', age: 25 },
+});
+```
+
+### 双重调用模式
+
+```ts
+import { createDualCallInstance } from '@bubblesjs/request';
+
+// 创建双重调用实例工厂
+const requestFactory = createDualCallInstance({
+  baseUrl: '/api',
+  isShowSuccessMessage: false, // 默认不显示成功消息
+  successMessageFunc: (msg) => alert(msg),
+  errorMessageFunc: (msg) => console.error(msg),
+});
+
+// 使用默认配置
+const data1 = await requestFactory().Get('/user/list');
+
+// 临时覆盖配置 - 显示成功消息
+const data2 = await requestFactory({
+  isShowSuccessMessage: true,
+}).Post('/user/create', {
+  body: { name: '李四' },
+});
+
+// 也可以直接调用 HTTP 方法
+const data3 = await requestFactory.Get('/user/profile');
+const data4 = await requestFactory.Post('/user/settings', {
+  body: { theme: 'dark' },
+});
+```
+
+## API 文档
+
+### createInstance(option)
+
+创建一个标准的 Alova 请求实例。
+
+#### 参数
+
+- `option`: `requestOption` - 配置选项
+
+#### 配置选项
+
+| 参数 | 类型 | 默认值 | 说明 |
+| --- | --- | --- | --- |
+| `baseUrl` | `string` | `'/'` | 基础 URL |
+| `timeout` | `number` | `0` | 超时时间（毫秒），0 表示无超时 |
+| `commonHeaders` | `Record<string, string \| (() => string)>` | `{}` | 公共请求头，支持函数动态获取 |
+| `statusMap` | `statusMap` | `{success: 200, unAuthorized: 401}` | HTTP 状态码映射 |
+| `codeMap` | `codeMap` | `{success: [200], unAuthorized: [401]}` | 业务状态码映射 |
+| `responseDataKey` | `string` | `'data'` | 响应数据字段名 |
+| `responseMessageKey` | `string` | `'message'` | 响应消息字段名 |
+| `isTransformResponse` | `boolean` | `true` | 是否启用响应转换 |
+| `isShowSuccessMessage` | `boolean` | `false` | 是否显示成功消息 |
+| `successDefaultMessage` | `string` | `'操作成功'` | 默认成功消息 |
+| `isShowErrorMessage` | `boolean` | `true` | 是否显示错误消息 |
+| `errorDefaultMessage` | `string` | `'服务异常'` | 默认错误消息 |
+| `successMessageFunc` | `(message: string) => void` | `undefined` | 成功消息处理函数 |
+| `errorMessageFunc` | `(message: string) => void` | `undefined` | 错误消息处理函数 |
+| `unAuthorizedResponseFunc` | `() => void` | `undefined` | 未授权处理函数 |
+| `requestAdapter` | `AlovaRequestAdapter` | `adapterFetch()` | 请求适配器 |
+| `statesHook` | `StatesHook` | `undefined` | 状态钩子（用于框架集成） |
+
+#### 返回值
+
+返回配置好的 Alova 实例，支持以下 HTTP 方法：
+
+- `Get(url, config?)`
+- `Post(url, config?)`
+- `Put(url, config?)`
+- `Delete(url, config?)`
+- `Patch(url, config?)`
+- `Head(url, config?)`
+- `Options(url, config?)`
+
+### createDualCallInstance(baseConfig)
+
+创建支持双重调用模式的请求实例工厂。
+
+#### 参数
+
+- `baseConfig`: `baseRequestOption<AlovaGenerics>` - 基础配置
+
+#### 返回值
+
+返回一个函数，该函数：
+
+1. 无参数调用时返回默认实例
+2. 传入 `CustomConfig` 时返回合并配置后的新实例
+3. 直接绑定了所有 HTTP 方法到默认实例
+
+```ts
+// 返回的函数类型签名
+interface DualCallInstance {
+  (): AlovaInstance; // 无参数调用
+  (option: CustomConfig): AlovaInstance; // 带配置调用
+
+  // 直接绑定的 HTTP 方法
+  Get: AlovaInstance['Get'];
+  Post: AlovaInstance['Post'];
+  Put: AlovaInstance['Put'];
+  Delete: AlovaInstance['Delete'];
+  Patch: AlovaInstance['Patch'];
+  Head: AlovaInstance['Head'];
+  Options: AlovaInstance['Options'];
+  Request: AlovaInstance['Request'];
+}
+```
+
+## 使用场景
+
+### 1. 基础项目配置
+
+```ts
+import { createInstance } from '@bubblesjs/request';
+
+const request = createInstance({
+  baseUrl: process.env.REACT_APP_API_BASE_URL,
+  timeout: 10000,
+  commonHeaders: {
+    'X-Client-Version': '1.0.0',
+  },
+});
+
+// 导出供全局使用
+export default request;
+```
+
+### 2. 带认证的请求
+
+```ts
+import { createInstance } from '@bubblesjs/request';
+
+const authRequest = createInstance({
+  baseUrl: '/api',
+  commonHeaders: {
+    Authorization: () => {
+      const token = localStorage.getItem('authToken');
+      return token ? `Bearer ${token}` : '';
+    },
+  },
+  unAuthorizedResponseFunc: () => {
+    // 清除本地认证信息
+    localStorage.removeItem('authToken');
+    // 跳转到登录页
+    window.location.href = '/login';
+  },
+});
+```
+
+### 3. 业务特定配置
+
+```ts
+import { createDualCallInstance } from '@bubblesjs/request';
+
+// 创建用户模块请求工厂
+const userRequestFactory = createDualCallInstance({
+  baseUrl: '/api/user',
+  statusMap: {
+    success: 200,
+    unAuthorized: 401,
+  },
+  codeMap: {
+    success: [200, 201],
+    unAuthorized: [401, 403],
+  },
+});
+
+// 静默获取用户列表
+const getUserList = () =>
+  userRequestFactory({
+    isShowSuccessMessage: false,
+    isShowErrorMessage: false,
+  }).Get('/list');
+
+// 创建用户时显示成功消息
+const createUser = (userData) =>
+  userRequestFactory({
+    isShowSuccessMessage: true,
+  }).Post('/create', { body: userData });
+```
+
+### 4. 文件上传配置
+
+```ts
+import { createInstance } from '@bubblesjs/request';
+
+const uploadRequest = createInstance({
+  baseUrl: '/api/upload',
+  timeout: 60000, // 60秒超时
+  isTransformResponse: false, // 不转换响应，保留完整响应信息
+  successMessageFunc: (msg) => {
+    console.log('上传成功:', msg);
+  },
+});
+
+// 上传文件
+const uploadFile = async (file: File) => {
+  const formData = new FormData();
+  formData.append('file', file);
+
+  return await uploadRequest.Post('/file', {
+    body: formData,
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+};
+```
+
+### 5. 不同环境配置
+
+```ts
+import { createInstance } from '@bubblesjs/request';
+
+const createEnvironmentRequest = (env: 'dev' | 'prod' | 'test') => {
+  const config = {
+    dev: {
+      baseUrl: 'http://localhost:3000/api',
+      isShowSuccessMessage: true, // 开发环境显示详细信息
+      isShowErrorMessage: true,
+    },
+    test: {
+      baseUrl: 'https://test-api.example.com/api',
+      isShowSuccessMessage: false,
+      isShowErrorMessage: true,
+    },
+    prod: {
+      baseUrl: 'https://api.example.com/api',
+      isShowSuccessMessage: false,
+      isShowErrorMessage: false, // 生产环境静默处理错误
+    },
+  };
+
+  return createInstance(config[env]);
+};
+
+// 根据环境创建请求实例
+const request = createEnvironmentRequest(process.env.NODE_ENV as any);
+```
+
+## 高级用法
+
+### 1. 自定义适配器
+
+```ts
+import { createInstance } from '@bubblesjs/request';
+import { axiosRequestAdapter } from 'alova/axios';
+import axios from 'axios';
+
+const customRequest = createInstance({
+  baseUrl: '/api',
+  requestAdapter: axiosRequestAdapter(), // 使用 axios 适配器
+  timeout: 15000,
+});
+```
+
+### 2. 响应拦截和数据转换
+
+```ts
+import { createInstance } from '@bubblesjs/request';
+
+const request = createInstance({
+  baseUrl: '/api',
+  responseDataKey: 'result', // 自定义数据字段
+  responseMessageKey: 'msg', // 自定义消息字段
+  codeMap: {
+    success: [0, 200, 201], // 多个成功状态码
+    unAuthorized: [401, 40001, 40002], // 多个未授权状态码
+  },
+  isTransformResponse: true, // 自动提取数据字段
+});
+```
+
+### 3. 集成 React/Vue 状态管理
+
+```ts
+// React 示例
+import { createInstance } from '@bubblesjs/request';
+import { ReactHook } from 'alova/react';
+// Vue 示例
+import { VueHook } from 'alova/vue';
+
+const reactRequest = createInstance({
+  baseUrl: '/api',
+  statesHook: ReactHook, // 集成 React 状态管理
+});
+
+const vueRequest = createInstance({
+  baseUrl: '/api',
+  statesHook: VueHook, // 集成 Vue 状态管理
+});
+```
+
+## 错误处理
+
+### 错误处理流程
+
+1. **HTTP 状态码检查**：首先检查 HTTP 状态码是否为成功状态
+2. **业务状态码检查**：然后检查响应体中的业务状态码
+3. **未授权处理**：特殊处理未授权情况
+4. **错误消息显示**：根据配置显示错误消息
+
+### 自定义错误处理
+
+```ts
+import { createInstance } from '@bubblesjs/request';
+
+const request = createInstance({
+  baseUrl: '/api',
+  errorMessageFunc: (message) => {
+    // 自定义错误消息处理
+    if (message.includes('网络')) {
+      showNetworkErrorDialog();
+    } else {
+      showGeneralErrorToast(message);
+    }
+  },
+  unAuthorizedResponseFunc: () => {
+    // 自定义未授权处理
+    clearUserData();
+    redirectToLogin();
+  },
+});
+```
+
+## 类型定义
+
+```ts
+// 基础配置接口
+interface baseRequestOption<AG extends AlovaGenerics> {
+  baseUrl?: string;
+  timeout?: number;
+  commonHeaders?: Record<string, string | (() => string)>;
+  statusMap?: statusMap;
+  codeMap?: codeMap;
+  responseDataKey?: string;
+  responseMessageKey?: string;
+  isTransformResponse?: boolean;
+  isShowSuccessMessage?: boolean;
+  successDefaultMessage?: string;
+  isShowErrorMessage?: boolean;
+  errorDefaultMessage?: string;
+  statesHook?: AlovaOptions<AG>['statesHook'];
+  successMessageFunc?: (message: string) => void;
+  errorMessageFunc?: (message: string) => void;
+  unAuthorizedResponseFunc?: () => void;
+  requestAdapter?: AlovaOptions<AG>['requestAdapter'];
+}
+
+// 自定义配置接口（用于双重调用）
+interface CustomConfig {
+  isTransformResponse?: boolean;
+  isShowSuccessMessage?: boolean;
+  isShowErrorMessage?: boolean;
+}
+
+// 状态码映射
+interface statusMap {
+  success?: number;
+  unAuthorized?: number;
+}
+
+// 业务码映射
+interface codeMap {
+  success?: number[];
+  unAuthorized?: number[];
+}
+```
+
+## 最佳实践
+
+### 1. 统一错误处理
+
+```ts
+// error-handler.ts
+export const handleApiError = (message: string) => {
+  // 根据错误类型做不同处理
+  if (message.includes('网络')) {
+    toast.error('网络连接异常，请检查网络设置')
+  } else if (message.includes('服务器')) {
+    toast.error('服务器繁忙，请稍后重试')
+  } else {
+    toast.error(message)
+  }
+}
+
+export const handleUnauthorized = () => {
+  // 清除用户状态
+  useUserStore.getState().logout()
+  // 跳转登录页
+  navigate('/login')
+}
+
+// request.ts
+import { createInstance } from '@bubblesjs/request'
+import { handleApiError, handleUnauthorized } from './error-handler'
+
+export const request = createInstance({
+  baseUrl: '/api',
+  errorMessageFunc: handleApiError,
+  unAuthorizedResponseFunc: handleUnauthorized
+})
+```
+
+### 2. 模块化请求配置
+
+```ts
+// api/base.ts
+import { createDualCallInstance } from '@bubblesjs/request'
+
+export const createModuleRequest = (module: string) => {
+  return createDualCallInstance({
+    baseUrl: `/api/${module}`,
+    commonHeaders: {
+      'X-Module': module
+    }
+  })
+}
+
+// api/user.ts
+import { createModuleRequest } from './base'
+
+const userRequest = createModuleRequest('user')
+
+export const userApi = {
+  getProfile: () => userRequest.Get('/profile'),
+  updateProfile: (data) => userRequest({
+    isShowSuccessMessage: true
+  }).Put('/profile', { body: data }),
+  deleteAccount: () => userRequest({
+    isShowSuccessMessage: true,
+    successDefaultMessage: '账户删除成功'
+  }).Delete('/account')
+}
+```
+
+### 3. 类型安全的 API 调用
+
+```ts
+// api/typed-request.ts
+import { createInstance } from '@bubblesjs/request';
+
+// types/api.ts
+interface User {
+  id: number;
+  name: string;
+  email: string;
+}
+
+interface ApiResponse<T> {
+  code: number;
+  data: T;
+  message: string;
+}
+
+const typedRequest = createInstance({
+  baseUrl: '/api',
+  isTransformResponse: true,
+});
+
+// 类型安全的 API 函数
+export const getUserById = async (id: number): Promise<User> => {
+  return await typedRequest.Get(`/user/${id}`);
+};
+
+export const createUser = async (userData: Omit<User, 'id'>): Promise<User> => {
+  return await typedRequest.Post('/user', { body: userData });
+};
+```
+
+## 迁移指南
+
+### 从 Axios 迁移
+
+如果你之前使用原生 Axios，可以这样迁移：
+
+```ts
+// 之前的 Axios 配置
+const axiosInstance = axios.create({
+  baseURL: '/api',
+  timeout: 10000,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
+// 迁移到 @bubblesjs/request
+const request = createInstance({
+  baseUrl: '/api', // 注意：这里是 baseUrl 不是 baseURL
+  timeout: 10000,
+  commonHeaders: {
+    'Content-Type': 'application/json',
+  },
+});
+
+// API 调用方式基本相同
+// 之前：await axiosInstance.get('/user')
+// 现在：await request.Get('/user')
+```
+
+### 从其他请求库迁移
+
+@bubblesjs/request 提供了灵活的适配器系统，可以轻松集成现有的请求解决方案。
+
+## 常见问题
+
+### Q: 如何处理文件下载？
+
+A: 可以通过设置 `isTransformResponse: false` 来获取完整响应：
+
+```ts
+const downloadRequest = createInstance({
+  baseUrl: '/api',
+  isTransformResponse: false,
+});
+
+const downloadFile = async (fileId: string) => {
+  const response = await downloadRequest.Get(`/download/${fileId}`);
+  // 处理文件下载逻辑
+  const blob = await response.blob();
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'filename.pdf';
+  a.click();
+};
+```
+
+### Q: 如何实现请求重试？
+
+A: 可以结合 Alova 的重试功能：
+
+```ts
+import { createInstance } from '@bubblesjs/request';
+
+const request = createInstance({
+  baseUrl: '/api',
+});
+
+// 使用时添加重试配置
+const dataWithRetry = await request.Get('/unstable-api', {
+  retry: 3, // 重试 3 次
+  retryDelay: 1000, // 重试间隔 1 秒
+});
+```
+
+### Q: 如何实现请求缓存？
+
+A: Alova 内置了强大的缓存功能：
+
+```ts
+// 缓存 5 分钟
+const cachedData = await request.Get('/user/profile', {
+  hitSource: 'cache',
+  cacheFor: 5 * 60 * 1000, // 5 分钟
+});
+```
+
+### Q: 如何集成 Loading 状态？
+
+A: 使用 Alova 的状态钩子功能：
+
+```ts
+// React 示例
+import { useRequest } from 'alova/react'
+
+const UserProfile = () => {
+  const {
+    loading,
+    data,
+    error,
+    send
+  } = useRequest(() => request.Get('/user/profile'), {
+    immediate: true
+  })
+
+  if (loading) return <div>Loading...</div>
+  if (error) return <div>Error: {error.message}</div>
+
+  return <div>User: {data.name}</div>
+}
+```
+
+## 总结
+
+@bubblesjs/request 提供了现代化、类型安全、功能丰富的请求解决方案。通过灵活的配置选项和双重调用模式，可以满足从简单到复杂的各种请求场景需求。

@@ -1,0 +1,418 @@
+# @bubblesjs/request
+
+Modern request library based on Alova, providing unified request and response handling with flexible configuration options and multi-adapter support.
+
+## Features
+
+- 🚀 **Modern Design**: Built on Alova with declarative requests and reactive features
+- 🛠️ **Flexible Configuration**: Support for global and runtime dynamic configuration
+- 🔄 **Dual Call Mode**: Support for default instances and dynamic configuration instances
+- 📝 **TypeScript**: Complete type support
+- 🎯 **Smart Error Handling**: Unified error handling and message notification mechanisms
+- 🔌 **Multi-Adapter Support**: Support for fetch, axios and other request adapters
+
+## Installation
+
+import { Tabs, Tab } from 'rspress/theme';
+
+<Tabs>
+  <Tab label="pnpm">
+    ```bash
+    pnpm add @bubblesjs/request alova
+    ```
+  </Tab>
+  <Tab label="npm">
+    ```bash
+    npm install @bubblesjs/request alova
+    ```
+  </Tab>
+  <Tab label="yarn">
+    ```bash
+    yarn add @bubblesjs/request alova
+    ```
+  </Tab>
+  <Tab label="bun">
+    ```bash
+    bun add @bubblesjs/request alova
+    ```
+  </Tab>
+</Tabs>
+
+## Quick Start
+
+### Basic Usage
+
+```ts
+import { createInstance } from '@bubblesjs/request'
+
+// Create request instance
+const request = createInstance({
+  baseUrl: '/api',
+  commonHeaders: {
+    'Content-Type': 'application/json',
+    'Authorization': () => `Bearer ${localStorage.getItem('token') || ''}`
+  },
+  successMessageFunc: (msg) => {
+    console.log('✅ Success:', msg)
+  },
+  errorMessageFunc: (msg) => {
+    console.error('❌ Error:', msg)
+  },
+  unAuthorizedResponseFunc: () => {
+    // Handle unauthorized, e.g., redirect to login page
+    window.location.href = '/login'
+  }
+})
+
+// Make requests
+const userInfo = await request.Get('/user/info')
+const result = await request.Post('/user/update', {
+  body: { name: 'John', age: 25 }
+})
+```
+
+### Dual Call Mode
+
+```ts
+import { createDualCallInstance } from '@bubblesjs/request'
+
+// Create dual call instance factory
+const requestFactory = createDualCallInstance({
+  baseUrl: '/api',
+  isShowSuccessMessage: false, // Don't show success messages by default
+  successMessageFunc: (msg) => alert(msg),
+  errorMessageFunc: (msg) => console.error(msg)
+})
+
+// Use default configuration
+const data1 = await requestFactory().Get('/user/list')
+
+// Temporarily override configuration - show success message
+const data2 = await requestFactory({
+  isShowSuccessMessage: true
+}).Post('/user/create', {
+  body: { name: 'Jane' }
+})
+
+// Can also call HTTP methods directly
+const data3 = await requestFactory.Get('/user/profile')
+const data4 = await requestFactory.Post('/user/settings', {
+  body: { theme: 'dark' }
+})
+```
+
+## API Documentation
+
+### createInstance(option)
+
+Creates a standard Alova request instance.
+
+#### Parameters
+
+- `option`: `requestOption` - Configuration options
+
+#### Configuration Options
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `baseUrl` | `string` | `'/'` | Base URL |
+| `timeout` | `number` | `0` | Timeout in milliseconds, 0 means no timeout |
+| `commonHeaders` | `Record<string, string \| (() => string)>` | `{}` | Common headers, supports dynamic functions |
+| `statusMap` | `statusMap` | `{success: 200, unAuthorized: 401}` | HTTP status code mapping |
+| `codeMap` | `codeMap` | `{success: [200], unAuthorized: [401]}` | Business status code mapping |
+| `responseDataKey` | `string` | `'data'` | Response data field name |
+| `responseMessageKey` | `string` | `'message'` | Response message field name |
+| `isTransformResponse` | `boolean` | `true` | Enable response transformation |
+| `isShowSuccessMessage` | `boolean` | `false` | Show success messages |
+| `successDefaultMessage` | `string` | `'Operation successful'` | Default success message |
+| `isShowErrorMessage` | `boolean` | `true` | Show error messages |
+| `errorDefaultMessage` | `string` | `'Service error'` | Default error message |
+| `successMessageFunc` | `(message: string) => void` | `undefined` | Success message handler |
+| `errorMessageFunc` | `(message: string) => void` | `undefined` | Error message handler |
+| `unAuthorizedResponseFunc` | `() => void` | `undefined` | Unauthorized handler |
+| `requestAdapter` | `AlovaRequestAdapter` | `adapterFetch()` | Request adapter |
+| `statesHook` | `StatesHook` | `undefined` | State hook (for framework integration) |
+
+#### Return Value
+
+Returns a configured Alova instance with the following HTTP methods:
+- `Get(url, config?)`
+- `Post(url, config?)`
+- `Put(url, config?)`
+- `Delete(url, config?)`
+- `Patch(url, config?)`
+- `Head(url, config?)`
+- `Options(url, config?)`
+
+### createDualCallInstance(baseConfig)
+
+Creates a dual call mode request instance factory.
+
+#### Parameters
+
+- `baseConfig`: `baseRequestOption<AlovaGenerics>` - Base configuration
+
+#### Return Value
+
+Returns a function that:
+1. Returns default instance when called without parameters
+2. Returns new instance with merged configuration when passed `CustomConfig`
+3. Has all HTTP methods directly bound to the default instance
+
+```ts
+// Return function type signature
+interface DualCallInstance {
+  (): AlovaInstance // No parameter call
+  (option: CustomConfig): AlovaInstance // Call with configuration
+  
+  // Directly bound HTTP methods
+  Get: AlovaInstance['Get']
+  Post: AlovaInstance['Post']
+  Put: AlovaInstance['Put']
+  Delete: AlovaInstance['Delete']
+  Patch: AlovaInstance['Patch']
+  Head: AlovaInstance['Head']
+  Options: AlovaInstance['Options']
+  Request: AlovaInstance['Request']
+}
+```
+
+## Use Cases
+
+### 1. Basic Project Configuration
+
+```ts
+import { createInstance } from '@bubblesjs/request'
+
+const request = createInstance({
+  baseUrl: process.env.REACT_APP_API_BASE_URL,
+  timeout: 10000,
+  commonHeaders: {
+    'X-Client-Version': '1.0.0'
+  }
+})
+
+// Export for global use
+export default request
+```
+
+### 2. Authenticated Requests
+
+```ts
+import { createInstance } from '@bubblesjs/request'
+
+const authRequest = createInstance({
+  baseUrl: '/api',
+  commonHeaders: {
+    'Authorization': () => {
+      const token = localStorage.getItem('authToken')
+      return token ? `Bearer ${token}` : ''
+    }
+  },
+  unAuthorizedResponseFunc: () => {
+    // Clear local auth info
+    localStorage.removeItem('authToken')
+    // Redirect to login page
+    window.location.href = '/login'
+  }
+})
+```
+
+### 3. Business-Specific Configuration
+
+```ts
+import { createDualCallInstance } from '@bubblesjs/request'
+
+// Create user module request factory
+const userRequestFactory = createDualCallInstance({
+  baseUrl: '/api/user',
+  statusMap: {
+    success: 200,
+    unAuthorized: 401
+  },
+  codeMap: {
+    success: [200, 201],
+    unAuthorized: [401, 403]
+  }
+})
+
+// Silent user list fetch
+const getUserList = () => userRequestFactory({
+  isShowSuccessMessage: false,
+  isShowErrorMessage: false
+}).Get('/list')
+
+// Create user with success message
+const createUser = (userData) => userRequestFactory({
+  isShowSuccessMessage: true
+}).Post('/create', { body: userData })
+```
+
+## Type Definitions
+
+```ts
+// Base configuration interface
+interface baseRequestOption<AG extends AlovaGenerics> {
+  baseUrl?: string
+  timeout?: number
+  commonHeaders?: Record<string, string | (() => string)>
+  statusMap?: statusMap
+  codeMap?: codeMap
+  responseDataKey?: string
+  responseMessageKey?: string
+  isTransformResponse?: boolean
+  isShowSuccessMessage?: boolean
+  successDefaultMessage?: string
+  isShowErrorMessage?: boolean
+  errorDefaultMessage?: string
+  statesHook?: AlovaOptions<AG>['statesHook']
+  successMessageFunc?: (message: string) => void
+  errorMessageFunc?: (message: string) => void
+  unAuthorizedResponseFunc?: () => void
+  requestAdapter?: AlovaOptions<AG>['requestAdapter']
+}
+
+// Custom configuration interface (for dual call)
+interface CustomConfig {
+  isTransformResponse?: boolean
+  isShowSuccessMessage?: boolean
+  isShowErrorMessage?: boolean
+}
+
+// Status code mapping
+interface statusMap {
+  success?: number
+  unAuthorized?: number
+}
+
+// Business code mapping  
+interface codeMap {
+  success?: number[]
+  unAuthorized?: number[]
+}
+```
+
+## Best Practices
+
+### 1. Unified Error Handling
+
+```ts
+// error-handler.ts
+export const handleApiError = (message: string) => {
+  // Handle different error types
+  if (message.includes('network')) {
+    toast.error('Network connection error, please check network settings')
+  } else if (message.includes('server')) {
+    toast.error('Server busy, please try again later')
+  } else {
+    toast.error(message)
+  }
+}
+
+export const handleUnauthorized = () => {
+  // Clear user state
+  useUserStore.getState().logout()
+  // Redirect to login page
+  navigate('/login')
+}
+
+// request.ts
+import { createInstance } from '@bubblesjs/request'
+import { handleApiError, handleUnauthorized } from './error-handler'
+
+export const request = createInstance({
+  baseUrl: '/api',
+  errorMessageFunc: handleApiError,
+  unAuthorizedResponseFunc: handleUnauthorized
+})
+```
+
+### 2. Modular Request Configuration
+
+```ts
+// api/base.ts
+import { createDualCallInstance } from '@bubblesjs/request'
+
+export const createModuleRequest = (module: string) => {
+  return createDualCallInstance({
+    baseUrl: `/api/${module}`,
+    commonHeaders: {
+      'X-Module': module
+    }
+  })
+}
+
+// api/user.ts
+import { createModuleRequest } from './base'
+
+const userRequest = createModuleRequest('user')
+
+export const userApi = {
+  getProfile: () => userRequest.Get('/profile'),
+  updateProfile: (data) => userRequest({
+    isShowSuccessMessage: true
+  }).Put('/profile', { body: data }),
+  deleteAccount: () => userRequest({
+    isShowSuccessMessage: true,
+    successDefaultMessage: 'Account deleted successfully'
+  }).Delete('/account')
+}
+```
+
+## FAQ
+
+### Q: How to handle file downloads?
+
+A: You can set `isTransformResponse: false` to get the full response:
+
+```ts
+const downloadRequest = createInstance({
+  baseUrl: '/api',
+  isTransformResponse: false
+})
+
+const downloadFile = async (fileId: string) => {
+  const response = await downloadRequest.Get(`/download/${fileId}`)
+  // Handle file download logic
+  const blob = await response.blob()
+  const url = window.URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = 'filename.pdf'
+  a.click()
+}
+```
+
+### Q: How to implement request retry?
+
+A: You can combine with Alova's retry functionality:
+
+```ts
+import { createInstance } from '@bubblesjs/request'
+
+const request = createInstance({
+  baseUrl: '/api'
+})
+
+// Add retry configuration when using
+const dataWithRetry = await request.Get('/unstable-api', {
+  retry: 3, // Retry 3 times
+  retryDelay: 1000 // 1 second retry interval
+})
+```
+
+### Q: How to implement request caching?
+
+A: Alova has built-in powerful caching functionality:
+
+```ts
+// Cache for 5 minutes
+const cachedData = await request.Get('/user/profile', {
+  hitSource: 'cache',
+  cacheFor: 5 * 60 * 1000 // 5 minutes
+})
+```
+
+## Summary
+
+@bubblesjs/request provides a modern, type-safe, feature-rich request solution. Through flexible configuration options and dual call mode, it can meet various request scenario requirements from simple to complex.
