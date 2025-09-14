@@ -14,5 +14,6 @@
   "[markdown]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
-  "cSpell.words": ["alova", "rsbuild", "rspack", "unocss", "unplugin"]
+  "cSpell.words": ["alova", "rsbuild", "rspack", "unocss", "unplugin"],
+  "oxc.enable": false
 }

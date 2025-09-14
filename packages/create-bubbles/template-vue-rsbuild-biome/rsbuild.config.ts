@@ -30,7 +30,6 @@ export default defineConfig({
           resolvers: [ElementPlusResolver()],
           dts: './src/types/components.d.ts',
         }),
-
       ],
     },
     postcss: {

@@ -1,5 +1,5 @@
-import { type AlovaOptions, type AlovaGenerics, createAlova } from 'alova'
-import { deepMergeObject, isReadableStream } from '../../general'
+import { type AlovaGenerics, type AlovaOptions, createAlova } from 'alova'
+import { deepMergeObject, isReadableStream } from '@bubblesjs/utils'
 import adapterFetch from 'alova/fetch'
 
 interface statusMap {
@@ -23,6 +23,7 @@ export interface baseRequestOption<AG extends AlovaGenerics> {
   isTransformResponse?: boolean
   isShowSuccessMessage?: boolean
   successDefaultMessage?: string
+  isShowErrorMessage?: boolean
   errorDefaultMessage?: string
   statesHook?: AlovaOptions<AG>['statesHook']
   successMessageFunc?: (message: string) => void
@@ -34,6 +35,7 @@ export interface baseRequestOption<AG extends AlovaGenerics> {
 export interface CustomConfig {
   isTransformResponse?: boolean
   isShowSuccessMessage?: boolean
+  isShowErrorMessage?: boolean
 }
 
 type requestOption = baseRequestOption<AlovaGenerics> & CustomConfig
@@ -55,22 +57,21 @@ export const createInstance = (option: requestOption) => {
     isTransformResponse: true,
     isShowSuccessMessage: false,
     successDefaultMessage: '操作成功',
+    isShowErrorMessage: true,
     errorDefaultMessage: '服务异常',
     requestAdapter: adapterFetch(),
   }
 
-  console.log('💦', option.requestAdapter === adapterFetch())
-
-  const alovaOption: baseRequestOption<AlovaGenerics> & CustomConfig = deepMergeObject(
+  const mergeOption: baseRequestOption<AlovaGenerics> & CustomConfig = deepMergeObject(
     defaultOption,
     option,
   )
 
   const instance = createAlova({
-    baseURL: alovaOption.baseUrl,
-    timeout: alovaOption.timeout,
-    statesHook: alovaOption?.statesHook,
-    requestAdapter: alovaOption.requestAdapter as AlovaOptions<AlovaGenerics>['requestAdapter'],
+    baseURL: mergeOption.baseUrl,
+    timeout: mergeOption.timeout,
+    statesHook: mergeOption?.statesHook,
+    requestAdapter: mergeOption.requestAdapter as AlovaOptions<AlovaGenerics>['requestAdapter'],
     beforeRequest: async (method) => {
       for (const [key, value] of Object.entries(option?.commonHeaders ?? {})) {
         method.config.headers[key] = typeof value === 'function' ? value() : value
@@ -78,8 +79,7 @@ export const createInstance = (option: requestOption) => {
     },
     responded: {
       onSuccess: async (response) => {
-        if (!alovaOption?.isTransformResponse) return response
-        // debugger
+        if (!mergeOption?.isTransformResponse) return response
         const { status } = response
 
         // 判断响应类型：如果使用 adapterFetch，response.data 是可读流，则调用 json()；否则直接使用 response.data
@@ -88,34 +88,47 @@ export const createInstance = (option: requestOption) => {
             ? await response.json() // adapterFetch 的响应，使用 json() 解析可读流
             : response.data // 其他适配器的响应
         // 不成功的情况
-        if (status !== alovaOption.statusMap?.success) {
+        if (status !== mergeOption.statusMap?.success) {
           // 如果后端使用status 字段来表示未授权，则返回401
-          if (alovaOption?.statusMap?.unAuthorized === status) {
-            alovaOption?.unAuthorizedResponseFunc?.()
+          if (mergeOption?.statusMap?.unAuthorized === status) {
+            mergeOption?.unAuthorizedResponseFunc?.()
           }
-          throw Error(response)
+          return Promise.reject(response)
         }
 
-        const { responseDataKey, codeMap, isShowSuccessMessage, responseMessageKey } = option
+        const {
+          responseDataKey,
+          codeMap,
+          isShowSuccessMessage,
+          responseMessageKey,
+          isShowErrorMessage,
+        } = mergeOption
         const {
           code,
           [responseDataKey as string]: responseData,
           [responseMessageKey as string]: responseMessage,
         } = data
         if (!codeMap?.success?.includes(+code)) {
+          // code unAuthorized 处理
           if (codeMap?.unAuthorized?.includes(+code)) {
-            alovaOption?.unAuthorizedResponseFunc?.()
+            mergeOption?.unAuthorizedResponseFunc?.()
+            return Promise.reject(response)
           }
-          throw Error(data[responseMessageKey as string] ?? alovaOption.errorDefaultMessage)
+          // 其他错误直接打印msg
+
+          const errorMessage = data[responseMessageKey as string] ?? mergeOption.errorDefaultMessage
+          if (isShowErrorMessage) mergeOption?.errorMessageFunc?.(errorMessage)
+          return Promise.reject(response)
         }
         if (isShowSuccessMessage)
-          alovaOption?.successMessageFunc?.(responseMessage ?? alovaOption.successDefaultMessage)
+          mergeOption?.successMessageFunc?.(responseMessage ?? mergeOption.successDefaultMessage)
         return responseData
       },
       onError: (error) => {
-        alovaOption.errorMessageFunc?.(
-          error.response?.data?.message ?? alovaOption.errorDefaultMessage,
-        )
+        if (mergeOption?.isShowErrorMessage)
+          mergeOption.errorMessageFunc?.(
+            error.response?.data?.message ?? mergeOption?.errorDefaultMessage,
+          )
       },
       // onComplete: (_method) => {},
     },

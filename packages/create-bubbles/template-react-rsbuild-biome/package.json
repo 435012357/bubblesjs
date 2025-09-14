@@ -12,6 +12,7 @@
     "reinstall": "rimraf pnpm-lock.yaml && rimraf node_modules && pnpm install"
   },
   "dependencies": {
+    "@alova/adapter-axios": "^2.0.16",
     "@ant-design/icons-vue": "^7.0.1",
     "ahooks": "^3.9.5",
     "alova": "^3.3.4",

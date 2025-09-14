@@ -1,14 +1,10 @@
 {
   "editor.formatOnSave": true,
-  "editor.defaultFormatter": "biomejs.biome", // 控制相关文件嵌套展示
-  "explorer.fileNesting.enabled": true,
-  "explorer.fileNesting.expand": false,
-  "explorer.fileNesting.patterns": {
-    "*.ts": "$(capture).test.ts, $(capture).test.tsx",
-    "*.tsx": "$(capture).test.ts, $(capture).test.tsx",
-    "*.env": "$(capture).env.*",
-    "package.json": "pnpm-lock.yaml",
-    ".prettierrc": ".prettierignore"
+  "editor.defaultFormatter": "biomejs.biome",
+  "editor.codeActionsOnSave": {
+    "source.fixAll.biome": "explicit"
   },
-  "cSpell.words": ["ahooks", "ianvs", "lefthook", "rsbuild", "rspack", "unocss", "unplugin"]
+  "[less]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  }
 }

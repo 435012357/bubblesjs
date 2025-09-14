@@ -6,6 +6,7 @@ import { createSvgIconsPlugin } from 'vite-plugin-svg-icons'
 import Components from 'unplugin-vue-components/vite'
 import { ElementPlusResolver } from 'unplugin-vue-components/resolvers'
 import Inspect from 'vite-plugin-inspect'
+import UnoCSS from 'unocss/vite'
 
 // https://vite.dev/config/
 export default defineConfig(({ command, mode }) => {
@@ -43,6 +44,7 @@ export default defineConfig(({ command, mode }) => {
         symbolId: 'icon-[dir]-[name]',
       }),
       Inspect(),
+      UnoCSS()
     ],
   }
 })

@@ -1,77 +1,39 @@
-import type { AxiosRequestConfig } from 'axios'
+import { envVariables } from '../env'
+import { createDualCallInstance } from './core'
+import { router } from '@/router'
+import { ElMessage } from 'element-plus'
+import 'element-plus/es/components/message/style/css'
+import vueHook from 'alova/vue'
+import { axiosRequestAdapter } from '@alova/adapter-axios'
 
-import request, { type CustomConfig } from './axios'
-
-interface createAxiosType {
-  get: <T = any>(
-    config: {
-      url: string
-      params?: AxiosRequestConfig['params']
-      config?: AxiosRequestConfig<any>
+const getBaseConfig = (): Parameters<typeof createDualCallInstance>[0] => {
+  return {
+    baseUrl: `/${envVariables.PUBLIC_PORT}`,
+    statusMap: {
+      success: 200,
+      unAuthorized: 401,
     },
-    option?: CustomConfig,
-  ) => Promise<T>
-  post: <T = any>(
-    config: {
-      url: string
-      data?: AxiosRequestConfig['data']
-      params?: AxiosRequestConfig['params']
-      config?: AxiosRequestConfig<any>
+    codeMap: {
+      success: [200],
     },
-    option?: CustomConfig,
-  ) => Promise<T>
-  put: <T = any>(
-    config: {
-      url: string
-      data?: AxiosRequestConfig['data']
-      config?: AxiosRequestConfig<any>
+    responseDataKey: 'data',
+    responseMessageKey: 'msg',
+    commonHeaders: {},
+    successMessageFunc: (msg: string) => {
+      ElMessage.success(msg)
     },
-    option?: CustomConfig,
-  ) => Promise<T>
-  delete: <T = any>(
-    config: {
-      url: string
-      data?: AxiosRequestConfig['data']
-      config?: AxiosRequestConfig<any>
+    errorMessageFunc: (msg: string) => {
+      ElMessage.error(msg)
     },
-    option?: CustomConfig,
-  ) => Promise<T>
+    unAuthorizedResponseFunc: () => {
+      router.push('/login')
+      ElMessage.error('登录过期或未登录')
+    },
+    statesHook: vueHook,
+    requestAdapter: axiosRequestAdapter(),
+  }
 }
 
-const createAxios: createAxiosType = {
-  get: (config, option) =>
-    request(option).get(config.url, {
-      params: config.params,
-      ...config?.config,
-    }),
-  post: (
-    config: {
-      url: string
-      params?: Record<string, string>
-      data?: any
-      config?: AxiosRequestConfig<any>
-    },
-    option?: CustomConfig,
-  ) => {
-    let url = config.url
-    if (config.params instanceof Object) {
-      url += '?'
-      const entries = Object.entries(config.params)
-      for (let i = 0; i < entries.length; i++) {
-        const [key, value] = entries[i]
-        url += `${key}=${value}${i < entries.length - 1 ? '&' : ''}`
-      }
-    }
-    return request(option).post(url, config?.data, config?.config)
-  },
-  put: (
-    config: { url: string; data?: any; config?: AxiosRequestConfig<any> },
-    option?: CustomConfig,
-  ) => request(option).put(config.url, config?.data, config?.config),
-  delete: (
-    config: { url: string; config?: AxiosRequestConfig<any> },
-    customConfig?: CustomConfig,
-  ) => request(customConfig).delete(config.url, config?.config),
-}
+const alovaRequest = createDualCallInstance(getBaseConfig())
 
-export default createAxios
+export default alovaRequest
