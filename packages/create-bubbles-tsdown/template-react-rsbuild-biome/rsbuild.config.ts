@@ -1,9 +1,9 @@
 import { defineConfig } from '@rsbuild/core'
 import { pluginReact } from '@rsbuild/plugin-react'
-import AutoImport from 'unplugin-auto-import/rspack'
-import UnoCSS from '@unocss/postcss'
 import { pluginSass } from '@rsbuild/plugin-sass'
 import { pluginSvgr } from '@rsbuild/plugin-svgr'
+import UnoCSS from '@unocss/postcss'
+import AutoImport from 'unplugin-auto-import/rspack'
 
 export default defineConfig({
   html: {

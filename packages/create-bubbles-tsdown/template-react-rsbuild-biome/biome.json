@@ -1,7 +1,8 @@
 {
   "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
   "files": {
-    "ignoreUnknown": true
+    "ignoreUnknown": true,
+    "includes": ["**", "!public/**/*", "!node_modules/**/*", "!dist/**/*"]
   },
   "formatter": {
     "enabled": true,
@@ -54,9 +55,7 @@
         "useAriaPropsForRole": "off",
         "useValidAnchor": "off"
       },
-      "nursery": {
-        "useUniqueElementIds": "off"
-      }
+      "nursery": "off"
     }
   },
   "css": {
@@ -75,7 +74,20 @@
     "enabled": true,
     "actions": {
       "source": {
-        "organizeImports": "off"
+        "organizeImports": {
+          "level": "on",
+          "options": {
+            "identifierOrder": "natural",
+            "groups": [
+              [":NODE:", ":BUN:"],
+              ":BLANK_LINE:",
+              ["react", "react-dom/**", "react-dom", "react-router", "react-router-dom"],
+              ["vue", "vue-router"],
+              ":BLANK_LINE:",
+              ["@/**", "**"]
+            ]
+          }
+        }
       }
     }
   }

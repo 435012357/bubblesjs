@@ -1,10 +1,8 @@
-import { defineConfig, presetWind3 } from 'unocss'
+import { defineConfig, presetUno } from 'unocss'
 
 export default defineConfig({
   content: {
-    filesystem: ['**/*.{html,js,ts,jsx,tsx,vue,svelte,astro}'],
+    filesystem: ['./src/**/*.{html,js,ts,jsx,tsx}'],
   },
-  presets: [presetWind3()],
-  rules: [],
-  shortcuts: [['flex-center', 'flex items-center justify-center']],
+  presets: [presetUno()],
 })
