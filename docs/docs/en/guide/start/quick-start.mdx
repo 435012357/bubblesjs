@@ -11,24 +11,38 @@ Getting started with BubblesJS is easy! Let's create your first project.
 
 You can use `create-bubbles` to create a new BubblesJS project:
 
-```bash
-npm create bubbles@latest my-project
-# or
-yarn create bubbles my-project
-# or
-pnpm create bubbles@latest my-project
-# or
-bun create bubbles my-project
-```
+import { Tabs, Tab } from 'rspress/theme';
+
+<Tabs>
+  <Tab label="npm">
+    ```bash
+    npm create bubbles@latest my-project
+    ```
+  </Tab>
+  <Tab label="yarn">
+    ```bash
+    yarn create bubbles my-project
+    ```
+  </Tab>
+  <Tab label="pnpm">
+    ```bash
+    pnpm create bubbles@latest my-project
+    ```
+  </Tab>
+  <Tab label="bun">
+    ```bash
+    bun create bubbles@latest my-project
+    ```
+  </Tab>
+</Tabs>
 
 ## Choose Template
 
 During project creation, you'll be prompted to select a template:
 
-- **React + Rsbuild**: Fast React development with Rsbuild
-- **Vue + Rsbuild**: Vue development with Rsbuild and auto-imports
-- **Vue + Vite**: Traditional Vue + Vite setup
-- **Vue + Rolldown + Oxlint**: Experimental build tools (Rolldown + Oxlint)
+- **React + Rsbuild + Biome**: Fast React development with Rsbuild
+- **Vue + Rsbuild + Biome**: Vue development with Rsbuild and auto-imports
+- **Vue + Rolldown + Oxc**: Experimental build tools (uses Rolldown instead of Vite)
 
 ## Start Development
 
@@ -36,9 +50,46 @@ After project creation, navigate to your project directory and start the develop
 
 ```bash
 cd my-project
-npm install
-npm run dev
 ```
+
+<Tabs>
+  <Tab label="npm">
+    ```bash
+    # Install dependencies
+    npm install
+    
+    # Start development server
+    npm run dev
+    ```
+  </Tab>
+  <Tab label="yarn">
+    ```bash
+    # Install dependencies
+    yarn install
+    
+    # Start development server
+    yarn dev
+    ```
+  </Tab>
+  <Tab label="pnpm">
+    ```bash
+    # Install dependencies
+    pnpm install
+    
+    # Start development server
+    pnpm dev
+    ```
+  </Tab>
+  <Tab label="bun">
+    ```bash
+    # Install dependencies
+    bun install
+    
+    # Start development server
+    bun dev
+    ```
+  </Tab>
+</Tabs>
 
 ## Project Structure
 

@@ -11,27 +11,39 @@
 
 使用 `create-bubbles` 脚手架工具来创建一个新项目：
 
-```bash
-# 使用 npm
-npm create bubbles@latest my-project
+import { Tabs, Tab } from 'rspress/theme';
 
-# 使用 yarn  
-yarn create bubbles my-project
-
-# 使用 pnpm
-pnpm create bubbles@latest my-project
-
-# 使用 bun
-bun create bubbles@latest my-project
-```
+<Tabs>
+  <Tab label="npm">
+    ```bash
+    npm create bubbles@latest my-project
+    ```
+  </Tab>
+  <Tab label="yarn">
+    ```bash
+    yarn create bubbles my-project
+    ```
+  </Tab>
+  <Tab label="pnpm">
+    ```bash
+    pnpm create bubbles@latest my-project
+    ```
+  </Tab>
+  <Tab label="bun">
+    ```bash
+    bun create bubbles@latest my-project
+    ```
+  </Tab>
+</Tabs>
 
 ## 选择模板
 
 运行命令后，会出现交互式提示，让你选择：
 
 1. **框架选择**: React 或 Vue
-2. **构建工具**: Rsbuild（推荐）或 Vite
-3. **项目名称**: 输入你的项目名称
+2. **构建工具**: Rsbuild（推荐）或 Rolldown（实验性）
+3. **代码检查**: Biome 或 Oxc
+4. **项目名称**: 输入你的项目名称
 
 ## 启动开发服务器
 
@@ -39,13 +51,46 @@ bun create bubbles@latest my-project
 
 ```bash
 cd my-project
-
-# 安装依赖
-npm install
-
-# 启动开发服务器
-npm run dev
 ```
+
+<Tabs>
+  <Tab label="npm">
+    ```bash
+    # 安装依赖
+    npm install
+    
+    # 启动开发服务器
+    npm run dev
+    ```
+  </Tab>
+  <Tab label="yarn">
+    ```bash
+    # 安装依赖
+    yarn install
+    
+    # 启动开发服务器
+    yarn dev
+    ```
+  </Tab>
+  <Tab label="pnpm">
+    ```bash
+    # 安装依赖
+    pnpm install
+    
+    # 启动开发服务器
+    pnpm dev
+    ```
+  </Tab>
+  <Tab label="bun">
+    ```bash
+    # 安装依赖
+    bun install
+    
+    # 启动开发服务器
+    bun dev
+    ```
+  </Tab>
+</Tabs>
 
 现在你可以在浏览器中访问 `http://localhost:3000` 查看你的应用！
 

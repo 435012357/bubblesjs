@@ -1,0 +1,47 @@
+{
+  "name": "@bubblesjs/request",
+  "version": "0.0.2",
+  "type": "module",
+  "private": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "module": "./dist/index.js",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsdown",
+    "dev": "tsdown --watch",
+    "test": "vitest",
+    "test:coverage": "vitest --coverage --run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@bubblesjs/utils": "workspace:^"
+  },
+  "peerDependencies": {
+    "alova": "^3.3.4",
+    "axios": "^1.12.1"
+  },
+  "devDependencies": {
+    "axios": "^1.12.1",
+    "tsdown": "^0.14.1",
+    "vitest": "^3.2.4"
+  },
+  "peerDependenciesMeta": {
+    "alova": {
+      "optional": true
+    },
+    "axios": {
+      "optional": true
+    }
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  }
+}
