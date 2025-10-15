@@ -1,5 +1,11 @@
 # create-bubbles
 
+## 0.1.2
+
+### Patch Changes
+
+- [`5fee246`](https://github.com/435012357/bubblesjs/commit/5fee246e1638d1c02d41830600ec650e2adda484) Thanks [@435012357](https://github.com/435012357)! - react 模板升级依赖 和重构biomejs import
+
 ## 0.1.1
 
 ### Patch Changes
