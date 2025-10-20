@@ -1,6 +1,7 @@
 import type { App } from 'vue'
 import { createRouter, createWebHistory } from 'vue-router'
 
+import { setupGuard } from './guard'
 import { routes } from './modules'
 
 export const router = createRouter({
@@ -11,5 +12,6 @@ export const router = createRouter({
 })
 
 export const setupRouter = (app: App) => {
+  setupGuard(router)
   app.use(router)
 }

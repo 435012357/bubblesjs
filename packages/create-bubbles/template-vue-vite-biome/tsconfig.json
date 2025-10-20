@@ -4,7 +4,7 @@
     "useDefineForClassFields": true,
     "module": "ESNext",
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
-    "types": ["vite/client"],
+    "types": ["vite/client", "vue"],
     "skipLibCheck": true,
 
     /* Bundler mode */
@@ -28,9 +28,9 @@
     }
   },
   "include": [
-    "src/**/*.tsx",
+    "src/**/*.ts",
+    "src/**/*.d.ts",
     "src/**/*.vue",
-    "src/types/**/*",
     "./node_modules/element-plus/global.d.ts"
   ]
 }

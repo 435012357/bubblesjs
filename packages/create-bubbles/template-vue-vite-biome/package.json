@@ -1,5 +1,5 @@
 {
-  "name": "template-vue-vite-biome",
+  "name": "template-vue-rolldown-oxlint",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -19,6 +19,7 @@
     "dayjs": "^1.11.18",
     "echarts": "^6.0.0",
     "element-plus": "^2.11.5",
+    "nprogress": "^0.2.0",
     "pinia": "^3.0.3",
     "pinia-plugin-persistedstate": "^4.5.0",
     "plus-pro-components": "^0.1.30",
@@ -31,6 +32,7 @@
     "@commitlint/cli": "^20.1.0",
     "@commitlint/config-conventional": "^20.0.0",
     "@plus-pro-components/resolver": "^0.0.3",
+    "@types/nprogress": "^0.2.3",
     "@vitejs/plugin-vue": "^6.0.1",
     "@vue/tsconfig": "^0.8.1",
     "fast-glob": "^3.3.3",

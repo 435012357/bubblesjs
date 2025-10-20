@@ -17,15 +17,15 @@ export const routes: RouteRecordRaw[] = [
       {
         path: '/home',
         name: 'Home',
-        meta: { title: '研发A区数字孪生可视化大屏', isHideBack: true },
+        meta: { title: '研发A区数字孪生可视化大屏' },
         component: () => import('@/views/home/index.vue'),
       },
     ],
   },
   {
-    path: '/model',
-    name: 'model',
-    meta: {},
-    component: () => import('@/views/model/index.vue'),
+    path: '/login',
+    name: 'login',
+    meta: { title: '登录' },
+    component: () => import('@/views/login/index.vue'),
   },
 ]

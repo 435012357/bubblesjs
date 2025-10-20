@@ -2,7 +2,7 @@
   "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
   "files": {
     "ignoreUnknown": true,
-    "includes": ["**", "!public/**/*", "!node_modules/**/*", "!dist/**/*"]
+    "includes": ["**", "!public/**/*", "!node_modules/**/*", "!dist/**/*", "!src/**/*.vue"]
   },
   "formatter": {
     "enabled": true,
