@@ -140,8 +140,13 @@ const FRAMEWORKS: Framework[] = [
         color: colorMap.vue,
       },
       {
-        name: 'vue-rolldown-oxc',
+        name: 'vue-vite-oxc',
         display: 'rolldown + oxc',
+        color: colorMap.vue,
+      },
+      {
+        name: 'vue-vite-biome',
+        display: 'vite + biome',
         color: colorMap.vue,
       },
     ],

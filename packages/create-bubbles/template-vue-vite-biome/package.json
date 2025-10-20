@@ -1,5 +1,5 @@
 {
-  "name": "template-vue-rolldown-oxlint",
+  "name": "template-vue-vite-biome",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -7,12 +7,8 @@
     "dev": "vite",
     "build": "vue-tsc -b && vite build",
     "preview": "vite preview",
-    "lint": "pnpm lint:oxlint",
-    "lint:oxlint": "oxlint --fix",
-    "format": "prettier --write ."
-  },
-  "lint-staged": {
-    "**/*.{js,mjs,cjs,jsx,ts,mts,cts,tsx,vue,astro,svelte}": "oxlint"
+    "format": "biome format --write",
+    "check": "biome check --write"
   },
   "dependencies": {
     "@alova/adapter-axios": "^2.0.16",
@@ -31,17 +27,14 @@
     "vue-router": "^4.6.3"
   },
   "devDependencies": {
+    "@biomejs/biome": "^2.2.6",
     "@commitlint/cli": "^20.1.0",
     "@commitlint/config-conventional": "^20.0.0",
-    "@ianvs/prettier-plugin-sort-imports": "^4.7.0",
     "@plus-pro-components/resolver": "^0.0.3",
-    "@prettier/plugin-oxc": "^0.0.4",
     "@vitejs/plugin-vue": "^6.0.1",
     "@vue/tsconfig": "^0.8.1",
     "fast-glob": "^3.3.3",
     "lefthook": "^1.13.6",
-    "oxlint": "^1.23.0",
-    "prettier": "^3.6.2",
     "sass": "^1.93.2",
     "typescript": "~5.9.3",
     "unocss": "^66.5.4",
