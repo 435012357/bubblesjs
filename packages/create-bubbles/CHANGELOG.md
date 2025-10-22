@@ -1,5 +1,11 @@
 # create-bubbles
 
+## 0.1.3
+
+### Patch Changes
+
+- [`80d22ee`](https://github.com/435012357/bubblesjs/commit/80d22ee053506a521db9b29b160d1d769025752d) Thanks [@435012357](https://github.com/435012357)! - add template - vue-eslint vue-biome
+
 ## 0.1.2
 
 ### Patch Changes
