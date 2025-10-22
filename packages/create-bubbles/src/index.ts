@@ -135,6 +135,11 @@ const FRAMEWORKS: Framework[] = [
     color: colorMap.vue,
     variants: [
       {
+        name: 'vue-vite-eslint',
+        display: 'vite + eslint',
+        color: colorMap.vue,
+      },
+      {
         name: 'vue-rsbuild-biome',
         display: 'rsbuild + biome',
         color: colorMap.vue,
