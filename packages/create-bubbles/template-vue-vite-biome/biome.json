@@ -2,7 +2,7 @@
   "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
   "files": {
     "ignoreUnknown": true,
-    "includes": ["**", "!public/**/*", "!node_modules/**/*", "!dist/**/*", "!src/**/*.vue"]
+    "includes": ["**", "!public/**/*", "!node_modules/**/*", "!dist/**/*"]
   },
   "formatter": {
     "enabled": true,
@@ -65,7 +65,12 @@
         "useValidAnchor": "off",
         "useMediaCaption": "off"
       },
-      "nursery": "off"
+      "nursery": {
+        "useSortedClasses": {
+          "level": "warn",
+          "fix": "safe"
+        }
+      }
     }
   },
   "css": {

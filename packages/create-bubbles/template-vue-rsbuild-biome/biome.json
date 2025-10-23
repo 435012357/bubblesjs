@@ -17,7 +17,11 @@
         "useNumberNamespace": "off",
         "useNodejsImportProtocol": "off",
         "noNonNullAssertion": "off",
-        "noUnusedTemplateLiteral": "off"
+        "noUnusedTemplateLiteral": "off",
+        "useConst": {
+          "level": "warn",
+          "fix": "unsafe"
+        }
       },
       "complexity": {
         "noUselessTypeConstraint": "off",
@@ -28,7 +32,12 @@
         "useExhaustiveDependencies": "off",
         "useHookAtTopLevel": "off",
         "noUnusedFunctionParameters": "off",
-        "noUnusedVariables": "off"
+        "noUnusedVariables": "off",
+        "useUniqueElementIds": "off",
+        "useParseIntRadix": "off"
+      },
+      "security": {
+        "noDangerouslySetInnerHtml": "off"
       },
       "suspicious": {
         "noGlobalIsNan": "off",
@@ -53,9 +62,15 @@
         "noStaticElementInteractions": "off",
         "useAriaPropsSupportedByRole": "off",
         "useAriaPropsForRole": "off",
-        "useValidAnchor": "off"
+        "useValidAnchor": "off",
+        "useMediaCaption": "off"
       },
-      "nursery": "off"
+      "nursery": {
+        "useSortedClasses": {
+          "level": "warn",
+          "fix": "safe"
+        }
+      }
     }
   },
   "css": {
@@ -74,7 +89,20 @@
     "enabled": true,
     "actions": {
       "source": {
-        "organizeImports": "off"
+        "organizeImports": {
+          "level": "on",
+          "options": {
+            "identifierOrder": "natural",
+            "groups": [
+              [":NODE:", ":BUN:"],
+              ":BLANK_LINE:",
+              ["react", "react-dom/**", "react-dom", "react-router", "react-router-dom"],
+              ["vue", "vue-router"],
+              ":BLANK_LINE:",
+              ["@/**", "**"]
+            ]
+          }
+        }
       }
     }
   }

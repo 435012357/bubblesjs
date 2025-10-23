@@ -50,5 +50,13 @@
     "scss",
     "pcss",
     "postcss"
+  ],
+  "cSpell.words": [
+    "alova",
+    "Attributify",
+    "CPUBMED",
+    "unocss",
+    "unplugin",
+    "VITE"
   ]
 }

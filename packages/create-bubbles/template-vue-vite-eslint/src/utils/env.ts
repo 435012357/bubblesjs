@@ -3,8 +3,9 @@
  * @returns
  */
 export const envVariables = {
-  PUBLIC_PORT: import.meta.env.PUBLIC_PORT,
-  PUBLIC_PATH: import.meta.env.PUBLIC_PATH,
-  PUBLIC_APP_NAME: import.meta.env.PUBLIC_APP_NAME,
-  PUBLIC_API_AFFIX: import.meta.env.PUBLIC_API_AFFIX,
+  PORT: import.meta.env.VITE_PORT,
+  PATH: import.meta.env.VITE_PATH,
+  APP_NAME: import.meta.env.VITE_APP_NAME,
+  /** 后端接口前缀 */
+  API_AFFIX: import.meta.env.VITE_API_AFFIX,
 }

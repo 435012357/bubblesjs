@@ -1,4 +1,6 @@
-import { defineConfig, presetUno } from 'unocss'
+import presetAttributify from '@unocss/preset-attributify'
+import presetWind3 from '@unocss/preset-wind3'
+import { defineConfig } from 'unocss'
 
 export default defineConfig({
   // content: {
@@ -9,9 +11,11 @@ export default defineConfig({
   shortcuts: [
     {
       'flex-center': 'flex justify-center items-center',
+      'content-h-full': 'h-[calc(100vh-var(--plus-header-height)-2*var(--el-main-padding))]',
     },
   ],
   presets: [
-    presetUno(),
+    presetWind3(),
+    presetAttributify(),
   ],
 })

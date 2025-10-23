@@ -1,14 +1,17 @@
 import { axiosRequestAdapter } from '@alova/adapter-axios'
 import vueHook from 'alova/vue'
 import { ElMessage } from 'element-plus'
+
 import { router } from '@/router'
+
 import { envVariables } from '../env'
 import { createDualCallInstance } from './core'
+
 import 'element-plus/es/components/message/style/css'
 
 function getBaseConfig(): Parameters<typeof createDualCallInstance>[0] {
   return {
-    baseUrl: `/${envVariables.PUBLIC_PORT}`,
+    baseUrl: `/${envVariables.API_AFFIX}`,
     statusMap: {
       success: 200,
       unAuthorized: 401,

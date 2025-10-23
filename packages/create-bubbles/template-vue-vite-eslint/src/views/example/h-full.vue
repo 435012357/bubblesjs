@@ -7,9 +7,8 @@ const b = ref([1, 3, 4])
 </script>
 
 <template>
-  <div class="content-h-full h-98px w-full flex bg-green p-[111px] p-3px p-4px text-red">
+  <div class="content-h-full w-full bg-green p-[111px] p-3px p-4px text-red">
     home
-    <SvgIcon icon="cpu" style="color: #303133" />
     <el-date-picker v-model="a" type="date" value-format="yyyy-MM-dd" />
     <SvgIcon icon="vue" class="text-green" />
     <el-button type="primary">

@@ -1,13 +1,13 @@
 <script setup lang="ts">
 defineProps<{
-  name: string
+  icon: string
 }>()
 const attrs = useAttrs()
 </script>
 
 <template>
   <svg class="svg-icon" aria-hidden="true" v-bind="attrs">
-    <use :href="`#icon-${name}`" />
+    <use :href="`#icon-${icon}`" />
   </svg>
 </template>
 

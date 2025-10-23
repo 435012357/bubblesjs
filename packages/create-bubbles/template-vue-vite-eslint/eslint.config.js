@@ -7,7 +7,9 @@ export default antfu({
   },
   vue: true,
   unocss: true,
-}, {
+},
+// import rules
+{
   rules: {
     'perfectionist/sort-imports': [ // 配置导入排序
       'error',
@@ -60,5 +62,8 @@ export default antfu({
       },
     ],
   },
-
+}, {
+  rules: {
+    'n/prefer-global/process': 'off',
+  },
 })

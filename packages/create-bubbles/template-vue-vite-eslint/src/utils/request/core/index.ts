@@ -20,6 +20,9 @@ export interface baseRequestOption<AG extends AlovaGenerics> {
   timeout?: number
   commonHeaders?: Record<string, string | (() => string)>
   statusMap?: statusMap
+  isWrapped?: boolean
+  cacheFor?: AlovaOptions<AG>['cacheFor']
+  cacheLogger?: boolean
   codeMap?: codeMap
   responseDataKey?: string
   responseMessageKey?: string
@@ -51,6 +54,9 @@ export function createInstance(option: requestOption) {
       success: 200,
       unAuthorized: 401,
     },
+    isWrapped: true,
+    cacheFor: null,
+    cacheLogger: true,
     codeMap: {
       success: [200],
       unAuthorized: [401],
@@ -73,6 +79,8 @@ export function createInstance(option: requestOption) {
   const instance = createAlova({
     baseURL: mergeOption.baseUrl,
     timeout: mergeOption.timeout,
+    cacheFor: mergeOption.cacheFor,
+    cacheLogger: mergeOption.cacheLogger,
     statesHook: mergeOption?.statesHook,
     requestAdapter: mergeOption.requestAdapter as AlovaOptions<AlovaGenerics>['requestAdapter'],
     beforeRequest: async (method) => {
@@ -99,12 +107,19 @@ export function createInstance(option: requestOption) {
           }
           return Promise.reject(response)
         }
+        const { isWrapped, isShowSuccessMessage, successDefaultMessage } = mergeOption
+        if (!isWrapped) {
+          if (isShowSuccessMessage) {
+            mergeOption?.successMessageFunc?.(successDefaultMessage!)
+          }
+          return data
+        }
 
         const {
           responseDataKey,
           codeMap,
-          isShowSuccessMessage,
           responseMessageKey,
+          errorDefaultMessage,
           isShowErrorMessage,
         } = mergeOption
         const {
@@ -120,19 +135,19 @@ export function createInstance(option: requestOption) {
           }
           // 其他错误直接打印msg
 
-          const errorMessage = data[responseMessageKey as string] ?? mergeOption.errorDefaultMessage
+          const errorMessage = data[responseMessageKey as string] ?? errorDefaultMessage
           if (isShowErrorMessage)
             mergeOption?.errorMessageFunc?.(errorMessage)
           return Promise.reject(response)
         }
         if (isShowSuccessMessage)
-          mergeOption?.successMessageFunc?.(responseMessage ?? mergeOption.successDefaultMessage)
+          mergeOption?.successMessageFunc?.(responseMessage ?? successDefaultMessage)
         return responseData
       },
       onError: (error) => {
         if (mergeOption?.isShowErrorMessage) {
           mergeOption.errorMessageFunc?.(
-            error.response?.data?.message ?? mergeOption?.errorDefaultMessage,
+            mergeOption?.errorDefaultMessage ?? error.message,
           )
         }
       },
@@ -158,7 +173,6 @@ export function createDualCallInstance(baseConfig: baseRequestOption<AlovaGeneri
     return defaultInstance
   }
 
-  // 🎯 直接绑定 HTTP 方法，无需复杂类型注释
   dualInstance.Get = defaultInstance.Get.bind(defaultInstance)
   dualInstance.Post = defaultInstance.Post.bind(defaultInstance)
   dualInstance.Put = defaultInstance.Put.bind(defaultInstance)

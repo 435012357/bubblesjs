@@ -13,4 +13,5 @@ import 'virtual:uno.css'
 const app = createApp(App)
 setupRouter(app)
 setupStore(app)
+
 app.mount('#app')
