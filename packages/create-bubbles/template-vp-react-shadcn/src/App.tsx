@@ -1,14 +1,14 @@
-import dayjs from "dayjs";
-import "dayjs/locale/zh-cn";
-import { Suspense } from "react";
-import { RouterProvider } from "react-router";
+import dayjs from 'dayjs'
+import 'dayjs/locale/zh-cn'
+import { Suspense } from 'react'
+import { RouterProvider } from 'react-router'
 
-import PageLoading from "@/components/Loading/PageLoading";
-import { Toaster } from "@/components/ui/sonner";
+import PageLoading from '@/components/Loading/PageLoading'
+import { Toaster } from '@/components/ui/toast'
 
-import { router } from "./router";
+import { router } from './router'
 
-dayjs.locale("zh-cn");
+dayjs.locale('zh-cn')
 
 function App() {
   return (
@@ -18,7 +18,7 @@ function App() {
       </Suspense>
       <Toaster />
     </>
-  );
+  )
 }
 
-export default App;
+export default App

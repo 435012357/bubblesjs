@@ -39,8 +39,6 @@ catalog:
   '@vitest/browser-playwright': 4.1.10
 
 minimumReleaseAgeExclude:
-  - '@rspress/core@2.0.14'
-  - '@rspress/shared@2.0.14'
   - '@vitest/expect@4.1.9'
   - '@vitest/mocker@4.1.9'
   - '@vitest/pretty-format@4.1.9'
@@ -51,4 +49,5 @@ minimumReleaseAgeExclude:
   - vitest@4.1.9
 overrides:
   vite: 'catalog:'
+  'vitepress>vite': '^8.2.1'
   vitest: 'catalog:'

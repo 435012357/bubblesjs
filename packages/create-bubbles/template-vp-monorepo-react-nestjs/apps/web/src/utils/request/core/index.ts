@@ -1,3 +1,4 @@
+import { axiosRequestAdapter, type AlovaAxiosRequestConfig } from '@alova/adapter-axios'
 import type {
   AlovaGlobalCacheAdapter,
   AlovaOptions,
@@ -7,8 +8,7 @@ import type {
   StatesHook,
 } from 'alova'
 import { createAlova } from 'alova'
-import type { FetchRequestInit } from 'alova/fetch'
-import adapterFetch from 'alova/fetch'
+import type { AxiosResponse, AxiosResponseHeaders } from 'axios'
 import { deepMergeObject, isPlainObject, isReadableStream, tryParseJsonString } from './utils.ts'
 
 type MaybePromise<T> = T | Promise<T>
@@ -23,7 +23,6 @@ type StatusMatcher<RE> = number | number[] | ((status: number, response: RE) => 
 type CodeMatcher = Array<number | string>
 
 export interface StatusMap<RE = unknown> {
-  success?: StatusMatcher<RE>
   unAuthorized?: StatusMatcher<RE>
 }
 
@@ -40,9 +39,9 @@ export interface RequestMeta {
 }
 
 export interface BaseRequestOption<
-  RC extends object = FetchRequestInit,
-  RE = Response,
-  RH = Headers,
+  RC extends object = AlovaAxiosRequestConfig,
+  RE = AxiosResponse,
+  RH = AxiosResponseHeaders,
   SE extends StatesExport<any> = StatesExport<any>,
 > extends RequestMeta {
   baseUrl?: string
@@ -60,7 +59,8 @@ export interface BaseRequestOption<
   errorDefaultMessage?: string
   successMessageFunc?: (message: string) => void
   errorMessageFunc?: (message: string) => void
-  unAuthorizedResponseFunc?: () => void
+  unAuthorizedResponseFunc?: (response: RE) => void
+  /** 默认使用 Axios；自定义适配器也须拒绝 HTTP 错误，并通过 error.response 提供响应。 */
   requestAdapter?: AlovaRequestAdapter<RC, RE, RH>
   l1Cache?: AlovaGlobalCacheAdapter
   l2Cache?: AlovaGlobalCacheAdapter
@@ -68,16 +68,16 @@ export interface BaseRequestOption<
 }
 
 export type baseRequestOption<
-  RC extends object = FetchRequestInit,
-  RE = Response,
-  RH = Headers,
+  RC extends object = AlovaAxiosRequestConfig,
+  RE = AxiosResponse,
+  RH = AxiosResponseHeaders,
   SE extends StatesExport<any> = StatesExport<any>,
 > = BaseRequestOption<RC, RE, RH, SE>
 
 export type RequestOption<
-  RC extends object = FetchRequestInit,
-  RE = Response,
-  RH = Headers,
+  RC extends object = AlovaAxiosRequestConfig,
+  RE = AxiosResponse,
+  RH = AxiosResponseHeaders,
   SE extends StatesExport<any> = StatesExport<any>,
 > = BaseRequestOption<RC, RE, RH, SE>
 
@@ -119,7 +119,6 @@ const defaultRequestOption: BaseRequestOption<any, any, any, any> = {
   baseUrl: '/',
   timeout: undefined,
   statusMap: {
-    success: 200,
     unAuthorized: 401,
   },
   codeMap: {
@@ -137,7 +136,7 @@ const defaultRequestOption: BaseRequestOption<any, any, any, any> = {
   errorDefaultMessage: DEFAULT_ERROR_MESSAGE,
   cacheFor: null,
   cacheLogger: true,
-  requestAdapter: adapterFetch() as AlovaRequestAdapter<any, any, any>,
+  requestAdapter: axiosRequestAdapter(),
 }
 
 function getMethodMeta(method: unknown): RequestMeta {
@@ -155,7 +154,7 @@ function isMatchedStatus<RE>(
   matcher: StatusMatcher<RE> | undefined,
   response: RE,
 ): boolean {
-  if (matcher === undefined) return status >= 200 && status < 300
+  if (matcher === undefined) return false
 
   if (typeof matcher === 'function') return matcher(status, response)
 
@@ -283,12 +282,20 @@ function resolveConfig<RC extends object, RE, RH, SE extends StatesExport<any>>(
 }
 
 export function createInstance<
-  RC extends object = FetchRequestInit,
-  RE = Response,
-  RH = Headers,
+  RC extends object = AlovaAxiosRequestConfig,
+  RE = AxiosResponse,
+  RH = AxiosResponseHeaders,
   SE extends StatesExport<any> = StatesExport<any>,
 >(option: RequestOption<RC, RE, RH, SE> = {}) {
   const config = resolveConfig(option)
+
+  function responseError(data: unknown, status: number) {
+    const code = getResponseField(data, config.responseCodeKey)
+    return Object.assign(
+      new Error(getResponseMessage(data, config.responseMessageKey, config.errorDefaultMessage)),
+      { status, code: typeof code === 'string' || typeof code === 'number' ? code : undefined },
+    )
+  }
 
   const alovaOptions: AlovaOptions<RequestAlovaGenerics<RC, RE, RH, SE>> = {
     baseURL: config.baseUrl,
@@ -310,6 +317,7 @@ export function createInstance<
       }
     },
     responded: {
+      // HTTP 成败由适配器判断；这里只解析成功响应并检查业务 code。
       onSuccess: async (response, method) => {
         const meta = getMethodMeta(method)
         const shouldTransform = getMetaFlag(meta, 'isTransformResponse', config.isTransformResponse)
@@ -321,18 +329,6 @@ export function createInstance<
 
         const status = getResponseStatus(response)
         const data = await getResponseData(response)
-
-        if (!isMatchedStatus(status, config.statusMap.success, response)) {
-          if (isMatchedStatus(status, config.statusMap.unAuthorized, response))
-            config.unAuthorizedResponseFunc?.()
-
-          if (showError) {
-            config.errorMessageFunc?.(
-              getResponseMessage(data, config.responseMessageKey, config.errorDefaultMessage),
-            )
-          }
-          return Promise.reject(response)
-        }
 
         if (!isWrapped) {
           if (showSuccess) config.successMessageFunc?.(config.successDefaultMessage)
@@ -348,30 +344,42 @@ export function createInstance<
         )
 
         if (!isMatchedCode(code, config.codeMap.success)) {
-          if (isMatchedCode(code, config.codeMap.unAuthorized)) config.unAuthorizedResponseFunc?.()
+          if (isMatchedCode(code, config.codeMap.unAuthorized))
+            config.unAuthorizedResponseFunc?.(response)
 
           if (showError) {
             config.errorMessageFunc?.(
               getResponseMessage(data, config.responseMessageKey, config.errorDefaultMessage),
             )
           }
-          return Promise.reject(response)
+          throw responseError(data, status)
         }
 
         if (showSuccess) config.successMessageFunc?.(responseMessage)
 
         return responseData
       },
-      onError: (error, method) => {
+      // 统一处理 HTTP 错误、网络故障和超时；onSuccess 抛出的业务错误直接传给调用方。
+      onError: async (error, method) => {
         const meta = getMethodMeta(method)
         const showError = getMetaFlag(meta, 'isShowErrorMessage', config.isShowErrorMessage)
+        const response = (error as { response?: RE } | undefined)?.response
+        let failure: Error
+
+        if (response) {
+          const status = getResponseStatus(response)
+          if (isMatchedStatus(status, config.statusMap.unAuthorized, response)) {
+            config.unAuthorizedResponseFunc?.(response)
+          }
+          failure = responseError(await getResponseData(response), status)
+        } else {
+          failure = new Error('无法连接服务，请检查网络后重试')
+        }
 
         if (showError) {
-          config.errorMessageFunc?.(
-            error instanceof Error ? error.message : config.errorDefaultMessage,
-          )
+          config.errorMessageFunc?.(failure.message)
         }
-        return Promise.reject(error)
+        throw failure
       },
     },
   }
@@ -380,24 +388,24 @@ export function createInstance<
 }
 
 export type RequestInstance<
-  RC extends object = FetchRequestInit,
-  RE = Response,
-  RH = Headers,
+  RC extends object = AlovaAxiosRequestConfig,
+  RE = AxiosResponse,
+  RH = AxiosResponseHeaders,
   SE extends StatesExport<any> = StatesExport<any>,
 > = ReturnType<typeof createInstance<RC, RE, RH, SE>>
 
 export type DualCallInstance<
-  RC extends object = FetchRequestInit,
-  RE = Response,
-  RH = Headers,
+  RC extends object = AlovaAxiosRequestConfig,
+  RE = AxiosResponse,
+  RH = AxiosResponseHeaders,
   SE extends StatesExport<any> = StatesExport<any>,
 > = RequestInstance<RC, RE, RH, SE> &
   ((option?: RequestOption<RC, RE, RH, SE>) => RequestInstance<RC, RE, RH, SE>)
 
 export function createDualCallInstance<
-  RC extends object = FetchRequestInit,
-  RE = Response,
-  RH = Headers,
+  RC extends object = AlovaAxiosRequestConfig,
+  RE = AxiosResponse,
+  RH = AxiosResponseHeaders,
   SE extends StatesExport<any> = StatesExport<any>,
 >(baseConfig: BaseRequestOption<RC, RE, RH, SE>): DualCallInstance<RC, RE, RH, SE> {
   const defaultInstance = createInstance(baseConfig)

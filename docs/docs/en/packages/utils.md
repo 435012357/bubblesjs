@@ -1,0 +1,374 @@
+# @bubblesjs/utils
+
+Utilities for object merging, object and stream checks, and JSON string parsing.
+
+## Installation
+
+::: code-group
+
+```bash [pnpm]
+pnpm add @bubblesjs/utils
+```
+
+```bash [npm]
+npm install @bubblesjs/utils
+```
+
+```bash [yarn]
+yarn add @bubblesjs/utils
+```
+
+```bash [bun]
+bun add @bubblesjs/utils
+```
+
+:::
+
+## Quick Usage
+
+```ts
+import { deepMergeObject, isReadableStream } from '@bubblesjs/utils'
+
+// Deep merge objects
+const merged = deepMergeObject({ a: 1, b: { c: 2 } }, { b: { d: 3 }, e: 4 })
+// Result: { a: 1, b: { c: 2, d: 3 }, e: 4 }
+
+// Check if it's a readable stream
+const isStream = isReadableStream(response.body)
+```
+
+## API Documentation
+
+### Utility Functions
+
+#### deepMergeObject(source, target)
+
+Deep merge two objects, supporting recursive merging of nested objects.
+
+**Parameters:**
+
+- `source`: `T` - Original object
+- `target`: `Partial<T>` - Overrides; matching properties replace values from the first argument
+
+**Return Value:**
+
+- `object` - New merged object
+
+**Example:**
+
+```ts
+import { deepMergeObject } from '@bubblesjs/utils'
+
+const target = {
+  user: {
+    name: 'Alice',
+    settings: {
+      theme: 'light',
+    },
+  },
+  version: '1.0.0',
+}
+
+const source = {
+  user: {
+    age: 25,
+    settings: {
+      language: 'en-US',
+    },
+  },
+  features: ['dark-mode'],
+}
+
+const result = deepMergeObject(target, source)
+// Result:
+// {
+//   user: {
+//     name: 'Alice',
+//     age: 25,
+//     settings: {
+//       theme: 'light',
+//       language: 'en-US'
+//     }
+//   },
+//   version: '1.0.0',
+//   features: ['dark-mode']
+// }
+```
+
+**Notes:**
+
+- Arrays are replaced entirely, not merged at element level
+- Special objects like functions, Date, RegExp are assigned directly
+- Properties from the second argument override matching properties from the first
+
+#### isPlainObject(data)
+
+Checks whether `Object.prototype.toString.call(data) === '[object Object]'`. It returns a `boolean` and narrows the type to `Record<string, any>`. It does not check the prototype, so ordinary class instances may also return `true`.
+
+```ts
+import { isPlainObject } from '@bubblesjs/utils'
+
+isPlainObject({ name: 'Bubbles' }) // true
+isPlainObject([]) // false
+isPlainObject(null) // false
+```
+
+#### tryParseJsonString(data)
+
+Accepts `unknown` and only attempts to parse strings starting with `{` or `[` after trimming whitespace. It returns the parsed value on success. Non-strings, non-matching strings, and invalid JSON are returned unchanged, including their original whitespace.
+
+```ts
+import { tryParseJsonString } from '@bubblesjs/utils'
+
+tryParseJsonString(' {"name":"Bubbles"} ') // { name: 'Bubbles' }
+tryParseJsonString('[1, 2]') // [1, 2]
+tryParseJsonString('true') // 'true'
+tryParseJsonString('{invalid}') // '{invalid}'
+```
+
+#### isReadableStream(obj)
+
+Checks if an object is a ReadableStream.
+
+**Parameters:**
+
+- `obj`: `any` - Object to check
+
+**Return Value:**
+
+- `boolean` - Returns true if it's a readable stream, false otherwise
+
+**Example:**
+
+```ts
+import { isReadableStream } from '@bubblesjs/utils'
+
+// Check fetch response body
+const response = await fetch('/api/data')
+if (isReadableStream(response.body)) {
+  // Handle stream response
+  const data = await response.json()
+} else {
+  // Handle regular response
+  const data = response.body
+}
+
+// Check custom stream
+const customStream = new ReadableStream({
+  start(controller) {
+    controller.enqueue('Hello')
+    controller.close()
+  },
+})
+
+console.log(isReadableStream(customStream)) // true
+console.log(isReadableStream({})) // false
+console.log(isReadableStream(null)) // false
+```
+
+**Use Cases:**
+
+- Distinguish different types of response bodies
+- Conditionally handle stream data
+- Adapter compatibility checks
+
+## Use Cases
+
+### 1. Configuration Object Merging
+
+```ts
+import { deepMergeObject } from '@bubblesjs/utils'
+
+// Default configuration
+const defaultConfig = {
+  api: {
+    baseUrl: '/api',
+    timeout: 5000,
+  },
+  ui: {
+    theme: 'light',
+    language: 'en',
+  },
+}
+
+// User configuration
+const userConfig = {
+  api: {
+    timeout: 10000,
+  },
+  ui: {
+    theme: 'dark',
+  },
+}
+
+// Merge configuration
+const finalConfig = deepMergeObject(defaultConfig, userConfig)
+// Result preserves all default settings while applying user overrides
+```
+
+### 2. Response Handling Adaptation
+
+```ts
+import { isReadableStream } from '@bubblesjs/utils'
+
+const handleResponse = async (response) => {
+  // Handle different response body types
+  if (response?.body && isReadableStream(response.body)) {
+    // Fetch API stream response
+    return await response.json()
+  } else {
+    // Other adapter direct response
+    return response.data
+  }
+}
+```
+
+### 3. Component Property Merging
+
+```ts
+import { deepMergeObject } from '@bubblesjs/utils'
+
+// React component example
+const Button = ({ className, style, ...props }) => {
+  const defaultStyle = {
+    padding: '8px 16px',
+    border: 'none',
+    borderRadius: '4px'
+  }
+
+  const mergedStyle = deepMergeObject(defaultStyle, style || {})
+
+  return (
+    <button
+      className={`btn ${className || ''}`}
+      style={mergedStyle}
+      {...props}
+    />
+  )
+}
+```
+
+## Type Definitions
+
+```ts
+declare function deepMergeObject<T = any>(source: T, target: Partial<T>): T
+declare function isPlainObject(data: unknown): data is Record<string, any>
+declare function isReadableStream(data: unknown): boolean
+declare function tryParseJsonString(data: unknown): unknown
+```
+
+## Best Practices
+
+### 1. Configuration Management
+
+```ts
+import { deepMergeObject } from '@bubblesjs/utils'
+
+class ConfigManager {
+  private defaultConfig: Record<string, any>
+
+  constructor(defaultConfig: Record<string, any>) {
+    this.defaultConfig = defaultConfig
+  }
+
+  merge(userConfig: Record<string, any>) {
+    return deepMergeObject(this.defaultConfig, userConfig)
+  }
+
+  // Support multi-layer merging
+  mergeMultiple(...configs: Record<string, any>[]) {
+    return configs.reduce((acc, config) => deepMergeObject(acc, config), this.defaultConfig)
+  }
+}
+```
+
+### 2. Response Adapter
+
+```ts
+import { isReadableStream } from '@bubblesjs/utils'
+
+class ResponseAdapter {
+  static async parse(response: any) {
+    // Unified response parsing logic
+    if (response?.body && isReadableStream(response.body)) {
+      try {
+        return await response.json()
+      } catch (error) {
+        return await response.text()
+      }
+    }
+
+    return response.data || response
+  }
+}
+```
+
+### 3. Utility Function Combination
+
+```ts
+import { deepMergeObject, isReadableStream } from '@bubblesjs/utils'
+
+// Create a general data processing tool
+const createDataProcessor = (defaultOptions = {}) => {
+  return {
+    process: async (data: any, options = {}) => {
+      const mergedOptions = deepMergeObject(defaultOptions, options)
+
+      if (isReadableStream(data)) {
+        // Handle stream data
+        const reader = data.getReader()
+        // ... stream processing logic
+      }
+
+      // Handle regular data
+      return processWithOptions(data, mergedOptions)
+    },
+  }
+}
+```
+
+## FAQ
+
+### Q: Does deepMergeObject modify the original objects?
+
+A: No. `deepMergeObject` creates a new object and doesn't modify the input objects.
+
+```ts
+const original = { a: 1, b: { c: 2 } }
+const source = { b: { d: 3 } }
+const result = deepMergeObject(original, source)
+
+console.log(original) // { a: 1, b: { c: 2 } } - unchanged
+console.log(result) // { a: 1, b: { c: 2, d: 3 } } - new object
+```
+
+### Q: How to handle array merging?
+
+A: The current implementation replaces arrays entirely. If you need element-level array merging, you can customize the handling:
+
+```ts
+const customMerge = (target, source) => {
+  const result = deepMergeObject(target, source)
+
+  // Custom array merging logic
+  if (Array.isArray(target.items) && Array.isArray(source.items)) {
+    result.items = [...target.items, ...source.items]
+  }
+
+  return result
+}
+```
+
+### Q: Which environments does isReadableStream support?
+
+A: Supports ReadableStream in modern browsers and Node.js environments. For unsupported environments, it safely returns false.
+
+## Summary
+
+@bubblesjs/utils provides practical utility functions, particularly suitable for:
+
+- **Configuration Management**: Use `deepMergeObject` for flexible configuration merging
+- **Response Handling**: Use `isReadableStream` to adapt different response types
+- **Data Processing**: Provide reliable tool support in various data manipulation scenarios
+
+These utility functions are thoroughly tested and can be safely used in production environments.

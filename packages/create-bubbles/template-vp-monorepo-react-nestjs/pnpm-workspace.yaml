@@ -7,6 +7,9 @@ catalogMode: prefer
 
 catalog:
   '@alova/adapter-axios': ^2.0.18
+  '@ant-design/cssinjs': ^2.1.2
+  '@ant-design/icons': ^6.3.4
+  '@ant-design/pro-components': 3.1.14-7
   '@antdv-next/auto-import-resolver': ^1.1.0
   '@antdv-next/icons': ^1.1.1
   '@antfu/eslint-config': ^9.1.0
@@ -43,7 +46,7 @@ catalog:
   '@vitejs/plugin-vue': ^6.0.7
   '@vue/tsconfig': ^0.9.1
   alova: ^3.5.1
-  antd: ^6.4.5
+  antd: ^6.6.2
   antdv-next: ^1.4.1
   argon2: ^0.45.0
   axios: ^1.18.1

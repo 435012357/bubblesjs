@@ -1,9 +1,17 @@
-import { axiosRequestAdapter } from '@alova/adapter-axios'
-import reactHook from 'alova/react'
+import { axiosRequestAdapter, type AlovaAxiosRequestConfig } from '@alova/adapter-axios'
+import reactHook, { type ReactHookExportType } from 'alova/react'
 import { message } from 'antd'
+import type { AxiosResponse, AxiosResponseHeaders } from 'axios'
 import { navigator } from '@/router'
 import { envVariables } from '@/utils/env'
-import { createDualCallInstance } from './core'
+import { createDualCallInstance, type BaseRequestOption } from './core'
+
+type WebRequestOption = BaseRequestOption<
+  AlovaAxiosRequestConfig,
+  AxiosResponse,
+  AxiosResponseHeaders,
+  ReactHookExportType<unknown>
+>
 
 function normalizeBaseUrl(apiAffix?: string) {
   if (!apiAffix) return '/'
@@ -14,7 +22,7 @@ function normalizeBaseUrl(apiAffix?: string) {
   return `/${apiAffix}`
 }
 
-function getBaseConfig(): Parameters<typeof createDualCallInstance>[0] {
+function getBaseConfig(): WebRequestOption {
   return {
     baseUrl: normalizeBaseUrl(envVariables.API_AFFIX),
     statusMap: {
@@ -43,6 +51,11 @@ function getBaseConfig(): Parameters<typeof createDualCallInstance>[0] {
   }
 }
 
-const alovaRequest = createDualCallInstance(getBaseConfig())
+const alovaRequest = createDualCallInstance<
+  AlovaAxiosRequestConfig,
+  AxiosResponse,
+  AxiosResponseHeaders,
+  ReactHookExportType<unknown>
+>(getBaseConfig())
 
 export default alovaRequest

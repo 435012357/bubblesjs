@@ -1,11 +1,14 @@
 export function deepMergeObject<T = any>(source: T, target: Partial<T>): T {
   const merge = (src: any, tgt: any): any => {
-    if (!isPlainObject(src) || !isPlainObject(tgt)) return tgt === undefined ? src : tgt
+    if (!isPlainObject(src) || !isPlainObject(tgt))
+      return tgt === undefined ? src : tgt
 
     const result = { ...src }
     for (const key of Object.keys(tgt)) {
       const targetValue = tgt[key]
-      result[key] = isPlainObject(targetValue) ? merge(result[key], targetValue) : targetValue
+      result[key] = isPlainObject(targetValue)
+        ? merge(result[key], targetValue)
+        : targetValue
     }
 
     return result

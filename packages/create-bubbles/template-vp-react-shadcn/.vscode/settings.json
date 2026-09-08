@@ -6,7 +6,7 @@
   "editor.codeActionsOnSave": {
     "source.fixAll.oxc": "explicit"
   },
-  "oxc.configPath": ".oxlintrc.jsonc",
-  "oxc.fmt.configPath": ".oxfmtrc.jsonc",
+  "oxc.disableNestedConfig": true,
+  "oxc.fmt.disableNestedConfig": true,
   "cSpell.words": ["alova"]
 }

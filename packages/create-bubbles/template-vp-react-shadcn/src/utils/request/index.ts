@@ -1,21 +1,29 @@
-import reactHook from "alova/react";
-import { toast } from "sonner";
+import type { FetchRequestInit } from 'alova/fetch'
+import reactHook, { type ReactHookExportType } from 'alova/react'
 
-import { navigator } from "@/router";
-import { envVariables } from "@/utils/env";
+import { toast } from '@/components/ui/toast'
+import { navigator } from '@/router'
+import { envVariables } from '@/utils/env'
 
-import { createDualCallInstance } from "./alova-core";
+import { createDualCallInstance, type BaseRequestOption } from './alova-core'
+
+type WebRequestOption = BaseRequestOption<
+  FetchRequestInit,
+  Response,
+  Headers,
+  ReactHookExportType<unknown>
+>
 
 function normalizeBaseUrl(apiAffix?: string) {
-  if (!apiAffix) return "/";
-  if (/^https?:\/\//.test(apiAffix) || apiAffix.startsWith("/")) {
-    return apiAffix;
+  if (!apiAffix) return '/'
+  if (/^https?:\/\//.test(apiAffix) || apiAffix.startsWith('/')) {
+    return apiAffix
   }
 
-  return `/${apiAffix}`;
+  return `/${apiAffix}`
 }
 
-function getBaseConfig(): Parameters<typeof createDualCallInstance>[0] {
+function getBaseConfig(): WebRequestOption {
   return {
     baseUrl: normalizeBaseUrl(envVariables.API_AFFIX),
     statusMap: {
@@ -26,23 +34,28 @@ function getBaseConfig(): Parameters<typeof createDualCallInstance>[0] {
       success: [200],
       unAuthorized: [401],
     },
-    responseDataKey: "data",
-    responseMessageKey: "msg",
+    responseDataKey: 'data',
+    responseMessageKey: 'msg',
     commonHeaders: () => ({}),
     successMessageFunc: (msg) => {
-      toast.success(msg);
+      toast.add({ type: 'success', description: msg })
     },
     errorMessageFunc: (msg) => {
-      toast.error(msg);
+      toast.add({ type: 'error', description: msg })
     },
     unAuthorizedResponseFunc: () => {
-      navigator("/login");
-      toast.error("登录过期或未登录");
+      navigator('/login')
+      toast.add({ type: 'error', description: '登录过期或未登录' })
     },
     statesHook: reactHook,
-  };
+  }
 }
 
-const alovaRequest = createDualCallInstance(getBaseConfig());
+const alovaRequest = createDualCallInstance<
+  FetchRequestInit,
+  Response,
+  Headers,
+  ReactHookExportType<unknown>
+>(getBaseConfig())
 
-export default alovaRequest;
+export default alovaRequest

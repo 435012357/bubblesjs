@@ -4,4 +4,4 @@ export {
   type VideoJSProps,
   type VideoJSSource,
   type VideoJSSourceType,
-} from "./VideoJS";
+} from './VideoJS'

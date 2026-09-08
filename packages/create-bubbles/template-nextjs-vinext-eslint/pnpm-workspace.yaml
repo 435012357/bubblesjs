@@ -1,6 +1,18 @@
-shellEmulator: true
+minimumReleaseAgeExcludePrune: true
+minimumReleaseAgeExclude:
+  - '@types/node@26.5.0'
 
 trustPolicy: no-downgrade
+
+# Babel 7 requires this legacy release; its npm integrity matches the existing lockfile.
+trustPolicyExclude:
+  - semver@6.3.1
+
+shellEmulator: true
+
+allowBuilds:
+  esbuild: true
+  lefthook: true
 
 ignoredBuiltDependencies:
   - sharp

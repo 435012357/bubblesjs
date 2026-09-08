@@ -7,6 +7,8 @@
 node_modules
 dist/
 doc_build/
+.vitepress/cache/
+.vitepress/.temp/
 
 # IDE
 .vscode/*

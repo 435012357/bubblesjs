@@ -1,0 +1,10 @@
+allowBuilds:
+  '@parcel/watcher': true
+  msw: true
+
+peerDependencyRules:
+  allowedVersions:
+    vite: '0.3.0'
+
+overrides:
+  vite: npm:@voidzero-dev/vite-plus-core@0.3.0

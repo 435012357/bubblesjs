@@ -1,8 +1,8 @@
-# nodejs 版本
-FROM node:24-alpine
+# 使用 Node.js Alpine 镜像
+FROM node:alpine
 
-# 使用pnpm 
-RUN corepack enable && corepack prepare pnpm@10.17.1 --activate
+# 安装 pnpm
+RUN npm install --global pnpm
 
 # 设置工作目录
 WORKDIR /app

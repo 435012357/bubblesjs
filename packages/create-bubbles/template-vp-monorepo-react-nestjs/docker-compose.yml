@@ -35,7 +35,7 @@ services:
     volumes:
       - minio-data:/data
   minio-init:
-    image: minio/mc:latest
+    image: quay.io/minio/mc:latest
     container_name: vp-minio-init
     depends_on:
       minio:

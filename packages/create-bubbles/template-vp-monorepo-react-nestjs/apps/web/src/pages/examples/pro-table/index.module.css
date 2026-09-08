@@ -1,0 +1,101 @@
+@layer components {
+  .proTable {
+    display: flex;
+    height: 100%;
+    min-height: 0;
+    flex-direction: column;
+  }
+
+  /* 窄屏展开全部搜索项时，仍为表体保留可见空间。 */
+  .proTable > :global(.ant-pro-table-search) {
+    max-height: 50%;
+    overflow: auto;
+  }
+
+  .tableCard {
+    min-height: 0;
+    flex: 1;
+  }
+
+  /* 将搜索区、工具栏和分页之外的剩余高度逐层传给表体。 */
+  .tableCard > :global(.ant-pro-card-body),
+  .table,
+  .table > :global(.ant-spin),
+  .table :global(.ant-spin-container),
+  .table :global(.ant-table),
+  .table :global(.ant-table-container) {
+    display: flex;
+    min-height: 0;
+    flex: 1;
+    flex-direction: column;
+  }
+
+  .proTable > :global(.ant-pro-table-search),
+  .tableCard :global(.ant-pro-table-list-toolbar),
+  .tableCard :global(.ant-pro-table-alert),
+  .table :global(.ant-table-header),
+  .table :global(.ant-table-pagination) {
+    flex-shrink: 0;
+  }
+
+  .table :global(.ant-table-body) {
+    min-height: 0;
+    flex: 1;
+    /* 覆盖 Table 的内联 scroll；保留槽位，让表头与数据列始终对齐。 */
+    overflow-y: auto !important;
+    scrollbar-gutter: stable;
+    overscroll-behavior: contain;
+  }
+
+  .project {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding-block: 3px;
+  }
+
+  .projectIcon {
+    display: grid;
+    flex-shrink: 0;
+    width: 36px;
+    height: 36px;
+    place-items: center;
+    border: 1px solid var(--ant-color-primary-border);
+    border-radius: 8px;
+    background: var(--ant-color-primary-bg);
+    color: var(--ant-color-primary);
+    font-size: 18px;
+  }
+
+  .projectInfo {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .projectName {
+    height: auto;
+    justify-content: flex-start;
+    padding: 0;
+    color: var(--ant-color-text);
+    font-weight: 500;
+  }
+
+  .projectId {
+    color: var(--ant-color-text-tertiary);
+    font-family: Consolas, monospace;
+    font-size: 11px;
+    letter-spacing: 0.04em;
+  }
+
+  .avatar {
+    background: var(--ant-color-fill-secondary);
+    color: var(--ant-color-text-secondary);
+    font-size: 12px;
+  }
+
+  .progress {
+    max-width: 125px;
+  }
+}

@@ -2,13 +2,12 @@ import { message } from 'antd'
 import { router } from '@/router'
 import { envVariables } from '../env'
 import { createDualCallInstance } from './core'
-import 'element-plus/es/components/message/style/css'
 
 import { axiosRequestAdapter } from '@alova/adapter-axios'
-import vueHook from 'alova/vue'
+import reactHook from 'alova/react'
 
 // 🎯 获取基础配置
-const getBaseConfig = (): Parameters<typeof createDualCallInstance>[0] => {
+const getBaseConfig = () => {
   return {
     baseUrl: `/${envVariables.PUBLIC_API_AFFIX}`,
     statusMap: {
@@ -31,7 +30,7 @@ const getBaseConfig = (): Parameters<typeof createDualCallInstance>[0] => {
       router.navigate('/login')
       message.error('登录过期或未登录')
     },
-    statesHook: vueHook,
+    statesHook: reactHook,
     requestAdapter: axiosRequestAdapter(),
   }
 }

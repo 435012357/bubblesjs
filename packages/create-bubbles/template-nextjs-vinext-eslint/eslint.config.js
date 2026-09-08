@@ -14,6 +14,8 @@ export default antfu({
   ignores: [
     '**/node_modules/**',
     '**/dist/**',
+    '**/.next/**',
+    '**/.vinext/**',
     '**/public/**',
     '**/*.md',
   ],

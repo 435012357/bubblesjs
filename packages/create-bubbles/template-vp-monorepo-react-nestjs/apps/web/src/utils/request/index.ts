@@ -2,8 +2,8 @@ import { axiosRequestAdapter, type AlovaAxiosRequestConfig } from '@alova/adapte
 import reactHook, { type ReactHookExportType } from 'alova/react'
 import { message } from 'antd'
 import type { AxiosResponse, AxiosResponseHeaders } from 'axios'
-import { navigator } from '@/router'
 import { envVariables } from '@/utils/env'
+import { cookie } from '@/utils/storage/cookie'
 import { createDualCallInstance, type BaseRequestOption } from './core/index.ts'
 
 type WebRequestOption = BaseRequestOption<
@@ -25,8 +25,8 @@ function normalizeBaseUrl(apiAffix?: string) {
 function getBaseConfig(): WebRequestOption {
   return {
     baseUrl: normalizeBaseUrl(envVariables.API_AFFIX),
+    isWrapped: false,
     statusMap: {
-      success: [200, 201, 204],
       unAuthorized: 401,
     },
     codeMap: {
@@ -34,8 +34,12 @@ function getBaseConfig(): WebRequestOption {
       unAuthorized: [401],
     },
     responseDataKey: 'data',
-    responseMessageKey: 'msg',
-    commonHeaders: () => ({}),
+    responseMessageKey: 'message',
+    errorDefaultMessage: '请求失败，请稍后重试',
+    commonHeaders: () => {
+      const token = cookie.get('token')
+      return token ? { Authorization: `Bearer ${token}` } : {}
+    },
     successMessageFunc: (msg) => {
       message.success(msg)
     },
@@ -43,8 +47,9 @@ function getBaseConfig(): WebRequestOption {
       message.error(msg)
     },
     unAuthorizedResponseFunc: () => {
-      void navigator('/login')
+      cookie.remove('token')
       message.error('登录过期或未登录')
+      window.location.assign('/login')
     },
     statesHook: reactHook,
     requestAdapter: axiosRequestAdapter(),

@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import type { MenuItemType } from 'antdv-next'
 import type { MenuRouteRecordRawType } from '@/router/interface'
 
 import SvgIcon from '@/components/Icon/svg-icon.vue'
@@ -43,7 +44,7 @@ function renderIcon(icon?: string) {
   return null
 }
 
-function getMenuItems(routes: MenuRouteRecordRawType[]) {
+function getMenuItems(routes: MenuRouteRecordRawType[]): MenuItemType[] {
   return routes
     .filter(item => !item.meta?.hideInMenu)
     .map((item) => {
@@ -51,14 +52,14 @@ function getMenuItems(routes: MenuRouteRecordRawType[]) {
       if (hasChildren) {
         return {
           key: item.name as string,
-          label: item.meta?.title ?? item.name,
+          label: item.meta?.title ?? String(item.name ?? ''),
           icon: renderIcon(item.meta?.icon),
           children: getMenuItems(item.children as MenuRouteRecordRawType[]),
         }
       }
       return {
         key: item.name as string,
-        label: item.meta?.title ?? item.name,
+        label: item.meta?.title ?? String(item.name ?? ''),
         icon: renderIcon(item.meta?.icon),
       }
     })

@@ -7,13 +7,17 @@
 | 类别     | 技术                                |
 | -------- | ----------------------------------- |
 | 框架     | Next.js 16 App Router（via vinext） |
-| 运行时   | Node.js 24                          |
+| 运行时   | Node.js                             |
 | 包管理   | pnpm                                |
-| 语言     | TypeScript 5（严格模式）            |
+| 语言     | TypeScript 7（严格模式）            |
 | UI       | Ant Design 6                        |
 | CSS      | UnoCSS（presetWind4 + Attributify） |
 | 动画     | GSAP 3                              |
 | 代码检查 | ESLint 10                           |
+
+`pnpm typecheck` 使用 TypeScript 7。ESLint 通过 `@typescript/typescript6` 兼容包使用 TypeScript 6 API。
+
+vinext 当前的 npm `latest` 版本为 `1.0.0-beta.9`。显式声明 `ipaddr.js` 是为了让 pnpm 安装后的生产服务能够加载 vinext 图片处理所需的运行时依赖。
 
 ---
 

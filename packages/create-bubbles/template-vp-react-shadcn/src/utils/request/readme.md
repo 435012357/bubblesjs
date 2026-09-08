@@ -7,34 +7,37 @@
 请求方法会创建 alova `Method` 实例，不会在创建时立刻发送请求。可以在组件中交给 `useRequest`，也可以在普通函数里直接 `await`。
 
 ```ts
-import alovaRequest from "@/utils/request";
+import alovaRequest from '@/utils/request'
 
 interface DramaItem {
-  id: number;
-  title: string;
+  id: number
+  title: string
 }
 
 interface DramaListParams {
-  page: number;
-  pageSize: number;
+  page: number
+  pageSize: number
 }
 
 export const getDramaList = (params: DramaListParams) => {
-  return alovaRequest.Get<DramaItem[]>("/drama/list", { params });
-};
+  return alovaRequest.Get<DramaItem[]>('/drama/list', { params })
+}
 ```
 
 组件中使用：
 
 ```tsx
-import { useRequest } from "alova/client";
+import { useRequest } from 'alova/client'
 
-import { getDramaList } from "@/api";
+import { getDramaList } from '@/api'
 
 export function DramaList() {
-  const { data, loading, error } = useRequest(getDramaList({ page: 1, pageSize: 20 }), {
-    initialData: [],
-  });
+  const { data, loading, error } = useRequest(
+    getDramaList({ page: 1, pageSize: 20 }),
+    {
+      initialData: [],
+    },
+  )
 
   // ...
 }
@@ -43,7 +46,7 @@ export function DramaList() {
 普通异步函数中使用：
 
 ```ts
-const list = await getDramaList({ page: 1, pageSize: 20 });
+const list = await getDramaList({ page: 1, pageSize: 20 })
 ```
 
 ## 请求参数
@@ -51,29 +54,29 @@ const list = await getDramaList({ page: 1, pageSize: 20 });
 GET 查询参数放在第二个参数的 `params` 里：
 
 ```ts
-alovaRequest.Get<UserInfo>("/user/detail", {
+alovaRequest.Get<UserInfo>('/user/detail', {
   params: {
     id: 1,
   },
-});
+})
 ```
 
 POST、PUT、PATCH、DELETE 的 body 放在第二个参数，配置放在第三个参数：
 
 ```ts
-alovaRequest.Post<CreateUserResult>("/user/create", {
-  name: "Tom",
-});
+alovaRequest.Post<CreateUserResult>('/user/create', {
+  name: 'Tom',
+})
 
 alovaRequest.Post<CreateUserResult>(
-  "/user/create",
-  { name: "Tom" },
+  '/user/create',
+  { name: 'Tom' },
   {
     meta: {
       isShowSuccessMessage: true,
     },
   },
-);
+)
 ```
 
 ## 返回结构
@@ -82,9 +85,9 @@ alovaRequest.Post<CreateUserResult>(
 
 ```ts
 interface ApiResponse<T> {
-  code: number;
-  data: T;
-  msg: string;
+  code: number
+  data: T
+  msg: string
 }
 ```
 
@@ -101,15 +104,15 @@ interface ApiResponse<T> {
 
 ```ts
 alovaRequest.Post(
-  "/user/update",
-  { id: 1, name: "Tom" },
+  '/user/update',
+  { id: 1, name: 'Tom' },
   {
     meta: {
       isShowSuccessMessage: true,
       isShowErrorMessage: false,
     },
   },
-);
+)
 ```
 
 也可以创建一个带临时配置的请求实例：
@@ -117,11 +120,11 @@ alovaRequest.Post(
 ```ts
 const silentRequest = alovaRequest({
   isShowErrorMessage: false,
-});
+})
 
-silentRequest.Get<UserInfo>("/user/detail", {
+silentRequest.Get<UserInfo>('/user/detail', {
   params: { id: 1 },
-});
+})
 ```
 
 ## 原始响应
@@ -130,15 +133,15 @@ silentRequest.Get<UserInfo>("/user/detail", {
 
 ```ts
 const downloadFile = () => {
-  return alovaRequest.Get<Response>("/file/download", {
+  return alovaRequest.Get<Response>('/file/download', {
     meta: {
       isTransformResponse: false,
     },
-  });
-};
+  })
+}
 
-const response = await downloadFile();
-const blob = await response.blob();
+const response = await downloadFile()
+const blob = await response.blob()
 ```
 
 ## 错误处理
@@ -146,13 +149,13 @@ const blob = await response.blob();
 HTTP 状态码错误、业务 `code` 错误都会抛出 `RequestError`，alova hook 会进入 `error` 分支。
 
 ```ts
-import { RequestError } from "@/utils/request/alova-core";
+import { RequestError } from '@/utils/request/alova-core'
 
 try {
-  await getDramaList({ page: 1, pageSize: 20 });
+  await getDramaList({ page: 1, pageSize: 20 })
 } catch (error) {
   if (error instanceof RequestError) {
-    console.log(error.status, error.code, error.message);
+    console.log(error.status, error.code, error.message)
   }
 }
 ```

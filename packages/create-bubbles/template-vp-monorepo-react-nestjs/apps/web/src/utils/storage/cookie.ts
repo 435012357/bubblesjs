@@ -1,0 +1,50 @@
+export interface CookieOptions {
+  path?: string
+  domain?: string
+  expires?: Date
+  /** 有效期，单位为秒；优先于 expires。 */
+  maxAge?: number
+  secure?: boolean
+  sameSite?: 'Strict' | 'Lax' | 'None'
+}
+
+export const cookie = {
+  get(key: string): string | null {
+    const prefix = `${encodeURIComponent(key)}=`
+    const entry = document.cookie.split(';').find((item) => item.trim().startsWith(prefix))
+    if (entry === undefined) return null
+
+    const value = entry.trim().slice(prefix.length)
+    try {
+      return decodeURIComponent(value)
+    } catch {
+      return value
+    }
+  },
+
+  /** 同名 Cookie 在相同 path、domain 下写入即为更新。 */
+  set(key: string, value: string, options: CookieOptions = {}): void {
+    const { path = '/', domain, expires, maxAge, sameSite = 'Lax' } = options
+    const secure = options.secure ?? window.location.protocol === 'https:'
+    const attributes = [
+      `${encodeURIComponent(key)}=${encodeURIComponent(value)}`,
+      `Path=${path}`,
+      `SameSite=${sameSite}`,
+    ]
+
+    if (domain) attributes.push(`Domain=${domain}`)
+    if (expires) attributes.push(`Expires=${expires.toUTCString()}`)
+    if (maxAge !== undefined) attributes.push(`Max-Age=${Math.trunc(maxAge)}`)
+    if (secure) attributes.push('Secure')
+
+    document.cookie = attributes.join('; ')
+  },
+
+  /** 删除时的 path、domain 必须与写入时一致。 */
+  remove(
+    key: string,
+    options: Pick<CookieOptions, 'path' | 'domain' | 'secure' | 'sameSite'> = {},
+  ): void {
+    cookie.set(key, '', { ...options, maxAge: 0, expires: new Date(0) })
+  },
+}

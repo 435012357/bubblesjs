@@ -40,25 +40,6 @@ const argv = mri<{
 /** 执行命令的绝对路径 代指执行命令的地方 */
 const cwd = process.cwd()
 
-const helpMessage = `\
-Usage: create-bubbles [OPTION]... [DIRECTORY]
-
-Create a new Bubbles project in JavaScript or TypeScript.
-With no arguments, start the CLI in interactive mode.
-
-Options:
-  -t, --template NAME        use a specific template
-
-Available templates:
-${colorMap.vue('vue-vp-eslint              vue')}
-${colorMap.vue('vp-vue-eslint-vapor       vue')}
-${colorMap.react('react-rsbuild-biome        react')}
-${colorMap.react('vp-react                   react')}
-${colorMap.react('vp-react-shadcn            react')}
-${colorMap.react('vp-monorepo-react-nestjs   react')}
-${colorMap.taro('taro-vue-eslint            taro')}
-${colorMap.nextjs('nextjs-vinext-eslint      nextjs')}`
-
 // const FRAMEWORK = [
 //  {
 //   name: 'vue'
@@ -178,6 +159,11 @@ const FRAMEWORKS: Framework[] = [
         display: 'vp-monorepo-react-nestjs',
         color: colorMap.react,
       },
+      {
+        name: 'vp-monorepo-react-hono',
+        display: 'vp-monorepo-react-hono',
+        color: colorMap.react,
+      },
     ],
   },
   {
@@ -228,6 +214,20 @@ const TEMPLATES = FRAMEWORKS.map((f) => f.variants.map((v) => `${v.name}`)).redu
   (a, b) => a.concat(b),
   [],
 )
+
+const helpMessage = `\
+Usage: create-bubbles [OPTION]... [DIRECTORY]
+
+Create a new Bubbles project in JavaScript or TypeScript.
+With no arguments, start the CLI in interactive mode.
+
+Options:
+  -t, --template NAME        use a specific template
+
+Available templates:
+${FRAMEWORKS.flatMap((framework) =>
+  framework.variants.map((variant) => variant.color(`${variant.name.padEnd(28)}${framework.name}`)),
+).join('\n')}`
 
 /**
  *

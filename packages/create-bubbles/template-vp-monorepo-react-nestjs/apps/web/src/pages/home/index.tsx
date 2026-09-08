@@ -1,47 +1,30 @@
-import { createJsonStorage, i18n } from '@bubblesjs/i18n-core'
-import I18nProvider, { useI18n } from '@bubblesjs/i18n-react'
-import { Button } from 'antd'
+import { ArrowRightOutlined, TableOutlined } from '@ant-design/icons'
+import { PageContainer, ProCard } from '@ant-design/pro-components'
+import { Button, Tag, Typography } from 'antd'
+import { Link } from 'react-router'
+import styles from './index.module.css'
 
-const leftStore = await i18n.init({
-  locale: 'zh_CN',
-  loaderMessage: async (locale?: string) => (await import(`@/locales/${locale}.json`))?.default,
-  storageKey: 'i18n-home-left',
-  storage: createJsonStorage(localStorage),
-})
-
-const rightStore = await i18n.init({
-  locale: 'en_US',
-  loaderMessage: async (locale?: string) => (await import(`@/locales/${locale}.json`))?.default,
-  storageKey: 'i18n-home-right',
-  storage: createJsonStorage(localStorage),
-})
-
-const I18nTestNode = ({ title, switchLocale }: { title: string; switchLocale: string }) => {
-  const { tr, loadLocale, locale } = useI18n()
-
+export default function Home() {
   return (
-    <section className="flex min-w-64 flex-col gap-3 rounded border border-gray-200 p-4">
-      <h2 className="text-lg font-medium">{title}</h2>
-      <div>{tr('保存')}</div>
-      <div>{tr('你好1')}</div>
-      <div>目前语言: {locale}</div>
-      <Button onClick={() => void loadLocale(switchLocale)}>切换到 {switchLocale}</Button>
-    </section>
+    <PageContainer title="工作台" content="你的业务工作空间。">
+      <ProCard title="业务模块" variant="outlined">
+        <div className={styles.demo}>
+          <TableOutlined className={styles.icon} />
+          <div>
+            <Typography.Title level={4}>
+              项目管理 <Tag color="cyan">Demo</Tag>
+            </Typography.Title>
+            <Typography.Paragraph type="secondary">
+              使用 ProTable 管理项目，体验搜索筛选、分页、新增编辑和批量操作。
+            </Typography.Paragraph>
+            <Link to="/examples/pro-table">
+              <Button type="primary" icon={<ArrowRightOutlined />} iconPlacement="end">
+                打开 ProTable 示例
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </ProCard>
+    </PageContainer>
   )
 }
-
-const Home = () => {
-  return (
-    <div className="flex min-h-screen w-full items-center justify-center gap-6 bg-white p-6">
-      <I18nProvider store={leftStore}>
-        <I18nTestNode title="节点 A" switchLocale="en_US" />
-      </I18nProvider>
-
-      <I18nProvider store={rightStore}>
-        <I18nTestNode title="节点 B" switchLocale="zh_CN" />
-      </I18nProvider>
-    </div>
-  )
-}
-
-export default Home

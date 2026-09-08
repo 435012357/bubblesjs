@@ -3,7 +3,7 @@
 ## 项目约定
 
 - 项目是 Vite+、React 19、TypeScript 前端应用，路径别名 `@/*` 指向 `src/*`。
-- 路由使用 React Router 7，集中维护在 `src/router/index.tsx`。
+- 路由使用 React Router 8，集中维护在 `src/router/index.tsx`。
 - 路由页面放在 `src/pages/<route>/index.tsx`，保持现有 `lazyLoad()` 导入规则。
 - `src/types/auto-imports.d.ts` 是生成文件，不要手动编辑。
 
@@ -17,8 +17,10 @@ tsc && vp build
 
 ## UI 与样式
 
-- UI 组件使用 shadcn/ui，已有组件位于 `src/components/ui`。
+- UI 组件使用 shadcn/ui 的 Base UI 版本（`base-nova`），已有组件位于 `src/components/ui`。
 - 新增 shadcn/ui 组件使用 `pnpm shadcn add xxx`。
+- 组合触发器使用 Base UI 的 `render` API；链接使用 `<a>` / `<Link>` 配合 `buttonVariants()`。
+- 消息提示从 `@/components/ui/toast` 导入 `toast`，使用 `toast.add({ type: 'success', description: '操作成功' })`。
 - 图标优先使用 `lucide-react`。
 - 动效：引人注目的关键区域可适当加入动画，复杂动效优先使用已安装的 `gsap`，避免过度动画影响可用性。
 - 样式优先使用 Tailwind CSS classNames。

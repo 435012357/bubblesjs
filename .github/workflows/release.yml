@@ -15,35 +15,33 @@ jobs:
       # https://github.com/actions/checkout
       # 拉取代码
       - name: Checkout Repo
-        uses: actions/checkout@v2
-      
+        uses: actions/checkout@v4
+
       # https://github.com/actions/setup-node
       # 安装 node
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 22.x
-      
+
       # https://github.com/pnpm/action-setup
       # 安装 pnpm
       - name: Setup Pnpm
-        uses: pnpm/action-setup@v2
-        with:  
-          version: 10.x
-      
+        uses: pnpm/action-setup@v4
+
       - name: Install Dependencies
-        run: pnpm install
+        run: pnpm install --no-frozen-lockfile
 
       - name: Build Docs
         run: pnpm run docs:build
-      
+
       - name: Deploy Docs
-        uses: peaceiris/actions-gh-pages@v3
+        uses: peaceiris/actions-gh-pages@v4
         with:
           publish_dir: docs/doc_build
           commit_message: Update Github gh-pages
           github_token: ${{ secrets.GITHUB_TOKEN }}
-      
+
       # https://github.com/changesets/action
       # 自动创建发布 PR 或 发布 npm
       - name: Create Release PR or Publish to NPM
@@ -51,9 +49,7 @@ jobs:
         with:
           publish: pnpm release
           version: pnpm changeset version
-          commit: "chore: version packages"
+          commit: 'chore: version packages'
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-

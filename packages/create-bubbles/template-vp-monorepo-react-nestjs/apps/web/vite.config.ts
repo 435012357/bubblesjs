@@ -17,6 +17,11 @@ export default defineConfig(({ mode }) => {
     `)
 
   return {
+    test: {
+      environment: 'node',
+      include: ['test/**/*.spec.ts'],
+      restoreMocks: true,
+    },
     resolve: {
       alias: {
         '@': path.resolve(__dirname, 'src'),

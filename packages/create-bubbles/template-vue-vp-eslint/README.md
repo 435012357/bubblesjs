@@ -8,7 +8,7 @@ Vue 3 项目模板，基于 Vite+ 统一工具链，集成 Antdv Next UI 组件�
 |------|------|------|
 | 构建工具 | Vite+ (`vp`) | 统一工具链，封装 Vite + Rolldown + Oxlint |
 | 框架 | Vue 3 | Composition API + `<script setup>` |
-| 语言 | TypeScript 6/7 并存 | TS7 编译 + TS6 支持 typescript-eslint/vue-tsc |
+| 语言 | TypeScript 6 | 兼容 typescript-eslint 和 vue-tsc |
 | UI 组件库 | Antdv Next | 自动按需导入 |
 | 状态管理 | Pinia | 含持久化插件 |
 | 路由 | Vue Router 5 | |
@@ -80,16 +80,9 @@ src/
 | `VITE_API_AFFIX` | API 路由前缀（用于代理） |
 | `VITE_APP_NAME` | 应用名称 |
 
-## TypeScript 6/7 并存说明
+## TypeScript 版本说明
 
-TypeScript 7.0 使用 Go 重写了编译器，但暂不提供程序化 API，因此 `typescript-eslint` 和 `vue-tsc` 暂不兼容。
-
-本项目采用微软官方推荐的并存方案：
-
-- `typescript` → 指向 `@typescript/typescript6`（供 ESLint、vue-tsc 使用）
-- `@typescript/native` → 指向 TypeScript 7（可手动调用 `npx @typescript/native tsc`）
-
-VS Code 中安装 [TypeScript (Native Preview)](https://marketplace.visualstudio.com/items?itemName=TypeScriptTeam.native-preview) 扩展可享受 TS7 的语言服务加速。
+模板保留 `typescript@^6.0.3`，用于 ESLint 和 `vue-tsc`。TypeScript 7 更换了编译器接口，当前工具链仍依赖 TypeScript 6 的接口，因此暂不升级到 7。
 
 ## 代码规范
 
