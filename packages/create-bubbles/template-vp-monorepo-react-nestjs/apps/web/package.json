@@ -35,6 +35,7 @@
     "typescript": "catalog:",
     "unplugin-auto-import": "catalog:",
     "vite": "catalog:",
+    "vite-plugin-svgr": "catalog:",
     "vite-plus": "catalog:"
   }
 }

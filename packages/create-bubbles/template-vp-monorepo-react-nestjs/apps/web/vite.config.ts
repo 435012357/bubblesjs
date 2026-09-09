@@ -2,6 +2,7 @@ import path from 'path'
 import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
 import AutoImport from 'unplugin-auto-import/vite'
+import svgr from 'vite-plugin-svgr'
 import { defineConfig, loadEnv } from 'vite-plus'
 
 export default defineConfig(({ mode }) => {
@@ -40,6 +41,7 @@ export default defineConfig(({ mode }) => {
     },
     plugins: [
       react(),
+      svgr({ svgrOptions: { icon: true, ref: true } }),
       AutoImport({
         imports: ['react', 'react-router', 'react-dom'],
         dts: './src/types/auto-imports.d.ts',

@@ -6,6 +6,7 @@ import BasicLayout from '@/layouts/BasicLayout'
 const Home = lazy(() => import('@/pages/home'))
 const I18nExample = lazy(() => import('@/pages/examples/i18n'))
 const ProTableExample = lazy(() => import('@/pages/examples/pro-table'))
+const ProTableDraftExample = lazy(() => import('@/pages/examples/pro-table/draft'))
 const Login = lazy(() => import('@/pages/login'))
 
 const routes: RouteObject[] = [
@@ -20,6 +21,7 @@ const routes: RouteObject[] = [
       { index: true, element: <Navigate to="/home" replace /> },
       { path: 'home', element: <Home /> },
       { path: 'examples/pro-table', element: <ProTableExample /> },
+      { path: 'examples/pro-table/draft', element: <ProTableDraftExample /> },
       { path: 'examples/i18n', element: <I18nExample /> },
       {
         path: '*',

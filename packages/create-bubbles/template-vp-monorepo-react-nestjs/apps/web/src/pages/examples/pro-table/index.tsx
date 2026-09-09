@@ -1,5 +1,5 @@
+import FullHeightProTable from '@/components/FullHeightProTable/FullHeightProTable'
 import { PlusOutlined } from '@ant-design/icons'
-import { ProTable } from '@ant-design/pro-components'
 import { App, Button, Empty, Popconfirm } from 'antd'
 import { useMemo, useRef, useState, type Key } from 'react'
 import ProjectFormDialog, { type ProjectFormDialogRef } from './components/ProjectFormDialog'
@@ -10,7 +10,6 @@ import {
   type ProjectSearchValues,
 } from './config'
 import { createProjectColumns } from './config/columns'
-import styles from './index.module.css'
 
 export default function ProTableExample() {
   const { message } = App.useApp()
@@ -65,11 +64,8 @@ export default function ProTableExample() {
   })
 
   return (
-    <div className="w-full h-full bg-[red] p-[16px]">
-      <ProTable<ProjectRecord, ProjectSearchValues>
-        className={styles.proTable}
-        cardProps={{ className: styles.tableCard }}
-        tableClassName={styles.table}
+    <>
+      <FullHeightProTable<ProjectRecord, ProjectSearchValues>
         rowKey="id"
         columns={columns}
         dataSource={filteredProjects}
@@ -124,7 +120,6 @@ export default function ProTableExample() {
             setPageSize(size)
           },
         }}
-        scroll={{ x: 'max-content', y: '100%' }}
         locale={{
           emptyText: (
             <Empty
@@ -135,6 +130,6 @@ export default function ProTableExample() {
         }}
       />
       <ProjectFormDialog ref={formDialogRef} onSave={saveProject} />
-    </div>
+    </>
   )
 }

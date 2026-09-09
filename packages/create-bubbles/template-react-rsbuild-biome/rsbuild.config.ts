@@ -24,7 +24,7 @@ export default defineConfig({
         // additionalData: `@import "@/styles/variables.scss";`,
       },
     }),
-    pluginSvgr(),
+    pluginSvgr({ svgrOptions: { icon: true, ref: true } }),
   ],
   tools: {
     rspack: {

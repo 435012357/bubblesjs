@@ -17,7 +17,16 @@ import styles from './BasicLayout.module.css'
 
 const menuRoutes = [
   { path: '/home', name: '工作台', icon: <DashboardOutlined /> },
-  { path: '/examples/pro-table', name: 'ProTable 示例', icon: <TableOutlined /> },
+  {
+    path: '/examples/pro-table',
+    key: 'pro-table-examples',
+    name: 'ProTable 示例',
+    icon: <TableOutlined />,
+    routes: [
+      { path: '/examples/pro-table', key: 'pro-table-basic', name: '基础' },
+      { path: '/examples/pro-table/draft', name: '草稿' },
+    ],
+  },
   { path: '/examples/i18n', name: '国际化示例', icon: <TranslationOutlined /> },
 ]
 
@@ -72,6 +81,11 @@ export default function BasicLayout() {
       location={location}
       route={{ path: '/', routes: menuRoutes }}
       menu={{ locale: false }}
+      menuProps={{
+        selectedKeys: [
+          location.pathname === '/examples/pro-table' ? 'pro-table-basic' : location.pathname,
+        ],
+      }}
       menuItemRender={(item, dom, { isMobile }) => (
         <Link to={item.path ?? '/home'} onClick={isMobile ? item.onClick : undefined}>
           {dom}
