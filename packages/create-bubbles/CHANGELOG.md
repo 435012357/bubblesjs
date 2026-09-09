@@ -1,5 +1,13 @@
 # create-bubbles
 
+## 0.1.26
+
+### Patch Changes
+
+- [#63](https://github.com/bubblesplant/bubblesjs/pull/63) [`38d4274`](https://github.com/bubblesplant/bubblesjs/commit/38d4274d9195737bd070717e8c8bb50084742989) Thanks [@github-actions](https://github.com/apps/github-actions)! - 模板依赖升级
+
+- [`169c585`](https://github.com/bubblesplant/bubblesjs/commit/169c585e26e63e3d0c86f834732a93ba7d1696ff) Thanks [@bubblesplant](https://github.com/bubblesplant)! - 给 react 模板增加 svg 的使用 和 agents.md
+
 ## 0.1.25
 
 ### Patch Changes
