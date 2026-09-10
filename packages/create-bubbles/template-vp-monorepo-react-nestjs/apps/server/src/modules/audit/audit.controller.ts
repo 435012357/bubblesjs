@@ -1,0 +1,25 @@
+import { Controller, Get, Query, Req } from '@nestjs/common'
+import type { FastifyRequest } from 'fastify'
+import { AccessPolicy } from '@/common/decorators/access-policy.decorator'
+import { actor, scopeFor } from '@/modules/access/access-http'
+import { parse } from '@/modules/access/access.validation'
+import { AuditService } from './audit.service'
+import { auditSchema } from './audit.validation'
+
+@Controller([
+  'platform/audit-logs',
+  'companies/:companyId/audit-logs',
+  'companies/:companyId/projects/:projectId/audit-logs',
+])
+export class AuditController {
+  constructor(private readonly audit: AuditService) {}
+  @Get()
+  @AccessPolicy({ scope: 'route', permission: '{scope}.audit.read' })
+  list(@Req() req: FastifyRequest, @Query() raw: unknown) {
+    return this.audit.list({
+      actor: actor(req),
+      scope: scopeFor(req),
+      query: parse(auditSchema, raw),
+    })
+  }
+}

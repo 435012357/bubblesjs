@@ -1,0 +1,47 @@
+@layer components {
+  .route-transition-page {
+    height: 100%;
+    min-height: 0;
+  }
+}
+
+/* 布局保持稳定，只让具名的页面内容参与过渡。 */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+}
+
+::view-transition-group(route-page) {
+  animation-duration: 220ms;
+  animation-timing-function: ease-out;
+}
+
+::view-transition-old(route-page) {
+  animation: route-page-out 160ms ease-out both;
+}
+
+::view-transition-new(route-page) {
+  animation: route-page-in 220ms ease-out both;
+}
+
+@keyframes route-page-out {
+  to {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+}
+
+@keyframes route-page-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(route-page),
+  ::view-transition-old(route-page),
+  ::view-transition-new(route-page) {
+    animation: none !important;
+  }
+}

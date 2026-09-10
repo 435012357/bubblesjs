@@ -1,4 +1,5 @@
 import { CurrentAuth } from '@/common/decorators/current-auth.decorator'
+import { Authenticated } from '@/common/decorators/access-policy.decorator'
 import {
   Body,
   Controller,
@@ -28,6 +29,7 @@ type OctetStreamRequest = FastifyRequest & {
 @ApiTags('大文件分片上传')
 @ApiBearerAuth('session')
 @Controller('uploads/multipart')
+@Authenticated()
 export class UploadController {
   constructor(private readonly uploadService: UploadService) {}
 

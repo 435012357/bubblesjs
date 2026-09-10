@@ -18,8 +18,12 @@ import { GlobalExceptionFilter } from './common/filters/global-exception.filter'
 import { DatabaseModule } from './database/db.module'
 import { AuthModule } from './modules/auth/auth.module'
 import { TaskQueueModule } from './modules/task-queue/task-queue.module'
-import { TestDbModule } from './modules/test/db/db.module'
-import { TestRedisModule } from './modules/test/redis/redis.module'
+import { AccessModule } from './modules/access/access.module'
+import { CompaniesModule } from './modules/companies/companies.module'
+import { ProjectsModule } from './modules/projects/projects.module'
+import { MembersModule } from './modules/members/members.module'
+import { MenusModule } from './modules/menus/menus.module'
+import { AuditModule } from './modules/audit/audit.module'
 import { UploadModule } from './modules/upload/upload.module'
 import { ENV_ARR } from './utils/env-arr'
 
@@ -28,7 +32,15 @@ import { ENV_ARR } from './utils/env-arr'
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: ENV_ARR,
-      load: [appConfig, databaseConfig, llmConfig, queueConfig, redisConfig, sessionConfig, storageConfig],
+      load: [
+        appConfig,
+        databaseConfig,
+        llmConfig,
+        queueConfig,
+        redisConfig,
+        sessionConfig,
+        storageConfig,
+      ],
     }),
     DatabaseModule,
     RedisModule.forRootAsync({
@@ -36,6 +48,8 @@ import { ENV_ARR } from './utils/env-arr'
       useFactory: (config) => ({
         type: 'single',
         options: {
+          // ioredis 6 默认使用 RESP3，显式保留升级前的 RESP2 连接协议。
+          protocol: 2,
           host: config.get('redis.host'),
           port: config.get('redis.port'),
           password: config.get('redis.password'),
@@ -48,9 +62,13 @@ import { ENV_ARR } from './utils/env-arr'
       }),
     }),
     TaskQueueModule,
-    TestRedisModule,
-    TestDbModule,
     AuthModule,
+    AccessModule,
+    CompaniesModule,
+    ProjectsModule,
+    MembersModule,
+    MenusModule,
+    AuditModule,
     UploadModule,
   ],
   controllers: [AppController],

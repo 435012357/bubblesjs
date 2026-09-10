@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "ready": "vp check && vp run -r test && vp run -r build",
-    "dev": "pnpm run -r --stream dev",
+    "dev": "pnpm run -r --parallel --stream dev",
     "prepare": "vp config",
     "clean": "node scripts/clean.mjs",
     "reinstall": "vp install --force",
@@ -20,12 +20,5 @@
     "typescript": "catalog:",
     "vite": "catalog:",
     "vite-plus": "catalog:"
-  },
-  "devEngines": {
-    "packageManager": {
-      "name": "pnpm",
-      "version": "11.24.0",
-      "onFail": "download"
-    }
   }
 }

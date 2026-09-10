@@ -17,6 +17,8 @@ import { TaskQueueService } from './task-queue.service'
 
         return {
           connection: {
+            // ioredis 6 默认使用 RESP3，显式保留升级前的 RESP2 连接协议。
+            protocol: 2,
             host: queue.host,
             port: queue.port,
             username: queue.username,

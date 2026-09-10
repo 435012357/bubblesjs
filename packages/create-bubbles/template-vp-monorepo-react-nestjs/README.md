@@ -1,29 +1,5 @@
-# Vite+ Monorepo Starter
+# 账号 密码
 
-A starter for creating a Vite+ monorepo.
+admin admin123456
 
-## Development
-
-- Check everything is ready:
-
-```bash
-vp run ready
-```
-
-- Run the tests:
-
-```bash
-vp run -r test
-```
-
-- Build the monorepo:
-
-```bash
-vp run -r build
-```
-
-- Run the development server:
-
-```bash
-vp run dev
-```
+运行 vp run server#access:init --account admin 将某个账号设置成平台管理员

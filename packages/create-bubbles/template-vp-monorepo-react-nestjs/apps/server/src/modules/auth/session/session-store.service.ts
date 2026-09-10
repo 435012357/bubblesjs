@@ -105,6 +105,15 @@ export class SessionStoreService {
 
     const initialExpiresAtMs = Number(result[2])
     const absoluteExpiresAtMs = Number(result[3])
+    if (
+      result[0] !== '1' ||
+      !Number.isFinite(initialExpiresAtMs) ||
+      !Number.isFinite(absoluteExpiresAtMs)
+    ) {
+      throw new AppException(AUTH_ERRORS.SERVICE_UNAVAILABLE, {
+        cause: createScriptProtocolError('createOrReplace', result[1]),
+      })
+    }
 
     // if (!Number.isFinite(initialExpiresAtMs) || !Number.isFinite(absoluteExpiresAtMs)) {
     //   throw new ServiceUnavailableException('登录状态数据异常')

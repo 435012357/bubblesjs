@@ -1,0 +1,119 @@
+@layer components {
+  .workspace-landing {
+    min-height: 100dvh;
+    isolation: isolate;
+    position: relative;
+    overflow: hidden;
+    background: var(--wanwu-atmosphere);
+  }
+  .workspace-landing::before {
+    content: '';
+    position: absolute;
+    z-index: -1;
+    width: 580px;
+    height: 580px;
+    top: 100px;
+    right: -180px;
+    border: 1px solid #ffffffa6;
+    border-radius: 50%;
+    box-shadow:
+      0 0 0 70px #ffffff1a,
+      0 0 0 140px #ffffff14;
+  }
+  .workspace-landing-header {
+    background: #ffffff59;
+    border-bottom: 1px solid var(--wanwu-border);
+    padding: 22px 6vw;
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    align-items: center;
+    backdrop-filter: blur(20px);
+  }
+  .workspace-landing-main {
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 72px 24px;
+  }
+  .workspace-landing .workspace-page-title h1 {
+    font-family: 'STSong', 'SimSun', serif;
+    font-size: 38px;
+    font-weight: 400;
+    letter-spacing: 0.08em;
+  }
+  .workspace-landing .workspace-page-title {
+    margin-bottom: 40px;
+  }
+  .workspace-landing .ant-card {
+    background: var(--wanwu-glass);
+    border: 1px solid var(--wanwu-border);
+    box-shadow: var(--wanwu-shadow);
+  }
+  .workspace-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 22px;
+  }
+  .workspace-card {
+    height: 100%;
+    position: relative;
+    overflow: hidden;
+    transition:
+      transform 180ms,
+      box-shadow 180ms;
+  }
+  .workspace-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 16px 32px #8570af14;
+  }
+  .workspace-card::after {
+    content: '';
+    pointer-events: none;
+    position: absolute;
+    right: -30px;
+    top: -45px;
+    width: 130px;
+    height: 130px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 40% 40%, #eee7fc80, #ded0f84d 50%, #e9e1f500 70%);
+  }
+  .workspace-card-company::after {
+    background: radial-gradient(circle, #dceefa99, #dceefa00 70%);
+  }
+  .workspace-card-project::after {
+    background: radial-gradient(circle, #f2dfef99, #f2dfef00 70%);
+  }
+  .workspace-card .ant-card-body {
+    min-height: 215px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    padding: 28px;
+  }
+  .workspace-card h3 {
+    margin: 0;
+    font-size: 19px;
+    overflow-wrap: anywhere;
+  }
+  .workspace-card p {
+    margin: 0;
+    color: var(--wanwu-muted);
+    overflow-wrap: anywhere;
+  }
+  .workspace-card a {
+    margin-top: auto;
+    width: fit-content;
+    font-weight: 500;
+  }
+  @media (max-width: 767px) {
+    .workspace-landing-main {
+      padding: 40px 20px;
+    }
+    .workspace-landing-header {
+      padding: 18px 20px;
+    }
+    .workspace-landing .workspace-page-title h1 {
+      font-size: 30px;
+    }
+  }
+}

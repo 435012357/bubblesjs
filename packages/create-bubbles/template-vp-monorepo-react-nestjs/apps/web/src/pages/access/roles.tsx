@@ -1,0 +1,160 @@
+import { PlusOutlined } from '@ant-design/icons'
+import type { ActionType, ProColumns } from '@ant-design/pro-components'
+import { App, Button, Popconfirm, Space, Tag } from 'antd'
+import { useRef, useState } from 'react'
+import type { RoleRecord } from 'shared/types'
+import FullHeightProTable from '@/components/FullHeightProTable/FullHeightProTable'
+import { managementApi } from './api'
+import RoleFormDialog, { type RoleFormDialogRef } from './components/RoleFormDialog'
+import RolePermissionsDialog, {
+  type RolePermissionsDialogRef,
+} from './components/RolePermissionsDialog'
+import { useAccess, useManagementAction } from './use-access'
+
+export default function RolesPage() {
+  const access = useAccess()
+  const api = managementApi(access.scope)
+  const execute = useManagementAction()
+  const { message } = App.useApp()
+  const actionRef = useRef<ActionType>(null)
+  const formRef = useRef<RoleFormDialogRef>(null)
+  const permissionsRef = useRef<RolePermissionsDialogRef>(null)
+  const [openingId, setOpeningId] = useState<string>()
+  const allowed = (operation: string) =>
+    access.permissionKeys.includes(`${access.scope.type}.roles.${operation}`)
+  const refresh = () => {
+    void actionRef.current?.reload()
+  }
+
+  async function openPermissions(record: RoleRecord) {
+    setOpeningId(record.id)
+    try {
+      const [latest, tree] = await Promise.all([api.role(record.id), api.permissions()])
+      permissionsRef.current?.show(latest, tree, Boolean(latest.builtin) || !allowed('permissions'))
+    } catch (error) {
+      if ((error as Error).name !== 'AbortError')
+        void message.error(error instanceof Error ? error.message : '无法加载权限')
+    } finally {
+      setOpeningId(undefined)
+    }
+  }
+
+  const columns: ProColumns<RoleRecord>[] = [
+    {
+      title: '搜索',
+      dataIndex: 'query',
+      hideInTable: true,
+      fieldProps: { placeholder: '搜索角色名称' },
+    },
+    { title: '角色名称', dataIndex: 'name', search: false, width: 180 },
+    {
+      title: '类型',
+      search: false,
+      width: 120,
+      render: (_, record) => (
+        <Tag color={record.builtin ? 'blue' : 'default'}>
+          {record.builtin ? '内置角色' : '自定义角色'}
+        </Tag>
+      ),
+    },
+    { title: '说明', dataIndex: 'description', search: false, ellipsis: true },
+    { title: '已分配人数', dataIndex: 'memberCount', search: false, width: 120 },
+    {
+      title: '权限数量',
+      search: false,
+      width: 100,
+      render: (_, record) => record.permissionKeys.length,
+    },
+    {
+      title: '操作',
+      valueType: 'option',
+      width: 270,
+      render: (_, record) => (
+        <Space size={4} wrap>
+          <Button
+            type="link"
+            size="small"
+            loading={openingId === record.id}
+            onClick={() => void openPermissions(record)}
+          >
+            {record.builtin || !allowed('permissions') ? '查看权限' : '配置权限'}
+          </Button>
+          {!record.builtin && allowed('update') && (
+            <Button type="link" size="small" onClick={() => formRef.current?.show(record)}>
+              编辑
+            </Button>
+          )}
+          {!record.builtin && allowed('delete') && (
+            <Popconfirm
+              title="删除角色？"
+              description="只能删除未分配给任何成员的自定义角色。"
+              onConfirm={() => execute(() => api.deleteRole(record.id, record.version), refresh)}
+            >
+              <Button type="link" size="small" danger disabled={record.memberCount > 0}>
+                删除
+              </Button>
+            </Popconfirm>
+          )}
+        </Space>
+      ),
+    },
+  ]
+  return (
+    <>
+      <FullHeightProTable<RoleRecord>
+        rowKey="id"
+        actionRef={actionRef}
+        columns={columns}
+        headerTitle="角色管理"
+        pagination={{ defaultPageSize: 20, showSizeChanger: true, pageSizeOptions: [20, 50, 100] }}
+        request={async (params) => {
+          const result = await api.roles({
+            page: params.current,
+            pageSize: params.pageSize,
+            query: params.query as string | undefined,
+          })
+          return { data: result.items, total: result.total, success: true }
+        }}
+        onRequestError={(error) => {
+          if (error.name !== 'AbortError') void message.error(error.message)
+        }}
+        toolBarRender={() =>
+          allowed('create')
+            ? [
+                <Button
+                  key="add"
+                  type="primary"
+                  icon={<PlusOutlined />}
+                  onClick={() => formRef.current?.show()}
+                >
+                  创建角色
+                </Button>,
+              ]
+            : []
+        }
+      />
+      <RoleFormDialog
+        ref={formRef}
+        onSave={(values, record) =>
+          execute(
+            () =>
+              record
+                ? api.updateRole(record.id, { ...values, expectedVersion: record.version })
+                : api.createRole(values),
+            refresh,
+          )
+        }
+      />
+      <RolePermissionsDialog
+        ref={permissionsRef}
+        onSave={(record, permissionKeys) =>
+          execute(
+            () =>
+              api.rolePermissions(record.id, { permissionKeys, expectedVersion: record.version }),
+            refresh,
+          )
+        }
+      />
+    </>
+  )
+}

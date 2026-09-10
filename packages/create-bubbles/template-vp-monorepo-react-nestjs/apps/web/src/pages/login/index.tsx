@@ -1,64 +1,18 @@
-import { AppstoreOutlined, ArrowRightOutlined, LockOutlined, UserOutlined } from '@ant-design/icons'
+import { ArrowRightOutlined, LockOutlined, UserOutlined } from '@ant-design/icons'
 import { LoginForm, ProFormText } from '@ant-design/pro-components'
 import { useRequest } from 'alova/client'
 import { Alert } from 'antd'
 import { useState } from 'react'
-import { useNavigate } from 'react-router'
+import { Link, useNavigate, useSearchParams } from 'react-router'
 import type { LoginRequest } from 'shared/types'
 import { ACCOUNT_PATTERN, normalizeAccount } from 'shared/utils'
 import { cookie } from '@/utils/storage/cookie'
 import { login } from './api'
 import './login.css'
 
-function ModuleDrawing() {
-  return (
-    <svg className="login-drawing" viewBox="0 0 540 360" fill="none" aria-hidden="true">
-      <g stroke="currentColor" strokeWidth="1.5">
-        <path d="M156 88h38a24 24 0 0 1 24 24v30M322 180h52a24 24 0 0 0 24-24v-28M218 218v38a24 24 0 0 1-24 24h-54M322 218v50a24 24 0 0 0 24 24h54" />
-        <path
-          d="M100 130v58a24 24 0 0 0 24 24h42M444 240v-28a24 24 0 0 0-24-24h-46"
-          strokeDasharray="4 7"
-          opacity=".35"
-        />
-        <g fill="var(--login-panel-bg)">
-          <rect x="52" y="46" width="104" height="84" rx="12" />
-          <rect x="354" y="48" width="104" height="80" rx="12" />
-          <rect x="60" y="244" width="80" height="72" rx="12" />
-          <rect x="396" y="248" width="88" height="68" rx="12" />
-        </g>
-        <path
-          d="M76 72h24v24H76zM112 72h20M112 84h12M112 96h20M378 74h56M378 88h36M378 102h46M80 264h40M80 278h24M80 292h32"
-          opacity=".7"
-        />
-        <circle cx="440" cy="282" r="14" />
-        <path d="m434 282 4 4 8-9" stroke="var(--login-accent)" />
-        <rect
-          x="218"
-          y="128"
-          width="104"
-          height="104"
-          rx="20"
-          fill="var(--login-panel-bg)"
-          stroke="var(--login-accent)"
-        />
-        <g stroke="var(--login-accent)" strokeWidth="2">
-          <rect x="244" y="154" width="20" height="20" rx="3" />
-          <rect x="276" y="154" width="20" height="20" rx="3" />
-          <rect x="244" y="186" width="20" height="20" rx="3" />
-          <rect x="276" y="186" width="20" height="20" rx="3" />
-        </g>
-        <g fill="var(--login-accent)" stroke="none">
-          <circle cx="194" cy="88" r="3" />
-          <circle cx="374" cy="180" r="3" />
-          <circle cx="218" cy="256" r="3" />
-        </g>
-      </g>
-    </svg>
-  )
-}
-
 export default function LoginPage() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const { send, loading } = useRequest(login, { immediate: false })
   const [error, setError] = useState<string | null>(null)
 
@@ -73,7 +27,7 @@ export default function LoginPage() {
       cookie.set('token', result.accessToken, {
         expires: new Date(result.absoluteExpiresAt),
       })
-      void navigate('/home', { replace: true })
+      void navigate('/workspaces', { replace: true })
       return true
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : '登录失败，请稍后重试')
@@ -83,32 +37,32 @@ export default function LoginPage() {
 
   return (
     <main className="login-page">
-      <title>登录 - 通用平台</title>
-      <section className="login-brand-panel" aria-label="通用平台">
+      <title>登录 - 万物</title>
+      <section className="login-brand-panel" aria-label="万物">
         <div className="login-brand">
-          <AppstoreOutlined />
-          <span>通用平台</span>
+          <span className="wanwu-mark" aria-hidden="true" />
+          <span>万物</span>
         </div>
         <div className="login-story">
-          <p className="login-eyebrow">UNIVERSAL PLATFORM</p>
-          <h1>
-            连接业务，
-            <br />
-            从这里开始。
-          </h1>
-          <ModuleDrawing />
+          <div className="login-orbit" aria-hidden="true">
+            <span className="login-pearl" />
+            <span className="login-orbit-ring" />
+            <span className="login-orbit-satellite" />
+          </div>
+          <p className="login-eyebrow">WANWU</p>
+          <h1>万物</h1>
+          <p className="login-story-caption">企业与项目工作空间</p>
         </div>
         <div className="login-brand-footer">
-          <span>一个平台，多种可能</span>
-          <span>UNIVERSAL PLATFORM</span>
+          <span>登录后，选择你的工作空间。</span>
         </div>
       </section>
 
       <section className="login-form-panel" aria-labelledby="login-title">
         <div className="login-form-content">
-          <p className="login-form-eyebrow">WORKSPACE</p>
-          <h2 id="login-title">登录工作台</h2>
-          <p className="login-description">欢迎回来，请使用平台账号登录。</p>
+          <p className="login-form-eyebrow">账号登录</p>
+          <h2 id="login-title">欢迎回到万物</h2>
+          <p className="login-description">登录账号，进入你的工作空间。</p>
           <LoginForm<LoginRequest>
             autoFocusFirstInput={false}
             requiredMark={false}
@@ -128,6 +82,14 @@ export default function LoginPage() {
               },
             }}
           >
+            {searchParams.has('registered') && (
+              <Alert
+                className="login-error"
+                type="success"
+                showIcon
+                title="账号已创建，请登录后等待企业管理员添加。"
+              />
+            )}
             {error && (
               <Alert className="login-error" type="error" showIcon title={error} role="alert" />
             )}
@@ -174,9 +136,11 @@ export default function LoginPage() {
               ]}
             />
           </LoginForm>
-          <p className="login-account-hint">请使用已开通的账号，账号区分于显示名称。</p>
+          <p className="login-account-hint">
+            还没有账号？<Link to="/register">注册账号</Link>
+          </p>
         </div>
-        <footer className="login-footer">通用平台 · 业务工作空间</footer>
+        <footer className="login-footer">万物 · 工作空间</footer>
       </section>
     </main>
   )

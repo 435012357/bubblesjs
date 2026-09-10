@@ -37,4 +37,12 @@ export class AuthRepository {
       .returning()
     return user ?? null
   }
+
+  withActiveUserLock<T>(userId: string, operation: () => Promise<T>) {
+    return this.db.transaction(async (tx) => {
+      const [user] = await tx.select().from(users).where(eq(users.id, userId)).for('share')
+      if (!user || user.status !== 'active') return null
+      return operation()
+    })
+  }
 }

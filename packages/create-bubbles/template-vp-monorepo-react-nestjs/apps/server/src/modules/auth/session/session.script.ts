@@ -86,6 +86,12 @@ return {
 `
 
 export const VALIDATE_AND_TOUCH_SESSION_SCRIPT = String.raw`
+local function isValidDigest(value)
+  return value
+    and string.len(value) == 64
+    and string.match(value, '^[0-9a-f]+$') ~= nil
+end
+
 local function isValidTerminal(value)
   return value == 'web' or value == 'desktop' or value == 'mobile'
 end
@@ -204,7 +210,7 @@ export const REVOKE_USER_SESSIONS_SCRIPT = String.raw`
 local sessionKeyPrefix = ARGV[1]
 local revokedCount = 0
 
-for index = 1, #KEYS DO
+for index = 1, #KEYS do
   local digest = redis.call('GET', KEYS[index])
 
   if digest

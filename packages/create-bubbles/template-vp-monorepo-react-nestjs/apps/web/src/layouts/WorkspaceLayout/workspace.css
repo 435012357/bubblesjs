@@ -1,0 +1,252 @@
+@import './workspace-surfaces.css';
+@import './workspace-landing.css';
+
+@layer components {
+  .workspace-layout {
+    background: var(--wanwu-atmosphere);
+  }
+  .workspace-layout .ant-pro-layout-bg-list {
+    background: transparent;
+  }
+  .workspace-layout .ant-pro-layout-header {
+    border-bottom: 1px solid var(--wanwu-border);
+    backdrop-filter: blur(22px);
+  }
+  .workspace-layout .ant-pro-global-header {
+    padding-inline: 28px;
+    gap: 24px;
+  }
+  .workspace-layout .ant-pro-global-header > div[style] {
+    min-width: 0;
+  }
+  .workspace-layout .ant-pro-sider {
+    background: linear-gradient(160deg, #ffffff70, #f4effc50 55%, #e7e7fa55);
+    border-inline-end: 1px solid #ffffff80;
+    box-shadow: none;
+    padding-top: 18px;
+  }
+  .workspace-layout .ant-pro-sider .ant-menu-item-selected {
+    background: linear-gradient(110deg, #e4ddf8, #eee8fa);
+    box-shadow:
+      inset 0 1px 0 #ffffffb3,
+      0 4px 12px #7964b508;
+    font-weight: 600;
+  }
+  .workspace-layout .ant-pro-sider .ant-menu-item {
+    margin-block: 6px;
+  }
+  .workspace-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 16px;
+    color: var(--wanwu-ink);
+    white-space: nowrap;
+  }
+  .workspace-brand:hover {
+    color: var(--wanwu-accent);
+  }
+  .workspace-wordmark {
+    font-family: 'STSong', 'SimSun', serif;
+    font-size: 27px;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    line-height: 1.15;
+  }
+  .workspace-wordmark small {
+    display: block;
+    margin-top: 4px;
+    font:
+      9px/1.2 'Segoe UI',
+      sans-serif;
+    letter-spacing: 0.35em;
+    color: var(--wanwu-muted);
+  }
+  .workspace-context {
+    display: flex;
+    width: fit-content;
+    max-width: 100%;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 14px;
+    border: 1px solid #e7e0f1;
+    border-radius: 24px;
+    background: #ffffff66;
+    font-size: 12px;
+    line-height: 24px;
+  }
+  .workspace-context-dot {
+    width: 7px;
+    height: 7px;
+    flex: 0 0 7px;
+    border-radius: 50%;
+    background: #9d89d5;
+    box-shadow: 0 0 0 4px #eae2f6;
+  }
+  .workspace-context-company .workspace-context-dot {
+    background: #699aab;
+    box-shadow: 0 0 0 4px #e0eef3;
+  }
+  .workspace-context-project .workspace-context-dot {
+    background: #b47da8;
+    box-shadow: 0 0 0 4px #f1e3ed;
+  }
+  .workspace-context-type {
+    color: var(--wanwu-muted);
+    white-space: nowrap;
+  }
+  .workspace-context strong {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-weight: 500;
+    color: var(--wanwu-ink);
+  }
+  .workspace-user {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-inline-end: 14px;
+    line-height: 19px;
+    color: var(--wanwu-ink);
+  }
+  .workspace-user .ant-avatar {
+    color: #7763ad;
+    background: linear-gradient(135deg, #e9e1f7, #e3eafb);
+    border: 1px solid #ffffff;
+  }
+  .workspace-user > span:last-child {
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .workspace-user small {
+    display: block;
+    color: var(--wanwu-muted);
+    font-size: 11px;
+  }
+  .workspace-content {
+    height: calc(100dvh - 72px);
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+  .workspace-body {
+    position: relative;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+  }
+  .workspace-navigation-loading {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    display: grid;
+    place-items: center;
+    background: #f5f3fc66;
+  }
+  .workspace-page {
+    height: 100%;
+    overflow: auto;
+    padding: 32px;
+  }
+  .workspace-page-title {
+    margin-bottom: 28px;
+  }
+  .workspace-page-title h1 {
+    margin: 0 0 10px;
+    color: var(--wanwu-ink);
+    font-size: 28px;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+  }
+  .workspace-page-title p {
+    color: var(--wanwu-muted);
+    margin: 0;
+    line-height: 1.8;
+  }
+  .workspace-stateless-home {
+    max-width: 1100px;
+  }
+  .workspace-stateless-home .ant-descriptions {
+    margin-bottom: 28px;
+    background: var(--wanwu-glass);
+    border-radius: 12px;
+  }
+  .permission-tree {
+    max-height: 430px;
+    overflow: auto;
+    margin-top: 16px;
+    border: 1px solid #e1ddec;
+    border-radius: 12px;
+    padding: 12px;
+  }
+  .menu-management {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+  .menu-management > .ant-tabs {
+    padding: 12px 20px 0;
+  }
+  .menu-table {
+    flex: 1;
+    min-height: 0;
+  }
+  .audit-summary {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    font-size: 12px;
+    max-width: 420px;
+  }
+  @media (max-width: 1023px) {
+    .workspace-layout .ant-pro-global-header {
+      gap: 12px;
+      padding-inline: 16px;
+    }
+    .workspace-context-type {
+      display: none;
+    }
+    .workspace-user {
+      margin-inline-end: 0;
+    }
+  }
+  @media (max-width: 767px) {
+    .workspace-layout .ant-pro-global-header {
+      gap: 8px;
+      padding-inline: 12px;
+      margin-inline: 0;
+    }
+    .workspace-layout .ant-pro-global-header-collapsed-button {
+      margin-inline-end: 0;
+    }
+    .workspace-user,
+    .workspace-context-dot,
+    .workspace-context-parent,
+    .workspace-layout .ant-pro-global-header .wanwu-mark,
+    .workspace-layout .ant-pro-global-header .workspace-wordmark small,
+    .workspace-logout > span:not(.ant-btn-icon),
+    .workspace-switch > span:not(.ant-btn-icon) {
+      display: none;
+    }
+    .workspace-layout .ant-pro-global-header .workspace-wordmark {
+      font-size: 22px;
+      letter-spacing: 0.06em;
+    }
+    .workspace-switch,
+    .workspace-logout {
+      width: 36px;
+      padding-inline: 0;
+    }
+    .workspace-context {
+      border: 0;
+      background: transparent;
+      padding: 0 4px;
+    }
+    .workspace-page {
+      padding: 20px 16px;
+    }
+  }
+}

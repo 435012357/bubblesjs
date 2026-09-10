@@ -40,7 +40,7 @@ ProComponents 3 的部分 API 已调整，例如 ProCard 使用 `variant="outlin
   样式层级、引入基础重置并设置 `html / body / #root` 的全局基础样式，配合 `StyleProvider layer` 使用。
   组件库样式在基础重置之后，业务样式和 Tailwind 工具类在组件库之后。
 - 页面和组件的专属样式放在同目录的 `*.module.css`，通过 `styles.xxx` 引用；
-  `App.module.css` 管理应用容器，`layouts/BasicLayout.module.css` 管理布局品牌，
+  `App.module.css` 管理应用容器，`layouts/BasicLayout/BasicLayout.module.css` 管理布局品牌，
   首页和国际化示例各自使用页面目录中的 `index.module.css`。
   模块样式及其响应式规则统一放在 `@layer components` 中；层名控制覆盖顺序，CSS Modules 负责类名隔离。
 - React 19 可直接使用 Ant Design 6，无需 Ant Design 5 的 React 19 兼容补丁。
@@ -60,7 +60,8 @@ export default function MessageExample() {
 
 ## 布局与页面
 
-- `src/layouts/BasicLayout.tsx`：ProLayout 基础布局、菜单与 React Router 的 Outlet。
+- `src/layouts/BasicLayout/index.tsx`：ProLayout 基础布局、菜单与 React Router 的 Outlet；配套样式放在同一目录。
+- `src/layouts/WorkspaceLayout/index.tsx`：工作区布局；配套样式放在同一目录。
 - `/login`：独立登录页，使用 LoginForm / ProFormText，支持账号校验、密码显隐、提交状态与接口错误提示。
 - `/home`：工作台，使用 PageContainer 与 ProCard，提供项目管理演示入口。
 - `/examples/pro-table`：带菜单的 ProTable 项目管理演示，包含 18 条模拟数据，支持名称或编号搜索、

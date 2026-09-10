@@ -1,0 +1,231 @@
+import {
+  ModalForm,
+  ProFormDependency,
+  ProFormDigit,
+  ProFormSelect,
+  ProFormSwitch,
+  ProFormText,
+} from '@ant-design/pro-components'
+import { Alert } from 'antd'
+import { useImperativeHandle, useState, type Ref } from 'react'
+import type {
+  CreateMenuRequest,
+  FunctionCatalogResult,
+  MenuNode,
+  MenuTreeResult,
+  UpdateMenuRequest,
+} from 'shared/types'
+
+interface EditorState {
+  record?: MenuNode
+  tree: MenuTreeResult
+  catalog: FunctionCatalogResult
+}
+export interface MenuFormDialogRef {
+  show: (state: EditorState) => void
+  hide: () => void
+}
+
+export default function MenuFormDialog({
+  ref,
+  onSave,
+}: {
+  ref: Ref<MenuFormDialogRef>
+  onSave: (state: EditorState, data: CreateMenuRequest | UpdateMenuRequest) => Promise<boolean>
+}) {
+  const [open, setOpen] = useState(false)
+  const [state, setState] = useState<EditorState>()
+  const hide = () => setOpen(false)
+  useImperativeHandle(ref, () => ({
+    show: (value) => {
+      setState(value)
+      setOpen(true)
+    },
+    hide,
+  }))
+  const nodes: MenuNode[] = []
+  const append = (items: MenuNode[]) => {
+    for (const node of items) {
+      nodes.push(node)
+      append(node.children)
+    }
+  }
+  append(state?.tree.items ?? [])
+  const record = state?.record
+  const descendants = new Set<string>()
+  const mark = (node?: MenuNode) => {
+    if (!node) return
+    descendants.add(node.id)
+    node.children.forEach(mark)
+  }
+  mark(nodes.find((node) => node.id === record?.id))
+  const pages =
+    state?.catalog.items.filter((item) => item.kind === 'page' && !item.deprecated) ?? []
+  const boundPages = new Set(
+    nodes.filter((item) => item.type === 'page').map((item) => item.routeKey),
+  )
+  const boundOperations = new Set(
+    nodes.filter((item) => item.type === 'operation').map((item) => item.permissionKey),
+  )
+
+  return (
+    <ModalForm<CreateMenuRequest>
+      title={record ? '编辑菜单节点' : '新增菜单节点'}
+      open={open}
+      width={620}
+      initialValues={
+        record ?? { type: 'page', parentId: null, sort: 0, hidden: false, status: 'active' }
+      }
+      modalProps={{ destroyOnHidden: true, onCancel: hide }}
+      onOpenChange={(visible) => {
+        if (!visible) hide()
+      }}
+      submitter={{ searchConfig: { submitText: '保存菜单' } }}
+      onFinish={async (values) => {
+        if (!state) return false
+        const common: UpdateMenuRequest = {
+          expectedVersion: state.tree.version,
+          name: values.name.trim(),
+          parentId: values.parentId ?? null,
+          icon: values.icon ?? '',
+          sort: values.sort ?? 0,
+          hidden: values.hidden ?? false,
+          status: values.status ?? 'active',
+        }
+        const data = record
+          ? common
+          : {
+              ...common,
+              name: values.name.trim(),
+              parentId: values.parentId ?? null,
+              type: values.type,
+              ...(values.type === 'page'
+                ? { routeKey: values.routeKey }
+                : values.type === 'operation'
+                  ? { permissionKey: values.permissionKey }
+                  : {}),
+            }
+        const ok = await onSave(state, data)
+        if (ok) hide()
+        return ok
+      }}
+    >
+      {record?.protected && (
+        <Alert
+          type="info"
+          showIcon
+          title="此节点属于受保护的管理入口，不能隐藏、停用或移到不可用位置。"
+          style={{ marginBottom: 18 }}
+        />
+      )}
+      {!record && (
+        <ProFormSelect
+          name="type"
+          label="节点类型"
+          options={[
+            { value: 'directory', label: '目录' },
+            { value: 'page', label: '页面' },
+            { value: 'operation', label: '按钮 / 操作' },
+          ]}
+          rules={[{ required: true }]}
+        />
+      )}
+      <ProFormText
+        name="name"
+        label="显示名称"
+        fieldProps={{ maxLength: 100 }}
+        rules={[{ required: true, whitespace: true, max: 100, message: '请输入显示名称' }]}
+      />
+      <ProFormDependency name={['type', 'parentId']}>
+        {({ type, parentId }) => {
+          const nodeType = record?.type ?? type
+          const parent = nodes.find((node) => node.id === parentId)
+          const availableParents = nodes.filter(
+            (node) =>
+              !descendants.has(node.id) &&
+              (nodeType === 'operation'
+                ? node.type === 'page' && (!record || node.routeKey === record.routeKey)
+                : node.type === 'directory'),
+          )
+          return (
+            <>
+              <ProFormSelect
+                name="parentId"
+                label="父级节点"
+                allowClear={nodeType !== 'operation'}
+                placeholder={nodeType === 'operation' ? '选择所属页面' : '不选择，放在根目录'}
+                rules={
+                  nodeType === 'operation'
+                    ? [{ required: true, message: '操作必须属于一个页面' }]
+                    : []
+                }
+                options={availableParents.map((node) => ({ value: node.id, label: node.name }))}
+              />
+              {!record && nodeType === 'page' && (
+                <ProFormSelect
+                  name="routeKey"
+                  label="绑定页面"
+                  placeholder="选择已发布的页面"
+                  rules={[{ required: true, message: '请选择页面' }]}
+                  options={pages
+                    .filter((item) => !boundPages.has(item.routeKey))
+                    .map((item) => ({ value: item.routeKey, label: item.title }))}
+                />
+              )}
+              {!record && nodeType === 'operation' && (
+                <ProFormSelect
+                  name="permissionKey"
+                  label="绑定操作"
+                  placeholder="先选择所属页面"
+                  rules={[{ required: true, message: '请选择操作' }]}
+                  options={(state?.catalog.items ?? [])
+                    .filter(
+                      (item) =>
+                        item.kind === 'operation' &&
+                        !item.deprecated &&
+                        item.routeKey === parent?.routeKey &&
+                        !boundOperations.has(item.key),
+                    )
+                    .map((item) => ({ value: item.key, label: item.title }))}
+                />
+              )}
+              {record && record.type !== 'directory' && (
+                <p>
+                  已绑定：
+                  {state?.catalog.items.find((item) => item.key === record.permissionKey)?.title ??
+                    record.name}
+                  。已有节点不能更换绑定功能。
+                </p>
+              )}
+            </>
+          )
+        }}
+      </ProFormDependency>
+      <ProFormSelect
+        name="icon"
+        label="图标"
+        allowClear
+        options={(state?.catalog.icons ?? [])
+          .filter(Boolean)
+          .map((icon) => ({ value: icon, label: icon }))}
+      />
+      <ProFormDigit name="sort" label="排序" min={0} max={100000} fieldProps={{ precision: 0 }} />
+      <ProFormSwitch
+        name="hidden"
+        label="隐藏导航"
+        disabled={record?.protected}
+        extra="隐藏只影响菜单展示，已授权用户仍可直接访问。"
+      />
+      <ProFormSelect
+        name="status"
+        label="功能状态"
+        disabled={record?.protected}
+        options={[
+          { value: 'active', label: '启用' },
+          { value: 'disabled', label: '停用' },
+        ]}
+        extra="停用会阻断节点及下级功能，管理员也受此限制。"
+      />
+    </ModalForm>
+  )
+}

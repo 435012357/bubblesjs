@@ -13,6 +13,8 @@
   "dependencies": {
     "@alova/adapter-axios": "catalog:",
     "@antdv-next/icons": "catalog:",
+    "@bubblesjs/i18n-vue": "workspace:*",
+    "@vue/devtools-api": "catalog:",
     "alova": "catalog:",
     "antdv-next": "catalog:",
     "axios": "catalog:",

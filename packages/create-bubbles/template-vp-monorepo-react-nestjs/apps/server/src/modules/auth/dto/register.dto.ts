@@ -11,7 +11,7 @@ export const registerSchema = z.object({
     .min(4)
     .max(32)
     .regex(ACCOUNT_PATTERN, '账号只能包含字母、数字和下划线'),
-  password: z.string().min(8).max(128),
+  password: z.string().min(8).max(16),
 }) satisfies z.ZodType<RegisterRequest>
 
 export class RegisterDto extends createZodDto(registerSchema) {}

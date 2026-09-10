@@ -6,6 +6,7 @@ import { AUTH_ERRORS } from '../auth.errors'
 import { SessionStoreService } from '../session/session-store.service'
 import { SessionTokenService } from '../session/session-token.service'
 import { AuthenticatedRequest } from '../session/session.types'
+import { AuthRepository } from '../auth.repository'
 
 @Injectable()
 export class SessionAuthGuard implements CanActivate {
@@ -13,6 +14,7 @@ export class SessionAuthGuard implements CanActivate {
     private readonly reflector: Reflector,
     private readonly sessionTokenService: SessionTokenService,
     private readonly sessionStoreService: SessionStoreService,
+    private readonly authRepository: AuthRepository,
   ) {}
 
   async canActivate(context: ExecutionContext) {
@@ -44,6 +46,8 @@ export class SessionAuthGuard implements CanActivate {
     if (!auth) {
       throw new AppException(AUTH_ERRORS.SESSION_INVALID)
     }
+    const user = await this.authRepository.findPublicById(auth.userId)
+    if (!user || user.status !== 'active') throw new AppException(AUTH_ERRORS.SESSION_INVALID)
     request.auth = auth
     return true
   }

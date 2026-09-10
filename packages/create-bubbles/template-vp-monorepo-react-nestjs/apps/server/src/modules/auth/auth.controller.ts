@@ -1,4 +1,5 @@
 import { CurrentAuth } from '@/common/decorators/current-auth.decorator'
+import { Authenticated } from '@/common/decorators/access-policy.decorator'
 import { Public } from '@/common/decorators/public.decorator'
 import { Body, Controller, Get, Headers, HttpCode, HttpStatus, Post, Req } from '@nestjs/common'
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger'
@@ -44,6 +45,7 @@ export class AuthController {
   @ApiBearerAuth('session')
   @ApiOperation({ summary: '使用 Session Token 获取当前用户资料' })
   @Get('me')
+  @Authenticated()
   async me(@CurrentAuth() auth: CurrentAuthType): Promise<CurrentUser> {
     const user = await this.authService.getCurrentUser(auth.userId)
 

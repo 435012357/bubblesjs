@@ -1,5 +1,4 @@
 import {
-  AppstoreOutlined,
   DashboardOutlined,
   LogoutOutlined,
   TableOutlined,
@@ -11,9 +10,11 @@ import { App, Button } from 'antd'
 import { Suspense } from 'react'
 import { Link, Outlet, useLocation, useNavigate } from 'react-router'
 import PageLoading from '@/components/Loading/PageLoading'
+import { workspaceLayoutToken } from '@/config/theme'
 import { logout } from '@/api/auth'
 import { cookie } from '@/utils/storage/cookie'
 import styles from './BasicLayout.module.css'
+import '../WorkspaceLayout/workspace.css'
 
 const menuRoutes = [
   { path: '/home', name: '工作台', icon: <DashboardOutlined /> },
@@ -50,11 +51,12 @@ export default function BasicLayout() {
 
   return (
     <ProLayout
-      className="platform-layout"
+      className="platform-layout workspace-layout"
       style={{ height: '100dvh', overflow: 'hidden' }}
       contentStyle={{ minHeight: 0, padding: 0, overflow: 'auto' }}
-      title="通用平台"
-      logo={<AppstoreOutlined className={styles.logo} />}
+      title="万物"
+      logo={<span className="wanwu-mark" aria-hidden="true" />}
+      token={workspaceLayoutToken}
       layout="mix"
       fixedHeader
       fixSiderbar
@@ -92,7 +94,7 @@ export default function BasicLayout() {
         </Link>
       )}
       headerTitleRender={(logo, title) => (
-        <Link className={styles.brand} to="/home" aria-label="通用平台首页">
+        <Link className={styles.brand} to="/home" aria-label="万物首页">
           {logo}
           {title}
         </Link>

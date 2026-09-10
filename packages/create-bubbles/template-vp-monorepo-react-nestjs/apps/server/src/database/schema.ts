@@ -11,6 +11,8 @@ import {
   varchar,
 } from 'drizzle-orm/pg-core'
 
+export * from './access.schema'
+
 export const userStatusEnum = pgEnum('user_status', ['active', 'locked', 'disabled'])
 
 export const users = pgTable('users', {

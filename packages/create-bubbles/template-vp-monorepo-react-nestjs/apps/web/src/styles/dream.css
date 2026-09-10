@@ -1,0 +1,67 @@
+@layer components {
+  :root {
+    --wanwu-ink: #302b49;
+    --wanwu-muted: #78718e;
+    --wanwu-accent: #7864c4;
+    --wanwu-lilac: #8270db;
+    --wanwu-fog: #f5f3fc;
+    --wanwu-ice: #dceefa;
+    --wanwu-rose: #f2dfef;
+    --wanwu-border: rgba(255, 255, 255, 0.85);
+    --wanwu-glass: rgba(255, 255, 255, 0.76);
+    --wanwu-shadow: 0 12px 40px rgba(91, 70, 144, 0.06);
+    --wanwu-atmosphere:
+      radial-gradient(ellipse at 84% 7%, #e6ddf6 0, transparent 44%),
+      radial-gradient(ellipse at 38% 95%, var(--wanwu-ice) 0, transparent 48%),
+      radial-gradient(ellipse at 2% 26%, var(--wanwu-rose) 0, transparent 44%), var(--wanwu-fog);
+  }
+
+  .wanwu-mark {
+    position: relative;
+    display: inline-block;
+    width: 34px;
+    height: 34px;
+    flex: 0 0 34px;
+    border: 1px solid rgba(255, 255, 255, 0.9);
+    border-radius: 50%;
+    background: radial-gradient(circle at 28% 24%, #fff 0, #ede3fb 28%, #bcb0eb 65%, #dceefa);
+    box-shadow:
+      inset -3px -4px 8px #ac9fd84d,
+      0 4px 14px #8d79c333;
+  }
+  .wanwu-mark::before {
+    content: '';
+    position: absolute;
+    inset: 9px -6px;
+    border: 1px solid #a796d6;
+    border-top-color: #ffffffb3;
+    border-radius: 50%;
+    transform: rotate(-34deg);
+  }
+  .wanwu-mark::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: -4px;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: #ac99da;
+    box-shadow: 0 0 7px #ffffff;
+  }
+  a:focus-visible,
+  button:focus-visible {
+    outline: 2px solid var(--wanwu-accent);
+    outline-offset: 4px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}

@@ -71,13 +71,16 @@ export class AuthService {
 
     const { rawToken, tokenDigest } = this.sessionTokenService.createToken()
 
-    const session = await this.sessionStoreService.createOrReplace({
-      tokenDigest,
-      userId: user.id,
-      terminal: detectSessionTerminal(metadata.userAgent),
-      loginIp: metadata.ip.slice(0, 64),
-      userAgent: metadata.userAgent.slice(0, 500),
-    })
+    const session = await this.authRepository.withActiveUserLock(user.id, () =>
+      this.sessionStoreService.createOrReplace({
+        tokenDigest,
+        userId: user.id,
+        terminal: detectSessionTerminal(metadata.userAgent),
+        loginIp: metadata.ip.slice(0, 64),
+        userAgent: metadata.userAgent.slice(0, 500),
+      }),
+    )
+    if (!session) throw new AppException(AUTH_ERRORS.INVALID_CREDENTIALS)
 
     return {
       accessToken: rawToken,
@@ -99,9 +102,7 @@ export class AuthService {
   }
 
   async getCurrentUser(userId: string): Promise<AuthUser> {
-    const user = await this.useAuthInfrastrutrue(() =>
-      this.authRepository.findPublicById(userId),
-    )
+    const user = await this.useAuthInfrastrutrue(() => this.authRepository.findPublicById(userId))
 
     if (!user || user.status !== 'active') {
       throw new AppException(AUTH_ERRORS.SESSION_INVALID)

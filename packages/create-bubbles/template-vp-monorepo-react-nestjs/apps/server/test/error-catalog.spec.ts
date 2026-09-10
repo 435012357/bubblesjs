@@ -1,8 +1,13 @@
 import { COMMON_ERRORS } from '@/common/error/common.error'
 import { AUTH_ERRORS } from '@/modules/auth/auth.errors'
+import { ACCESS_ERRORS } from '@/modules/access/access.errors'
 import { describe, expect, it } from 'vite-plus/test'
 
-const definitions = [...Object.values(COMMON_ERRORS), ...Object.values(AUTH_ERRORS)]
+const definitions = [
+  ...Object.values(COMMON_ERRORS),
+  ...Object.values(AUTH_ERRORS),
+  ...Object.values(ACCESS_ERRORS),
+]
 
 describe('error catalog', () => {
   it('uses valid and globally unique error codes', () => {

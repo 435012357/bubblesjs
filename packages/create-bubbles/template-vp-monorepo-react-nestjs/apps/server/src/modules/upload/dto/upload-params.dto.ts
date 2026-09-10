@@ -10,6 +10,6 @@ export const uploadPartParamsSchema = uploadSessionParamsSchema.extend({
   partNumber: z.coerce.number().int().min(1).max(UPLOAD_MAX_PARTS),
 })
 
-export class UploadSessionParamsDto extends createZodDto(uploadPartParamsSchema) {}
+export class UploadSessionParamsDto extends createZodDto(uploadSessionParamsSchema) {}
 
 export class UploadPartParamsDto extends createZodDto(uploadPartParamsSchema) {}

@@ -6,109 +6,120 @@ packages:
 catalogMode: prefer
 
 catalog:
-  '@alova/adapter-axios': ^2.0.18
+  '@alova/adapter-axios': ^2.0.20
   '@ant-design/cssinjs': ^2.1.2
   '@ant-design/icons': ^6.3.4
+  # 最新 beta 支持 Ant Design 6；latest 标签仍是仅支持 Ant Design 4/5 的 2.x。
   '@ant-design/pro-components': 3.1.14-7
-  '@antdv-next/auto-import-resolver': ^1.1.0
-  '@antdv-next/icons': ^1.1.1
-  '@antfu/eslint-config': ^9.1.0
-  '@aws-sdk/client-s3': ^3.1120.0
-  '@commitlint/cli': ^21.2.1
-  '@commitlint/config-conventional': ^21.1.0
+  '@antdv-next/auto-import-resolver': ^1.2.0
+  '@antdv-next/icons': ^1.1.2
+  '@antfu/eslint-config': ^9.5.1
+  '@aws-sdk/client-s3': ^3.1129.0
+  '@commitlint/cli': ^21.2.2
+  '@commitlint/config-conventional': ^21.2.2
   '@fastify/cookie': ^11.1.2
-  '@fastify/static': ^10.1.0
-  '@nestjs-modules/ioredis': ^2.2.1
+  '@fastify/static': ^10.1.3
+  '@nestjs-modules/ioredis': ^2.2.2
   '@nestjs/bullmq': ^12.0.0
-  '@nestjs/cli': ^11.0.0
-  '@nestjs/common': ^11.1.27
-  '@nestjs/config': ^4.0.4
-  '@nestjs/core': ^11.0.1
-  '@nestjs/jwt': ^11.0.2
-  '@nestjs/mapped-types': '*'
-  '@nestjs/platform-fastify': ^11.1.27
-  '@nestjs/schematics': ^11.0.0
-  '@nestjs/swagger': ^11.4.6
-  '@nestjs/testing': ^11.0.1
+  # nestjs-zod 5.5.0 尚未声明支持 NestJS 12，核心与 Swagger 保留最新兼容版本。
+  '@nestjs/cli': ^11.0.24
+  '@nestjs/common': ^11.2.3
+  '@nestjs/config': ^12.0.0
+  '@nestjs/core': ^11.2.3
+  '@nestjs/jwt': ^12.0.1
+  '@nestjs/mapped-types': ^12.0.0
+  '@nestjs/platform-fastify': ^11.2.3
+  '@nestjs/schematics': ^11.1.0
+  '@nestjs/swagger': ^11.4.7
+  '@nestjs/testing': ^11.2.3
   '@swc/cli': ^0.8.1
-  '@swc/core': ^1.16.0
-  '@tailwindcss/vite': ^4.3.1
-  '@types/express': ^5.0.0
-  '@types/node': ^26.1.1
+  '@swc/core': ^1.16.2
+  '@tailwindcss/vite': ^4.3.3
+  '@types/express': ^5.0.6
+  # 保持现有 Node 26 类型系列；npm latest 标签目前指向维护中的 Node 22 类型。
+  '@types/node': ^26.5.1
   '@types/nprogress': ^0.2.3
-  '@types/pg': ^8.21.0
-  '@types/react': ^19.2.17
-  '@types/react-dom': ^19.2.3
-  '@unocss/eslint-plugin': ^66.7.2
-  '@unocss/preset-attributify': ^66.7.5
-  '@unocss/preset-wind4': ^66.7.5
-  '@vitejs/plugin-react': ^6.0.2
-  '@vitejs/plugin-vue': ^6.0.7
+  '@types/pg': ^8.23.1
+  '@types/react': ^19.3.0
+  '@types/react-dom': ^19.3.0
+  '@unocss/eslint-plugin': ^66.10.1
+  '@unocss/preset-attributify': ^66.10.1
+  '@unocss/preset-wind4': ^66.10.1
+  '@vitejs/plugin-react': ^6.1.1
+  '@vitejs/plugin-vue': ^6.0.8
+  '@vue/devtools-api': ^8.2.1
   '@vue/tsconfig': ^0.9.1
-  alova: ^3.5.1
-  antd: ^6.6.2
-  antdv-next: ^1.4.1
-  argon2: ^0.45.0
-  axios: ^1.18.1
+  alova: ^3.5.5
+  antd: ^6.6.3
+  antdv-next: ^1.5.3
+  argon2: ^0.45.1
+  axios: ^1.20.0
   bullmq: ^6.3.4
+  chokidar: ^5.0.0
   classnames: ^2.5.1
   cross-env: ^10.1.0
-  dayjs: ^1.11.21
+  dayjs: ^1.11.23
   dotenv: ^17.4.2
   drizzle-kit: ^0.31.10
   drizzle-orm: ^0.45.2
   drizzle-zod: ^0.8.3
   echarts: ^6.1.0
-  eslint: 10.7.0
+  eslint: 10.10.0
   eslint-plugin-format: ^2.0.1
-  eslint-plugin-oxlint: ^1.73.0
+  eslint-plugin-oxlint: ^1.82.0
   fast-glob: ^3.3.3
-  fastify: ^5.10.0
-  globals: ^17.0.0
-  ioredis: ^5.11.1
-  lefthook: ^2.1.10
-  nestjs-zod: ^5.4.0
+  fastify: ^5.12.3
+  globals: ^17.12.0
+  ioredis: ^6.0.0
+  lefthook: ^2.1.12
+  nestjs-zod: ^5.5.0
   nprogress: ^0.2.0
-  oxlint: ^1.73.0
-  pg: ^8.22.0
-  pinia: ^3.0.4
+  oxlint: ^1.82.0
+  pg: ^8.23.0
+  pinia: ^4.0.3
   pinia-plugin-persistedstate: ^4.7.1
-  radashi: ^12.9.1
-  react: ^19.2.7
-  react-dom: ^19.2.7
-  react-router: ^8.0.1
+  radashi: ^12.9.2
+  react: ^19.3.0
+  react-dom: ^19.3.0
+  react-router: ^8.3.1
   reflect-metadata: ^0.2.2
-  rxjs: ^7.8.1
-  sass: ^1.101.0
+  rxjs: ^7.8.2
+  sass: ^1.104.0
   source-map-support: ^0.5.21
-  tailwindcss: ^4.3.1
-  ts-loader: ^9.5.2
+  tailwindcss: ^4.3.3
+  ts-loader: ^9.6.2
   ts-node: ^10.9.2
   tsconfig-paths: ^4.2.0
-  typescript: ^6
-  unocss: 66.7.5
-  unplugin-auto-import: ^21.0.0
+  # vue-tsc 与 ts-node 仍依赖旧编译器 API，暂不兼容 TypeScript 7。
+  typescript: ^6.0.3
+  unocss: 66.10.1
+  unplugin-auto-import: ^21.1.0
   unplugin-vue-components: ^32.1.0
-  vite: npm:@voidzero-dev/vite-plus-core@0.2.4
-  vite-plugin-inspect: ^11.4.1
+  vite: npm:@voidzero-dev/vite-plus-core@0.3.1
+  vite-plugin-inspect: ^12.0.2
   vite-plugin-svg-icons: ^2.0.1
   vite-plugin-svgr: ^5.2.0
-  vite-plus: 0.2.4
-  vue: ^3.5.39
-  vue-router: ^5.1.0
-  vue-tsc: ^3.3.7
-  zod: ^4.4.3
+  vite-plus: 0.3.1
+  vue: ^3.5.42
+  vue-router: ^5.3.1
+  vue-tsc: ^3.3.11
+  zod: ^4.6.1
 overrides:
-  # 4.0.5 depends on mdn-data@2.29.0, which is missing from npm's full package index.
-  '@eslint/css-tree': 4.0.4
   vite: 'catalog:'
+packageExtensions:
+  # Schematics 的 Angular DevKit 19 仍要求 Chokidar 4，与 SWC CLI 的 5 隔离。
+  '@nestjs/schematics@11.1.0':
+    dependencies:
+      chokidar: 4.0.3
+  # 避免从 vite-plugin-inspect 的旧 Devtools 分支解析到 Hub 0.8。
+  '@unocss/inspector@66.10.1':
+    dependencies:
+      '@devframes/hub': 0.9.16
 peerDependencyRules:
   allowAny:
     - vite
   allowedVersions:
     vite: '*'
-minimumReleaseAgeExclude:
-  - axios@1.18.1
 allowBuilds:
   '@parcel/watcher': true
   '@scarf/scarf': true
@@ -117,3 +128,25 @@ allowBuilds:
   esbuild: true
   lefthook: true
   msgpackr-extract: true
+minimumReleaseAgeExclude:
+  - '@aws-sdk/checksums@3.1001.0'
+  - '@aws-sdk/client-s3@3.1129.0'
+  - '@aws-sdk/core@3.978.0'
+  - '@aws-sdk/credential-provider-env@3.972.71'
+  - '@aws-sdk/credential-provider-http@3.972.73'
+  - '@aws-sdk/credential-provider-ini@3.973.16'
+  - '@aws-sdk/credential-provider-login@3.972.78'
+  - '@aws-sdk/credential-provider-node@3.972.83'
+  - '@aws-sdk/credential-provider-process@3.972.71'
+  - '@aws-sdk/credential-provider-sso@3.973.15'
+  - '@aws-sdk/credential-provider-web-identity@3.972.77'
+  - '@aws-sdk/middleware-sdk-s3@3.972.76'
+  - '@aws-sdk/nested-clients@3.997.45'
+  - '@aws-sdk/token-providers@3.1129.0'
+  - '@types/node@26.5.1'
+  - '@types/react-dom@19.3.0'
+  - '@types/react@19.3.0'
+  - react-dom@19.3.0
+  - react@19.3.0
+  - scheduler@0.28.0
+  - zod@4.6.1
