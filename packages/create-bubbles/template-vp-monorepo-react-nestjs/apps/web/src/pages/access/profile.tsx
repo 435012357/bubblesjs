@@ -1,11 +1,11 @@
 import { ProForm, ProFormText, ProFormTextArea } from '@ant-design/pro-components'
 import { Alert, Button, Card, Descriptions, Space, Spin, Tag } from 'antd'
-import { useEffect, useState } from 'react'
 import type { CompanyDetail, ProjectDetail, UpdateProfileRequest } from 'shared/types'
 import { accessScopeKey } from 'shared/utils'
 import { managementApi } from './api'
 import { useAccess, useManagementAction } from './use-access'
 
+/** 查看并按权限更新当前企业或项目资料。 */
 export default function ProfilePage() {
   const access = useAccess()
   const scopeKey = accessScopeKey(access.scope)
@@ -17,26 +17,29 @@ export default function ProfilePage() {
   const api = managementApi(access.scope)
   const canEdit = access.permissionKeys.includes(`${access.scope.type}.profile.update`)
 
-  useEffect(() => {
-    let active = true
-    setLoading(true)
-    setError(undefined)
-    void api
-      .profile()
-      .then((value) => {
-        if (active) setRecord(value)
-      })
-      .catch((cause: unknown) => {
-        if (active && (cause as Error).name !== 'AbortError')
-          setError(cause instanceof Error ? cause.message : '无法加载资料')
-      })
-      .finally(() => {
-        if (active) setLoading(false)
-      })
-    return () => {
-      active = false
-    }
-  }, [scopeKey, refresh])
+  useEffect(
+    /** 加载当前工作空间资料，避免过期请求覆盖最新页面状态。 */ () => {
+      let active = true
+      setLoading(true)
+      setError(undefined)
+      void api
+        .profile()
+        .then((value) => {
+          if (active) setRecord(value)
+        })
+        .catch((cause: unknown) => {
+          if (active && (cause as Error).name !== 'AbortError')
+            setError(cause instanceof Error ? cause.message : '无法加载资料')
+        })
+        .finally(() => {
+          if (active) setLoading(false)
+        })
+      return () => {
+        active = false
+      }
+    },
+    [scopeKey, refresh],
+  )
 
   return (
     <div className="workspace-page">
@@ -100,15 +103,17 @@ export default function ProfilePage() {
                   : false
               }
               onFinish={(values) =>
-                execute(async () => {
-                  const latest = await api.updateProfile({
-                    name: values.name?.trim(),
-                    code: values.code?.trim().toLowerCase(),
-                    description: values.description?.trim(),
-                    expectedVersion: record.version,
-                  })
-                  setRecord({ ...record, ...latest })
-                })
+                execute(
+                  /** 携带当前资料版本提交规范化修改，并合并服务端返回的最新资料。 */ async () => {
+                    const latest = await api.updateProfile({
+                      name: values.name?.trim(),
+                      code: values.code?.trim().toLowerCase(),
+                      description: values.description?.trim(),
+                      expectedVersion: record.version,
+                    })
+                    setRecord({ ...record, ...latest })
+                  },
+                )
               }
             >
               <ProFormText

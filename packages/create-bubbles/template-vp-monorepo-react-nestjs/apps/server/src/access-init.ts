@@ -16,6 +16,10 @@ import { ENV_ARR } from './utils/env-arr'
 })
 class AccessInitializationModule {}
 
+/**
+ * 校验命令行完整账号并执行权限初始化，将结果输出为 JSON，最后关闭 Nest 应用上下文。
+ * @throws 账号缺失、不符合格式或初始化失败时抛出错误，由脚本入口设置失败退出码。
+ */
 async function initialize() {
   const accountIndex = process.argv.indexOf('--account')
   const account = accountIndex >= 0 ? process.argv[accountIndex + 1] : undefined
@@ -33,6 +37,7 @@ async function initialize() {
 }
 initialize().then(
   () => process.exit(0),
+  /** 将初始化失败原因写入标准错误，并使用非零退出码通知脚本调用方。 */
   (error) => {
     process.stderr.write(`${error instanceof Error ? error.message : '初始化失败'}\n`)
     process.exit(1)

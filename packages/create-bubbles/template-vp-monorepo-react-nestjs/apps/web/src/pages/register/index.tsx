@@ -2,18 +2,18 @@ import { ArrowRightOutlined } from '@ant-design/icons'
 import { LoginForm, ProFormText } from '@ant-design/pro-components'
 import { useRequest } from 'alova/client'
 import { Alert } from 'antd'
-import { useState } from 'react'
-import { Link, useNavigate } from 'react-router'
 import type { RegisterRequest } from 'shared/types'
 import { ACCOUNT_PATTERN, normalizeAccount } from 'shared/utils'
 import { register } from './api'
 import '../login/login.css'
 
+/** 展示注册表单，校验账号及确认密码后引导登录。 */
 export default function RegisterPage() {
   const navigate = useNavigate()
   const { send, loading } = useRequest(register, { immediate: false })
   const [error, setError] = useState<string | null>(null)
 
+  /** 规范化注册资料并提交账号创建，成功后返回登录入口。 */
   async function handleRegister(values: RegisterRequest) {
     if (loading) return false
     setError(null)

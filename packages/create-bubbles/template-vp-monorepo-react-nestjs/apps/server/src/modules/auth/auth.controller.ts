@@ -15,6 +15,9 @@ import type { CurrentAuthType } from './session/session.types'
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
+  /**
+   * 接收注册资料，返回新账号的公开信息。
+   */
   @Public()
   @ApiOperation({ summary: '注册' })
   @Post('register')
@@ -22,6 +25,9 @@ export class AuthController {
     return this.authService.register(body)
   }
 
+  /**
+   * 从 HTTP 请求提取登录来源，并创建或替换当前终端会话。
+   */
   @Public()
   @ApiOperation({ summary: '登录并创建 Redis Session' })
   @HttpCode(HttpStatus.OK)
@@ -33,6 +39,9 @@ export class AuthController {
     })
   }
 
+  /**
+   * 按 Authorization 请求头撤销当前终端的会话。
+   */
   @ApiBearerAuth('session')
   @ApiOperation({ summary: '退出当前端' })
   @Public()
@@ -42,6 +51,9 @@ export class AuthController {
     return this.authService.logout(authorization)
   }
 
+  /**
+   * 结合认证上下文与最新用户资料，返回当前用户及登录终端。
+   */
   @ApiBearerAuth('session')
   @ApiOperation({ summary: '使用 Session Token 获取当前用户资料' })
   @Get('me')

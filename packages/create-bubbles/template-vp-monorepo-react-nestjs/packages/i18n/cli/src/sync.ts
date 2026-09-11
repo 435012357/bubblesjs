@@ -58,6 +58,7 @@ const defaultFormat: CatalogFormat = {
   trailingEol: true,
 }
 
+/** 校验并计算单个语言包的词条差异，按 dryRun 选项决定是否写入并返回变更报告。 */
 export async function syncCatalog(options: SyncCatalogOptions): Promise<SyncFileReport> {
   const keys = normalizeKeys(options.keys)
   const plan = await planCatalog(options, keys)
@@ -69,6 +70,7 @@ export async function syncCatalog(options: SyncCatalogOptions): Promise<SyncFile
   return plan.report
 }
 
+/** 先校验项目内全部语言包，再按需并行写入各文件；写入原子性以单文件为单位。 */
 export async function syncProject(options: SyncProjectOptions): Promise<SyncFileReport[]> {
   const keys = normalizeKeys(options.keys)
   const plans = await Promise.all(
@@ -97,6 +99,7 @@ export async function syncProject(options: SyncProjectOptions): Promise<SyncFile
   return plans.map((plan) => plan.report)
 }
 
+/** 读取语言包并生成保留翻译的增删计划；拒绝相对路径及未经允许的空扫描清理。 */
 async function planCatalog(
   options: SyncCatalogOptions,
   keys: ReadonlySet<string>,
@@ -145,6 +148,7 @@ async function planCatalog(
   }
 }
 
+/** 读取并校验扁平字符串语言包，同时记录原格式；文件缺失时返回空词条与默认格式。 */
 async function readCatalog(path: string): Promise<CatalogState> {
   let source: string
 
@@ -197,6 +201,7 @@ async function readCatalog(path: string): Promise<CatalogState> {
   }
 }
 
+/** 检测语言包的 BOM、换行符、缩进和末尾换行，以便写回时沿用。 */
 function detectFormat(source: string): CatalogFormat {
   const bom = source.startsWith('\uFEFF')
   const json = bom ? source.slice(1) : source
@@ -212,6 +217,7 @@ function detectFormat(source: string): CatalogFormat {
   }
 }
 
+/** 按照检测到的文件格式序列化词条，恢复 BOM、换行符和末尾换行。 */
 function serializeCatalog(messages: Record<string, string>, format: CatalogFormat): string {
   const serialized = JSON.stringify(messages, undefined, format.indent) ?? '{}'
   const withEol = format.eol === '\n' ? serialized : serialized.split('\n').join(format.eol)
@@ -220,6 +226,7 @@ function serializeCatalog(messages: Record<string, string>, format: CatalogForma
   return format.bom ? `\uFEFF${withTrailingEol}` : withTrailingEol
 }
 
+/** 先写入同目录临时文件，再重命名替换目标；失败时尝试清理临时文件并传播异常。 */
 async function writeAtomic(path: string, content: string): Promise<void> {
   const directory = dirname(path)
   const temporaryPath = join(directory, `.${basename(path)}.${process.pid}.${randomUUID()}.tmp`)
@@ -235,6 +242,7 @@ async function writeAtomic(path: string, content: string): Promise<void> {
   }
 }
 
+/** 将扫描词条去重，并在包含非字符串键时抛出 TypeError。 */
 function normalizeKeys(keys: Iterable<string>): ReadonlySet<string> {
   const normalized = new Set<string>()
 
@@ -249,18 +257,22 @@ function normalizeKeys(keys: Iterable<string>): ReadonlySet<string> {
   return normalized
 }
 
+/** 按字符串比较顺序原地排序词条，使报告顺序不依赖运行环境的语言设置。 */
 function sortKeys(keys: string[]): string[] {
   return keys.sort((left, right) => (left < right ? -1 : left > right ? 1 : 0))
 }
 
+/** 判断错误是否带有可读取的文件系统错误码。 */
 function isNodeError(error: unknown): error is NodeJS.ErrnoException {
   return error instanceof Error && 'code' in error
 }
 
+/** 将未知异常转换为可输出的错误文本。 */
 function errorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error)
 }
 
+/** 生成语言包校验错误中的值类型描述，单独区分 null 和数组。 */
 function valueType(value: unknown): string {
   if (value === null) {
     return 'null'

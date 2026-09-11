@@ -1,9 +1,9 @@
 import { ProTable, type ParamsType } from '@ant-design/pro-components'
 import { Alert, Button, Flex, Modal, Tag, Typography } from 'antd'
-import { useEffect, useImperativeHandle, useRef, useState } from 'react'
 import { SelectorSelection } from './SelectorSelection'
 import type { SelectorProps } from './SelectorTypes'
 
+/** 在独立选择会话中展示分页数据，支持跨页选择和缺失记录补查。 */
 export default function Selector<
   T extends object,
   Params extends ParamsType = ParamsType,
@@ -32,6 +32,7 @@ export default function Selector<
   const sessionId = useRef(0)
   const pendingId = useRef<number | null>(null)
 
+  /** 结束当前选择会话，清除提交状态及错误，使旧异步结果失效。 */
   const hide = () => {
     sessionId.current += 1
     pendingId.current = null
@@ -49,6 +50,7 @@ export default function Selector<
   )
 
   useImperativeHandle(ref, () => ({
+    /** 根据初始选中项开启新会话，并清除上一会话的提交和错误状态。 */
     show: (options = {}) => {
       const selection = new SelectorSelection<T>({ ...options, rowKey, multiple })
       const id = ++sessionId.current
@@ -60,12 +62,14 @@ export default function Selector<
     hide,
   }))
 
+  /** 仅更新当前且未提交的选择会话，并清除之前的错误提示。 */
   const changeSelection = (selection: SelectorSelection<T>) => {
     if (!session || pendingId.current !== null || session.id !== sessionId.current) return
     setSession({ ...session, selection })
     setError(undefined)
   }
 
+  /** 补齐选中记录后提交结果，并阻止旧会话和重复确认影响当前弹窗。 */
   const confirm = async () => {
     if (!session || pendingId.current !== null) return
     const { id, selection } = session
@@ -119,25 +123,29 @@ export default function Selector<
             </Button>
           </Flex>
           <Flex wrap gap={4} style={{ maxHeight: 96, overflowY: 'auto', marginBottom: 12 }}>
-            {session.selection.value.map((key) => {
-              const row = session.selection.get(key)
-              return (
-                <Tag
-                  key={`${typeof key}:${key}`}
-                  closable={!confirming}
-                  onClose={(event) => {
-                    event.preventDefault()
-                    changeSelection(
-                      session.selection.select({
-                        value: session.selection.value.filter((value) => value !== key),
-                      }),
-                    )
-                  }}
-                >
-                  {row && labelRender ? labelRender(row) : String(key)}
-                </Tag>
-              )
-            })}
+            {session.selection.value.map(
+              /** 为选中键生成标签，已加载记录使用业务标签，其余显示原始键。 */ (key) => {
+                const row = session.selection.get(key)
+                return (
+                  <Tag
+                    key={`${typeof key}:${key}`}
+                    closable={!confirming}
+                    onClose={
+                      /** 阻止标签默认关闭行为，并从当前会话选中键中移除该项。 */ (event) => {
+                        event.preventDefault()
+                        changeSelection(
+                          session.selection.select({
+                            value: session.selection.value.filter((value) => value !== key),
+                          }),
+                        )
+                      }
+                    }
+                  >
+                    {row && labelRender ? labelRender(row) : String(key)}
+                  </Tag>
+                )
+              },
+            )}
           </Flex>
           {error && <Alert type="error" showIcon title={error} style={{ marginBottom: 12 }} />}
           <ProTable<T, Params, ValueType>
@@ -160,25 +168,30 @@ export default function Selector<
             scroll={{ x: 'max-content', y: 360, ...scroll }}
             tableAlertRender={false}
             tableAlertOptionRender={false}
-            onLoad={(rows) => {
-              if (session.id !== sessionId.current) return
-              setError(undefined)
-              setSession((current) =>
-                current?.id === session.id
-                  ? { ...current, selection: current.selection.remember(rows) }
-                  : current,
-              )
-              onLoad?.(rows)
-            }}
-            onRequestError={(cause) => {
-              if (session.id !== sessionId.current) return
-              setError(cause.message || '加载选择数据失败，请刷新重试')
-              onRequestError?.(cause)
-            }}
+            onLoad={
+              /** 仅将当前会话加载的记录补入已选快照，并转发加载完成通知。 */ (rows) => {
+                if (session.id !== sessionId.current) return
+                setError(undefined)
+                setSession((current) =>
+                  current?.id === session.id
+                    ? { ...current, selection: current.selection.remember(rows) }
+                    : current,
+                )
+                onLoad?.(rows)
+              }
+            }
+            onRequestError={
+              /** 仅向当前选择会话展示加载错误，并转发请求失败通知。 */ (cause) => {
+                if (session.id !== sessionId.current) return
+                setError(cause.message || '加载选择数据失败，请刷新重试')
+                onRequestError?.(cause)
+              }
+            }
             rowSelection={{
               type: session.selection.multiple ? 'checkbox' : 'radio',
               preserveSelectedRowKeys: true,
               selectedRowKeys: session.selection.value,
+              /** 合并行禁选规则，并在确认过程中禁用选择控件。 */
               getCheckboxProps: (row) => {
                 const checkboxProps = getCheckboxProps?.(row)
                 return { ...checkboxProps, disabled: confirming || checkboxProps?.disabled }

@@ -10,12 +10,14 @@ import { cleanupSchema } from './permissions-cleanup.validation'
 export class PermissionsCleanupController {
   constructor(private readonly cleanup: PermissionsCleanupService) {}
 
+  /** 向具备清理权限的平台管理员返回废弃权限清理预览及部署证明摘要。 */
   @Get('cleanup-preview')
   @AccessPolicy({ scope: 'platform', permission: 'platform.menus.cleanup', adminOnly: true })
   preview(@Req() req: FastifyRequest) {
     return this.cleanup.preview(actor(req))
   }
 
+  /** 校验权限键和部署证明摘要，执行平台管理员确认的废弃权限清理。 */
   @Post('cleanup')
   @HttpCode(200)
   @AccessPolicy({ scope: 'platform', permission: 'platform.menus.cleanup', adminOnly: true })

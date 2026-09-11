@@ -67,6 +67,7 @@ vi.mock('shared/utils', async (original) => {
 const enabled = process.env.RUN_ACCESS_INTEGRATION === 'true'
 const databaseName = `access_it_${crypto.randomUUID().replaceAll('-', '')}`
 const actor = (userId: string) => ({ userId, requestId: crypto.randomUUID() })
+/** 创建可从外部释放的 Promise，用于控制并发测试中事务的进入与完成顺序。 */
 const deferred = () => {
   let resolve!: () => void
   const promise = new Promise<void>((done) => {
@@ -185,6 +186,7 @@ describe.skipIf(!enabled)('企业权限真实 PostgreSQL / Redis 集成', () => 
     if (failed?.status === 'rejected') throw failed.reason
   }, 30_000)
 
+  /** 轮询测试数据库中等待权限咨询锁的连接，确认管理写操作已排队；两秒内未出现则断言失败。 */
   const waitForQueuedManagementWrite = () =>
     expect
       .poll(
@@ -320,6 +322,7 @@ describe.skipIf(!enabled)('企业权限真实 PostgreSQL / Redis 集成', () => 
       action: 'update',
       body: { expectedVersion: tree.version, hidden: true },
     })
+    /** 以公司管理员身份重新鉴权并读取当前公司权限上下文，观察菜单修改后的导航和权限变化。 */
     const getContext = () =>
       access.read({ actor: actor(companyAdminId), scope: companyScope }, async (_tx, current) =>
         access.context(current),
@@ -675,6 +678,7 @@ describe.skipIf(!enabled)('企业权限真实 PostgreSQL / Redis 集成', () => 
     })
     const proofPath = join(temporaryDirectory, 'deployment-proof.json')
     process.env.ACCESS_DEPLOYMENT_PROOF_FILE = proofPath
+    /** 根据当前未废弃权限目录生成一分钟内有效的部署证明，供清理接口复核服务依赖。 */
     const makeProof = () => ({
       deploymentId: 'integration-deployment',
       completed: true,
@@ -884,6 +888,7 @@ describe.skipIf(!enabled)('企业权限真实 PostgreSQL / Redis 集成', () => 
       },
     })
 
+    /** 按稳定顺序读取角色、授权、菜单和版本，供验证种子升级保留已有配置且只增加预期数据。 */
     const snapshot = async () => ({
       roles: await db.select().from(schema.roles).orderBy(schema.roles.id),
       grants: await db

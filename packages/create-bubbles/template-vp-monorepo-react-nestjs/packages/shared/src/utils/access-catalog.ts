@@ -214,6 +214,7 @@ export const ACCESS_PAGE_CATALOG: readonly AccessPageDefinition[] = pageSpecs.ma
 }))
 
 export const ACCESS_PERMISSION_CATALOG: readonly PermissionDefinition[] = pageSpecs.flatMap(
+  /** 从页面目录派生读取权限和操作权限，并为操作声明所属页面依赖。 */
   (page): PermissionDefinition[] => [
     {
       key: `${page.routeKey}.read`,

@@ -36,6 +36,12 @@ const proofSchema = z.strictObject({
 @Injectable()
 export class PermissionsCleanupService {
   constructor(private readonly access: AccessService) {}
+  /**
+   * 读取并验证部署证明的时间窗口、服务版本、实例唯一性及当前权限目录完整性。
+   *
+   * @returns 有效证明及原文件 SHA-256 摘要；证明缺失、格式无效或校验未通过时返回 null。
+   * 未知文件读取异常继续上抛，交给全局异常处理。
+   */
   async proof() {
     const path = process.env.ACCESS_DEPLOYMENT_PROOF_FILE
     if (!path) return null
@@ -91,6 +97,11 @@ export class PermissionsCleanupService {
       throw error
     }
   }
+  /**
+   * 检查尚未清理的废弃权限及其菜单、角色引用，汇总部署依赖与结构上的清理阻断原因。
+   *
+   * @returns 只读清理预览，包含证明摘要、候选项、阻断原因和预计移除数量。
+   */
   async inspect(db: AccessDb): Promise<CleanupPreview> {
     const proof = await this.proof()
     const tombstones = new Set(
@@ -102,11 +113,13 @@ export class PermissionsCleanupService {
     const rows = await db.select().from(menus)
     const grants = await db.select().from(rolePermissions)
     const candidateKeys = new Set(candidates.map((p) => p.key))
+    /** 汇总单个废弃权限的菜单、授权引用及部署阻断原因，供清理确认使用。 */
     const items = candidates.map((p) => {
       const bound = rows.filter((m) => m.permissionKey === p.key)
       const blockedReasons: string[] = []
       if (bound.some((m) => m.status === 'active')) blockedReasons.push('功能尚未停用')
       if (bound.some((m) => m.protected)) blockedReasons.push('属于受保护管理入口')
+      /** 递归判断菜单是否包含不在本轮废弃候选集合中的后代，避免清理时误删保留节点。 */
       const hasActiveDescendant = (id: string): boolean =>
         rows
           .filter((m) => m.parentId === id)
@@ -141,15 +154,24 @@ export class PermissionsCleanupService {
       },
     }
   }
+  /** 要求平台管理员具备清理权限，在只读事务内生成废弃权限清理预览。 */
   preview(actor: AccessActor) {
     return this.access.read(
       { actor, scope: { type: 'platform' }, permission: 'platform.menus.cleanup', adminOnly: true },
       (tx) => this.inspect(tx),
     )
   }
+  /**
+   * 在权限写锁保护下复核部署证明和引用关系，清理指定废弃权限及其菜单、角色授权。
+   *
+   * 写入清理墓碑以保证重复请求幂等，递增受影响版本并记录审计；任何阻断均使事务回滚。
+   * @param body - 待清理权限键及用户预览时确认的部署证明摘要。
+   * @returns 实际移除和此前已清理的权限键，以及受影响菜单、角色授权数量。
+   */
   cleanup(actor: AccessActor, body: CleanupRequest) {
     return this.access.write(
       { actor, scope: { type: 'platform' }, permission: 'platform.menus.cleanup', adminOnly: true },
+      /** 在锁内复核证明和清理范围，按叶节点顺序删除菜单并同步版本、墓碑和审计。 */
       async (tx, access): Promise<CleanupResult> => {
         const preview = await this.inspect(tx)
         if (preview.proofDigest !== body.proofDigest || preview.blockedReasons.length)

@@ -8,6 +8,7 @@ import {
   pagePath,
 } from '../src/router/page-registry'
 
+/** 构造可覆盖字段的菜单节点，供导航和权限筛选用例复用。 */
 function node(input: Partial<MenuNode>): MenuNode {
   return {
     id: 'node',

@@ -2,20 +2,20 @@ import { ArrowRightOutlined, LockOutlined, UserOutlined } from '@ant-design/icon
 import { LoginForm, ProFormText } from '@ant-design/pro-components'
 import { useRequest } from 'alova/client'
 import { Alert } from 'antd'
-import { useState } from 'react'
-import { Link, useNavigate, useSearchParams } from 'react-router'
 import type { LoginRequest } from 'shared/types'
 import { ACCOUNT_PATTERN, normalizeAccount } from 'shared/utils'
 import { cookie } from '@/utils/storage/cookie'
 import { login } from './api'
 import './login.css'
 
+/** 展示登录表单，保存会话令牌并跳转到登录后的入口。 */
 export default function LoginPage() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const { send, loading } = useRequest(login, { immediate: false })
   const [error, setError] = useState<string | null>(null)
 
+  /** 规范化账号并提交登录，将令牌按服务端绝对过期时间保存。 */
   async function handleLogin(values: LoginRequest) {
     if (loading) return false
     setError(null)
@@ -27,7 +27,7 @@ export default function LoginPage() {
       cookie.set('token', result.accessToken, {
         expires: new Date(result.absoluteExpiresAt),
       })
-      void navigate('/workspaces', { replace: true })
+      void navigate('/', { replace: true })
       return true
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : '登录失败，请稍后重试')

@@ -1,8 +1,6 @@
 import { PlusOutlined } from '@ant-design/icons'
 import type { ActionType, ProColumns } from '@ant-design/pro-components'
 import { App, Button, Empty, Popconfirm, Space } from 'antd'
-import { useRef, useState } from 'react'
-import { Link } from 'react-router'
 import type { CompanyRecord, EntityStatus } from 'shared/types'
 import FullHeightProTable from '@/components/FullHeightProTable/FullHeightProTable'
 import { managementApi } from './api'
@@ -10,6 +8,7 @@ import AdministratorDialog, { type AdministratorDialogRef } from './components/A
 import EntityFormDialog, { type EntityFormDialogRef } from './components/EntityFormDialog'
 import { useAccess, useManagementAction } from './use-access'
 
+/** 按当前作用域管理下级企业或项目，并提供状态及管理员维护入口。 */
 export default function EntitiesPage() {
   const access = useAccess()
   const project = access.scope.type === 'company'
@@ -23,10 +22,12 @@ export default function EntitiesPage() {
   const prefix = project ? 'company.projects' : 'platform.companies'
   const allowed = (action: string) => access.permissionKeys.includes(`${prefix}.${action}`)
   const canCreate = allowed('create') && access.administrator === (project ? 'company' : 'platform')
+  /** 重新查询当前表格，使管理操作立即反映到列表。 */
   const refresh = () => {
     void actionRef.current?.reload()
   }
 
+  /** 获取实体当前管理员信息后打开管理员维护弹窗。 */
   async function openAdministrator(record: CompanyRecord) {
     setOpeningId(record.id)
     try {
@@ -145,16 +146,18 @@ export default function EntitiesPage() {
           ),
         }}
         pagination={{ defaultPageSize: 20, showSizeChanger: true, pageSizeOptions: [20, 50, 100] }}
-        request={async (params) => {
-          const query = {
-            page: params.current ?? 1,
-            pageSize: params.pageSize ?? 20,
-            query: params.query as string | undefined,
-            status: params.status as EntityStatus | undefined,
+        request={
+          /** 按作用域查询企业或项目列表，并转换为表格分页结果。 */ async (params) => {
+            const query = {
+              page: params.current ?? 1,
+              pageSize: params.pageSize ?? 20,
+              query: params.query as string | undefined,
+              status: params.status as EntityStatus | undefined,
+            }
+            const result = project ? await api.projects(query) : await api.companies(query)
+            return { data: result.items, total: result.total, success: true }
           }
-          const result = project ? await api.projects(query) : await api.companies(query)
-          return { data: result.items, total: result.total, success: true }
-        }}
+        }
         onRequestError={(error) => {
           if (error.name !== 'AbortError') void message.error(error.message)
         }}

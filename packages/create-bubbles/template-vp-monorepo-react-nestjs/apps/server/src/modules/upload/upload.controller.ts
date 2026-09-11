@@ -33,18 +33,28 @@ type OctetStreamRequest = FastifyRequest & {
 export class UploadController {
   constructor(private readonly uploadService: UploadService) {}
 
+  /**
+   * 为当前认证用户初始化分片上传，客户端上传标识用于幂等复用。
+   */
   @ApiOperation({ summary: '初始化大文件分片上传' })
   @Post()
   initiate(@CurrentAuth() auth: CurrentAuthType, @Body() body: InitiateMultipartUploadDto) {
     return this.uploadService.initiate(auth.userId, body)
   }
 
+  /**
+   * 查询当前用户上传会话的状态及已上传分片。
+   */
   @ApiOperation({ summary: '查询上传状态和已上传分片' })
   @Get(':uploadSessionId')
   getStatus(@CurrentAuth() auth: CurrentAuthType, @Param() params: UploadSessionParamsDto) {
     return this.uploadService.getStatus(auth.userId, params.uploadSessionId)
   }
 
+  /**
+   * 将原始二进制请求流交给分片服务，并在连接中断时取消存储请求。
+   * @remarks 请求结束后排空未消费字节并移除监听器，避免连接和事件处理器泄漏。
+   */
   @ApiOperation({ summary: '上传一个原始二进制分片' })
   @ApiConsumes('application/octet-stream')
   @ApiBody({
@@ -64,7 +74,13 @@ export class UploadController {
     @Res({ passthrough: true }) reply: FastifyReply,
   ) {
     const abortController = new AbortController()
+    /**
+     * 在客户端中止请求时触发存储上传的取消信号。
+     */
     const onAborted = () => abortController.abort()
+    /**
+     * 响应尚未正常结束而连接已关闭时，取消正在进行的存储上传。
+     */
     const onReplyClose = () => {
       if (!reply.raw.writableEnded) {
         abortController.abort()
@@ -84,6 +100,7 @@ export class UploadController {
         body: request.body,
         abortSignal: abortController.signal,
       })
+      /** 无论前置校验还是存储操作成功与否，均排空请求流并释放连接监听器。 */
       .finally(() => {
         // 前置校验失败时 Service 可能尚未 pipe 请求体。
         // 统一排空剩余字节，避免连接一直占用到代理超时；这里不会聚合 Buffer。
@@ -96,6 +113,9 @@ export class UploadController {
       })
   }
 
+  /**
+   * 以当前用户身份请求校验并完成指定分片上传。
+   */
   @ApiOperation({ summary: '校验并完成分片上传' })
   @HttpCode(HttpStatus.OK)
   @Post(':uploadSessionId/complete')
@@ -103,6 +123,9 @@ export class UploadController {
     return this.uploadService.complete(auth.userId, params.uploadSessionId)
   }
 
+  /**
+   * 以当前用户身份取消指定上传会话并清理存储分片。
+   */
   @ApiOperation({ summary: '取消分片上传' })
   @Delete(':uploadSessionId')
   abort(@CurrentAuth() auth: CurrentAuthType, @Param() params: UploadSessionParamsDto) {

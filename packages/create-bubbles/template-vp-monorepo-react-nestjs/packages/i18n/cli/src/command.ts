@@ -68,6 +68,7 @@ const helpText = `用法：
   项目的 include 未匹配到任何源文件时，--clean 始终拒绝执行。
   已有翻译保持不变；新增项默认使用 key 作为翻译值。`
 
+/** 解析命令并执行词条扫描、语言包校验与可选同步，输出报告和摘要，返回命令退出码。 */
 export async function runCli(
   arguments_: readonly string[],
   environment: CliEnvironment = {},
@@ -104,7 +105,7 @@ export async function runCli(
 
   const projectEntries = selectProjects(loaded.config.projects, options.projects)
   const executions = await Promise.all(
-    projectEntries.map(async ([name, project]): Promise<ProjectExecution> => {
+    projectEntries.map(/** 扫描词条并拦截无源文件的清理。 */ async ([name, project]): Promise<ProjectExecution> => {
       const scan = await scanFiles({
         rootDir: loaded.rootDir,
         include: project.include,
@@ -203,6 +204,7 @@ export async function runCli(
   return 0
 }
 
+/** 运行命令入口，统一输出异常与用法提示；执行异常时返回退出码 2。 */
 export async function main(
   arguments_: readonly string[] = process.argv.slice(2),
   environment: CliEnvironment = {},
@@ -220,6 +222,7 @@ export async function main(
   }
 }
 
+/** 解析同步或检查命令的选项，校验必填值、未知选项和互斥组合。 */
 function parseArguments(arguments_: readonly string[]): ParsedArguments {
   const command = arguments_[0]
   if (command !== 'sync' && command !== 'check') {
@@ -285,6 +288,7 @@ function parseArguments(arguments_: readonly string[]): ParsedArguments {
   }
 }
 
+/** 读取独立命令选项后的值，并返回已消费位置；缺失值时抛出用法错误。 */
 function readOptionValue(
   arguments_: readonly string[],
   index: number,
@@ -298,6 +302,7 @@ function readOptionValue(
   return [value, index + 1]
 }
 
+/** 读取等号形式的命令选项值，空值时抛出用法错误。 */
 function readInlineOptionValue(argument: string, option: string): string {
   const value = argument.slice(option.length + 1)
   if (value.length === 0) {
@@ -307,6 +312,7 @@ function readInlineOptionValue(argument: string, option: string): string {
   return value
 }
 
+/** 按名称选择待处理项目；未指定时返回全部项目，未知项目名抛出用法错误。 */
 function selectProjects(
   projects: Readonly<Record<string, I18nProjectConfig>>,
   selectedNames: readonly string[],
@@ -315,7 +321,7 @@ function selectProjects(
     return Object.entries(projects)
   }
 
-  return selectedNames.map((name) => {
+  return selectedNames.map(/** 校验项目存在及配置有效后返回名称和配置。 */ (name) => {
     if (!Object.prototype.hasOwnProperty.call(projects, name)) {
       throw new CliUsageError(
         `Unknown project "${name}". Available projects: ${Object.keys(projects).join(', ')}.`,
@@ -331,6 +337,7 @@ function selectProjects(
   })
 }
 
+/** 将每种语言的语言包路径统一解析为相对配置根目录的绝对路径。 */
 function resolveCatalogs(
   rootDir: string,
   catalogs: Readonly<Record<string, string>>,
@@ -340,10 +347,12 @@ function resolveCatalogs(
   )
 }
 
+/** 保留绝对路径，或基于配置根目录解析相对路径。 */
 function resolveFromRoot(rootDir: string, path: string): string {
   return isAbsolute(path) ? resolve(path) : resolve(rootDir, path)
 }
 
+/** 检查语言包路径是否重复，并防止报告路径覆盖语言包或配置文件。 */
 function validateOutputPaths(
   projects: readonly ProjectCatalogs[],
   reportPath: string | undefined,
@@ -374,6 +383,7 @@ function validateOutputPaths(
   }
 }
 
+/** 允许创建报告或覆盖已有同步报告，拒绝覆盖其他已存在的文件。 */
 async function assertSafeReportTarget(reportPath: string): Promise<void> {
   let source: string
 
@@ -398,6 +408,7 @@ async function assertSafeReportTarget(reportPath: string): Promise<void> {
   }
 }
 
+/** 确认报告目标不在已扫描源码中，避免报告写入覆盖业务源码。 */
 function assertReportIsNotSourceFile(
   executions: readonly ProjectExecution[],
   reportPath: string,
@@ -417,17 +428,20 @@ function assertReportIsNotSourceFile(
   }
 }
 
+/** 规范化比较用的绝对路径，在 Windows 上忽略路径大小写。 */
 function normalizeComparablePath(path: string): string {
   const normalized = resolve(path)
   return process.platform === 'win32' ? normalized.toLowerCase() : normalized
 }
 
+/** 生成展示用的相对路径，统一使用正斜杠，根目录自身显示为句点。 */
 function toPortablePath(rootDir: string, path: string): string {
   const relativePath = relative(rootDir, path)
   const displayPath = relativePath === '' ? '.' : relativePath
   return displayPath.split(sep).join('/')
 }
 
+/** 汇总所有语言包的新增、未使用、删除和保持不变的词条数量。 */
 function summarize(files: readonly SyncFileReport[]): SummaryTotals {
   return files.reduce<SummaryTotals>(
     (totals, file) => ({
@@ -440,6 +454,7 @@ function summarize(files: readonly SyncFileReport[]): SummaryTotals {
   )
 }
 
+/** 按项目和语言输出扫描及同步结果，并展示总计与可选报告路径。 */
 function printSummary(options: {
   command: CliCommand
   dryRun: boolean
@@ -477,14 +492,17 @@ function printSummary(options: {
   }
 }
 
+/** 向标准输出写入一行命令结果。 */
 function defaultStdout(message: string): void {
   process.stdout.write(`${message}\n`)
 }
 
+/** 向标准错误输出写入一行诊断信息。 */
 function defaultStderr(message: string): void {
   process.stderr.write(`${message}\n`)
 }
 
+/** 将异常及其 cause 链递归拼接为可读的命令错误信息。 */
 function errorMessage(error: unknown): string {
   if (!(error instanceof Error)) {
     return String(error)
@@ -494,6 +512,7 @@ function errorMessage(error: unknown): string {
   return cause === undefined ? error.message : `${error.message}: ${errorMessage(cause)}`
 }
 
+/** 按命令类型与文件列表字段识别已有同步报告的基本结构。 */
 function isSyncReportLike(value: unknown): boolean {
   if (typeof value !== 'object' || value === null || Array.isArray(value)) {
     return false
@@ -503,6 +522,7 @@ function isSyncReportLike(value: unknown): boolean {
   return (report.command === 'sync' || report.command === 'check') && Array.isArray(report.files)
 }
 
+/** 识别目标文件不存在或路径中间项不是目录的错误。 */
 function isMissingPathError(error: unknown): boolean {
   return (
     error instanceof Error &&

@@ -17,6 +17,7 @@ type MenuRow = typeof menus.$inferSelect
 @Injectable()
 export class MenusService {
   constructor(private readonly access: AccessService) {}
+  /** 读取指定作用域类型的完整菜单树及版本，供管理端展示和并发修改校验。 */
   async tree(db: AccessDb, scopeType: ScopeType): Promise<MenuTreeResult> {
     const rows = await db.select().from(menus).where(eq(menus.scopeType, scopeType))
     const [version] = await db
@@ -25,6 +26,7 @@ export class MenusService {
       .where(eq(menuVersions.scopeType, scopeType))
     return { scopeType, version: version?.version ?? 1, items: this.access.tree(rows) }
   }
+  /** 校验平台菜单读取权限后，返回指定作用域类型的代码权限目录、目录版本和可选图标。 */
   catalog(input: { actor: AccessActor; scopeType: ScopeType }) {
     return this.access.read(
       { actor: input.actor, scope: { type: 'platform' }, permission: 'platform.menus.read' },
@@ -37,12 +39,19 @@ export class MenusService {
       }),
     )
   }
+  /** 校验平台菜单读取权限后，读取指定作用域类型的完整菜单树。 */
   list(input: { actor: AccessActor; scopeType: ScopeType }) {
     return this.access.read(
       { actor: input.actor, scope: { type: 'platform' }, permission: 'platform.menus.read' },
       (tx) => this.tree(tx, input.scopeType),
     )
   }
+  /**
+   * 校验菜单父子类型、作用域、权限绑定、图标和无环约束，并保护管理入口及其祖先可见可用。
+   *
+   * @param rows - 拟保存的完整作用域菜单集合，权限绑定在该集合内必须唯一。
+   * @throws 非法结构、重复权限绑定或受保护菜单被隐藏停用时抛出业务异常。
+   */
   validate(rows: MenuRow[]) {
     const byId = new Map(rows.map((m) => [m.id, m]))
     for (const row of rows) {
@@ -81,9 +90,15 @@ export class MenusService {
     if (new Set(bindings).size !== bindings.length)
       throw new AppException(ACCESS_ERRORS.DUPLICATE_RESOURCE)
   }
+  /**
+   * 校验平台菜单创建权限和树版本，将目录、页面或操作绑定到合法权限后加入菜单树。
+   *
+   * 校验整棵树的结构，写入菜单、递增树版本并记录审计，返回更新后的菜单树。
+   */
   create(input: { actor: AccessActor; scopeType: ScopeType; body: CreateMenuRequest }) {
     return this.access.write(
       { actor: input.actor, scope: { type: 'platform' }, permission: 'platform.menus.create' },
+      /** 依据当前树版本解析权限绑定并验证新增节点，菜单写入与版本、审计同步提交。 */
       async (tx, access) => {
         const tree = await this.tree(tx, input.scopeType)
         checkVersion(tree.version, input.body.expectedVersion)
@@ -149,6 +164,11 @@ export class MenusService {
       },
     )
   }
+  /**
+   * 按平台菜单操作权限修改或删除节点，校验树版本、结构与受保护入口限制。
+   *
+   * 删除前要求没有子节点及角色权限引用；成功后递增树版本、记录审计并返回更新后的树。
+   */
   change(input: {
     actor: AccessActor
     menuId: string
@@ -161,6 +181,7 @@ export class MenusService {
         scope: { type: 'platform' },
         permission: `platform.menus.${input.action}`,
       },
+      /** 读取锁内最新菜单，验证修改或删除条件后同步更新菜单树版本与审计。 */
       async (tx, access) => {
         const [existing] = await tx.select().from(menus).where(eq(menus.id, input.menuId))
         const row = requireFound(existing)

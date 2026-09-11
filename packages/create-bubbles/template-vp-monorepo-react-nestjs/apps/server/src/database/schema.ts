@@ -57,6 +57,9 @@ export const uploadSessions = pgTable(
     updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
     completedAt: timestamp('completed_at', { withTimezone: true }),
   },
+  /**
+   * 约束用户上传标识和存储对象键唯一，并为上传状态查询与过期清理建立索引。
+   */
   (table) => [
     uniqueIndex('upload_sessions_owner_client_uq').on(table.ownerId, table.clientUploadId),
     uniqueIndex('upload_sessions_bucket_key_uq').on(table.bucket, table.objectKey),

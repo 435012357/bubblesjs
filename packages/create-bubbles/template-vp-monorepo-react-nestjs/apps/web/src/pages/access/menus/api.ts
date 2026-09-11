@@ -15,6 +15,7 @@ import {
 } from '@/utils/request/workspace'
 
 export const menuApi = {
+  /** 读取指定作用域的菜单树及版本。 */
   tree: (scopeType: ScopeType) =>
     runWorkspaceRequest({
       method: http.Get<MenuTreeResult>('/platform/menus', {
@@ -22,6 +23,7 @@ export const menuApi = {
         params: { scopeType },
       }),
     }),
+  /** 读取指定作用域已发布功能和图标目录。 */
   catalog: (scopeType: ScopeType) =>
     runWorkspaceRequest({
       method: http.Get<FunctionCatalogResult>('/platform/function-catalog', {
@@ -29,6 +31,7 @@ export const menuApi = {
         params: { scopeType },
       }),
     }),
+  /** 在指定作用域创建菜单节点，并返回最新菜单树。 */
   create: (scopeType: ScopeType, data: CreateMenuRequest) =>
     runWorkspaceRequest({
       method: http.Post<MenuTreeResult>('/platform/menus', data, {
@@ -36,10 +39,12 @@ export const menuApi = {
         params: { scopeType },
       }),
     }),
+  /** 按预期版本更新菜单节点，返回最新菜单树。 */
   update: (id: string, data: UpdateMenuRequest) =>
     runWorkspaceRequest({
       method: http.Patch<MenuTreeResult>(`/platform/menus/${id}`, data, freshRequest),
     }),
+  /** 按预期版本删除菜单节点，返回最新菜单树。 */
   remove: (id: string, expectedVersion: number) =>
     runWorkspaceRequest({
       method: http.Delete<MenuTreeResult>(`/platform/menus/${id}`, undefined, {
@@ -47,10 +52,12 @@ export const menuApi = {
         params: { expectedVersion },
       }),
     }),
+  /** 读取废弃权限清理范围、阻断原因和执行凭据。 */
   cleanupPreview: () =>
     runWorkspaceRequest({
       method: http.Get<CleanupPreview>('/platform/permissions/cleanup-preview', freshRequest),
     }),
+  /** 携带预览凭据执行废弃权限清理，返回处理结果。 */
   cleanup: (data: CleanupRequest) =>
     runWorkspaceRequest({
       method: http.Post<CleanupResult>('/platform/permissions/cleanup', data, freshRequest),

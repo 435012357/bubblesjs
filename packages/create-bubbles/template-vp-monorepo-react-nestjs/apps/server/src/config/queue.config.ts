@@ -38,6 +38,10 @@ export interface QueueConfig {
   failedCount: number
 }
 
+/**
+ * 读取环境变量并校验为指定闭区间内的安全整数，缺省时使用回退值。
+ * @throws 空值、非整数或越界时抛出配置错误。
+ */
 function readInteger(
   name: string,
   fallback: number,
@@ -54,6 +58,10 @@ function readInteger(
   return value
 }
 
+/**
+ * 将环境变量严格解析为 true 或 false，未设置时使用默认值。
+ * @throws 已设置但不是布尔文本时抛出配置错误。
+ */
 function readBoolean(name: string, fallback: boolean) {
   const rawValue = process.env[name]
 
@@ -74,11 +82,17 @@ function readBoolean(name: string, fallback: boolean) {
   throw new Error(name + ' must be true or false')
 }
 
+/**
+ * 读取可选环境变量并去除首尾空格，空白值统一视为未配置。
+ */
 function readOptionalText(name: string) {
   const value = process.env[name]?.trim()
   return value ? value : undefined
 }
 
+/**
+ * 构建并校验队列专属 Redis、消费者开关、重试和任务保留策略。
+ */
 export default registerAs('queue', (): QueueConfig => {
   const environment = process.env.NODE_ENV ?? 'development'
   const prefix = process.env.QUEUE_PREFIX?.trim() || ['bubbles', environment, 'queue'].join(':')

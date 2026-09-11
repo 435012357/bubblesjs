@@ -10,14 +10,23 @@ export {}
 declare global {
   const Activity: typeof import('react').Activity
   const Fragment: typeof import('react').Fragment
+  const Link: typeof import('react-router').Link
+  const Outlet: typeof import('react-router').Outlet
+  const ReactViewTransition: typeof import('react').ViewTransition
+  const RouterProvider: typeof import('react-router').RouterProvider
   const Suspense: typeof import('react').Suspense
   const cache: typeof import('react').cache
   const cacheSignal: typeof import('react').cacheSignal
+  const createBrowserRouter: typeof import('react-router').createBrowserRouter
   const createContext: typeof import('react').createContext
+  const createMemoryRouter: typeof import('react-router').createMemoryRouter
   const createPortal: typeof import('react-dom').createPortal
   const createRef: typeof import('react').createRef
+  const createRoot: typeof import('react-dom/client').createRoot
+  const createRouterContext: typeof import('react-router').createContext
   const flushSync: typeof import('react-dom').flushSync
   const forwardRef: typeof import('react').forwardRef
+  const isRouteErrorResponse: typeof import('react-router').isRouteErrorResponse
   const lazy: typeof import('react').lazy
   const memo: typeof import('react').memo
   const preconnect: typeof import('react-dom').preconnect
@@ -26,6 +35,7 @@ declare global {
   const preinitModule: typeof import('react-dom').preinitModule
   const preload: typeof import('react-dom').preload
   const preloadModule: typeof import('react-dom').preloadModule
+  const redirect: typeof import('react-router').redirect
   const startTransition: typeof import('react').startTransition
   const use: typeof import('react').use
   const useActionState: typeof import('react').useActionState
@@ -43,8 +53,10 @@ declare global {
   const useInsertionEffect: typeof import('react').useInsertionEffect
   const useLayoutEffect: typeof import('react').useLayoutEffect
   const useLocation: typeof import('react-router').useLocation
+  const useMatches: typeof import('react-router').useMatches
   const useMemo: typeof import('react').useMemo
   const useNavigate: typeof import('react-router').useNavigate
+  const useNavigation: typeof import('react-router').useNavigation
   const useNavigationType: typeof import('react-router').useNavigationType
   const useOptimistic: typeof import('react').useOptimistic
   const useOutlet: typeof import('react-router').useOutlet
@@ -53,8 +65,20 @@ declare global {
   const useReducer: typeof import('react').useReducer
   const useRef: typeof import('react').useRef
   const useResolvedPath: typeof import('react-router').useResolvedPath
+  const useRevalidator: typeof import('react-router').useRevalidator
+  const useRouteError: typeof import('react-router').useRouteError
   const useRoutes: typeof import('react-router').useRoutes
+  const useSearchParams: typeof import('react-router').useSearchParams
   const useState: typeof import('react').useState
   const useSyncExternalStore: typeof import('react').useSyncExternalStore
   const useTransition: typeof import('react').useTransition
+}
+// for type re-export
+declare global {
+  // @ts-ignore
+  export type { ReactNode, ComponentType, SVGProps, PropsWithChildren, Key, Ref, LazyExoticComponent, ReactElement } from 'react'
+  import('react')
+  // @ts-ignore
+  export type { MiddlewareFunction, DataRouter, RouterState, RouteObject } from 'react-router'
+  import('react-router')
 }

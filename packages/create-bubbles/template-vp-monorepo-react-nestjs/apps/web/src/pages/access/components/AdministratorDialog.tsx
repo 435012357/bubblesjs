@@ -1,6 +1,5 @@
 import { ModalForm, ProFormSelect, ProFormText } from '@ant-design/pro-components'
 import { Alert } from 'antd'
-import { useImperativeHandle, useState, type Ref } from 'react'
 import type { AdministratorSummary, CompanyRecord, SetAdministratorRequest } from 'shared/types'
 import { ACCOUNT_PATTERN, normalizeAccount } from 'shared/utils'
 
@@ -9,6 +8,7 @@ export interface AdministratorDialogRef {
   hide: () => void
 }
 
+/** 展示现有管理员，支持补充或替换企业、项目管理员。 */
 export default function AdministratorDialog({
   ref,
   project,
@@ -23,6 +23,7 @@ export default function AdministratorDialog({
   const [open, setOpen] = useState(false)
   const hide = () => setOpen(false)
   useImperativeHandle(ref, () => ({
+    /** 载入待维护实体及现有管理员，打开管理员设置弹窗。 */
     show: (item, admins) => {
       setRecord(item)
       setAdministrators(admins)
@@ -40,15 +41,17 @@ export default function AdministratorDialog({
         if (!visible) hide()
       }}
       submitter={{ searchConfig: { submitText: '保存管理员' } }}
-      onFinish={async (values) => {
-        if (!record) return false
-        const ok = await onSave(record, {
-          account: normalizeAccount(values.account),
-          ...(values.replaceUserId ? { replaceUserId: values.replaceUserId } : {}),
-        })
-        if (ok) hide()
-        return ok
-      }}
+      onFinish={
+        /** 规范化新管理员账号，并按可选替换对象提交管理员设置。 */ async (values) => {
+          if (!record) return false
+          const ok = await onSave(record, {
+            account: normalizeAccount(values.account),
+            ...(values.replaceUserId ? { replaceUserId: values.replaceUserId } : {}),
+          })
+          if (ok) hide()
+          return ok
+        }
+      }
     >
       <Alert
         type="info"

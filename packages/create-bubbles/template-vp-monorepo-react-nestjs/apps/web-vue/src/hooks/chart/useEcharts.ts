@@ -8,6 +8,11 @@ import echarts from './lib'
 
 type setOptionsType = (options: EChartsOption, clear?: boolean) => void
 
+/**
+ * 管理图表的懒初始化、容器尺寸监听和组件卸载清理。
+ * @param elRef 图表容器引用，容器尚未挂载时延后初始化。
+ * @returns 设置图表配置、调整尺寸和获取实例的方法及 ECharts 模块。
+ */
 export function useECharts(
   elRef: Ref<HTMLDivElement> | Readonly<ShallowRef<HTMLDivElement | null>>,
 ) {
@@ -18,6 +23,7 @@ export function useECharts(
     chartInstance?.resize()
   }
 
+  /** 容器就绪后创建图表，并以防抖监听容器尺寸变化。 */
   const initCharts = () => {
     if (!elRef)
       return
@@ -38,6 +44,11 @@ export function useECharts(
     chartInstance = echarts.init(el)
   }
 
+  /**
+   * 确保图表已初始化后应用配置；容器未就绪时忽略本次设置。
+   * @param options ECharts 图表配置。
+   * @param clear 是否先清空已有图表，默认为 `true`。
+   */
   const setOptions: setOptionsType = (options, clear = true) => {
     if (!chartInstance) {
       initCharts()
@@ -49,13 +60,14 @@ export function useECharts(
     chartInstance?.setOption(options)
   }
 
+  /** 按需初始化并返回图表实例；容器未就绪时返回 `null`。 */
   const getInstance: () => echarts.ECharts | null = () => {
     if (!chartInstance)
       initCharts()
     return chartInstance
   }
 
-  onUnmounted(() => {
+  onUnmounted(/** 释放图表和尺寸观察器，防止卸载后继续监听。 */ () => {
     chartInstance?.dispose()
     resizeObserver?.disconnect()
     resizeObserver = undefined

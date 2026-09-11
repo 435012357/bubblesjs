@@ -17,6 +17,12 @@ export class TaskQueueService {
     private readonly queue: Queue,
   ) {}
 
+  /**
+   * 校验任务负载与投递选项后，将任务写入 BullMQ 队列。
+   * @param options 可指定任务 ID 和延迟毫秒数。
+   * @returns 可用于跟踪任务的队列名、任务 ID 和任务名称。
+   * @throws 负载或选项无效、投递失败或队列未返回任务 ID 时抛出错误。
+   */
   async enqueue<Name extends TaskName>(
     name: Name,
     payload: TaskPayloadMap[Name],
@@ -43,6 +49,9 @@ export class TaskQueueService {
     }
   }
 
+  /**
+   * 检查任务 ID 不含冒号，且延迟为非负安全整数；不满足 BullMQ 约束时抛出错误。
+   */
   private validateOptions(options: EnqueueTaskOptions) {
     if (options.jobId?.includes(':')) {
       throw new Error('BullMQ jobId must not contain a colon')

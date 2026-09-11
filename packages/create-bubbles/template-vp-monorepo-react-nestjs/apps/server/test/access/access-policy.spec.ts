@@ -10,6 +10,7 @@ import { entityListSchema, parse } from '@/modules/access/access.validation'
 import { listSchema } from '@/modules/members/accounts/accounts.validation'
 import { UploadPartParamsDto, UploadSessionParamsDto } from '@/modules/upload/dto/upload-params.dto'
 
+/** 创建独立请求、反射处理器和权限服务桩，供守卫测试设置路由元数据并检查鉴权调用。 */
 function fixture() {
   const handler = () => undefined
   class ControllerFixture {}

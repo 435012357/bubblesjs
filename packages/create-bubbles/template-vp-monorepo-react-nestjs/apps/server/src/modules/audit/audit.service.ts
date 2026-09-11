@@ -9,6 +9,12 @@ import { pageWindow, searchSql, toScope } from '@/modules/access/access.store'
 export class AuditService {
   constructor(private readonly access: AccessService) {}
 
+  /**
+   * 按当前作用域审计权限分页查询日志，支持操作、操作者、时间范围和关键词筛选。
+   *
+   * 平台仅查询平台日志，公司包含本公司及所属项目日志，项目仅查询该项目日志。
+   * @returns 按时间倒序排列的审计记录及分页信息。
+   */
   list(input: {
     actor: AccessActor
     scope: AccessScope
@@ -17,6 +23,7 @@ export class AuditService {
     const { actor, scope, query } = input
     return this.access.read(
       { actor, scope, permission: `${scope.type}.audit.read` },
+      /** 按平台、公司或项目构造日志范围，在同一快照内完成筛选、计数和分页。 */
       async (tx) => {
         const scopeCondition =
           scope.type === 'platform'

@@ -1,5 +1,4 @@
 import { Alert, Button, Modal, Space, Tree, type TreeDataNode } from 'antd'
-import { useImperativeHandle, useState, type Key, type Ref } from 'react'
 import type { PermissionTreeResult, RoleRecord } from 'shared/types'
 
 export interface RolePermissionsDialogRef {
@@ -7,6 +6,7 @@ export interface RolePermissionsDialogRef {
   hide: () => void
 }
 
+/** 按可授予范围编辑角色权限，维护页面和操作权限的依赖关系。 */
 export default function RolePermissionsDialog({
   ref,
   onSave,
@@ -22,6 +22,7 @@ export default function RolePermissionsDialog({
   const [readOnly, setReadOnly] = useState(false)
   const hide = () => setOpen(false)
   useImperativeHandle(ref, () => ({
+    /** 载入角色、权限目录和只读状态，初始化勾选后打开权限弹窗。 */
     show: (item, data, readonly) => {
       setRecord(item)
       setTree(data)
@@ -41,21 +42,26 @@ export default function RolePermissionsDialog({
   const definitionByKey = new Map(permissions.map((permission) => [permission.key, permission]))
   const treeData: TreeDataNode[] = permissions
     .filter((permission) => permission.kind === 'page')
-    .map((page) => ({
-      key: `group:${page.routeKey}`,
-      title: page.title,
-      children: [
-        page,
-        ...permissions.filter((permission) => permission.pagePermissionKey === page.key),
-      ].map((permission) => ({
-        key: permission.key,
-        title: `${permission.kind === 'page' ? '访问页面' : permission.title}${permission.deprecated ? '（已废弃）' : ''}`,
-        disabled: readOnly || (!grantable.has(permission.key) && !existing.has(permission.key)),
-      })),
-    }))
+    .map(
+      /** 按页面组织权限树，把页面读取权限及其操作放入同一勾选组。 */ (page) => ({
+        key: `group:${page.routeKey}`,
+        title: page.title,
+        children: [
+          page,
+          ...permissions.filter((permission) => permission.pagePermissionKey === page.key),
+        ].map(
+          /** 展示权限及废弃标记，仅允许调整既有授权或当前可授予的权限。 */ (permission) => ({
+            key: permission.key,
+            title: `${permission.kind === 'page' ? '访问页面' : permission.title}${permission.deprecated ? '（已废弃）' : ''}`,
+            disabled: readOnly || (!grantable.has(permission.key) && !existing.has(permission.key)),
+          }),
+        ),
+      }),
+    )
   // 不在当前目录中的历史引用原样保留；清理由受控平台维护操作完成。
   const preserved = selected.filter((key) => !definitionByKey.has(key))
 
+  /** 联动页面与操作权限勾选，并保留当前目录外的历史权限引用。 */
   function handleCheck(
     keys: Key[] | { checked: Key[]; halfChecked: Key[] },
     info: { checked: boolean; node: { key: Key } },
@@ -78,6 +84,7 @@ export default function RolePermissionsDialog({
     setSelected([...next])
   }
 
+  /** 提交角色权限配置，成功后关闭弹窗并在结束时解除保存状态。 */
   async function save() {
     if (!record) return
     setSaving(true)
@@ -126,17 +133,18 @@ export default function RolePermissionsDialog({
         <Space style={{ marginTop: 16 }}>
           <Button
             size="small"
-            onClick={() =>
-              setSelected([
-                ...new Set([
-                  ...selected,
-                  ...permissions
-                    .filter((item) => grantable.has(item.key))
-                    .flatMap((item) =>
-                      item.pagePermissionKey ? [item.key, item.pagePermissionKey] : [item.key],
-                    ),
-                ]),
-              ])
+            onClick={
+              /** 补入全部可授予操作及其页面读取权限，并保留已有选择。 */ () =>
+                setSelected([
+                  ...new Set([
+                    ...selected,
+                    ...permissions
+                      .filter((item) => grantable.has(item.key))
+                      .flatMap((item) =>
+                        item.pagePermissionKey ? [item.key, item.pagePermissionKey] : [item.key],
+                      ),
+                  ]),
+                ])
             }
           >
             全选可授予权限

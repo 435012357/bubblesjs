@@ -42,6 +42,7 @@ export class ConfigValidationError extends Error {
   override readonly name = 'ConfigValidationError'
 }
 
+/** 从指定路径或逐级向上的默认位置加载并校验国际化配置，返回配置文件所在目录作为项目根。 */
 export async function loadConfig(options: LoadConfigOptions = {}): Promise<LoadedI18nConfig> {
   const cwd = resolve(options.cwd ?? process.cwd())
   const configPath =
@@ -76,6 +77,7 @@ export async function loadConfig(options: LoadConfigOptions = {}): Promise<Loade
   }
 }
 
+/** 校验项目、扫描规则和语言包路径的结构，非法配置抛出带字段位置的 ConfigValidationError。 */
 export function validateConfig(value: unknown, configPath = '<config>'): I18nConfig {
   const prefix = `Invalid i18n config at "${configPath}"`
 
@@ -140,6 +142,7 @@ export function validateConfig(value: unknown, configPath = '<config>'): I18nCon
   return value as unknown as I18nConfig
 }
 
+/** 从当前目录逐级向上按候选名称查找配置文件，找不到时抛出 ConfigNotFoundError。 */
 async function findConfigPath(cwd: string): Promise<string> {
   let directory = cwd
 
@@ -163,6 +166,7 @@ async function findConfigPath(cwd: string): Promise<string> {
   )
 }
 
+/** 相对工作目录解析显式配置路径，并确认该路径指向存在的文件。 */
 async function resolveExplicitConfigPath(configPath: string, cwd: string): Promise<string> {
   if (configPath.trim() === '') {
     throw new ConfigNotFoundError('The explicit i18n config path must be a non-empty string')
@@ -178,6 +182,7 @@ async function resolveExplicitConfigPath(configPath: string, cwd: string): Promi
   return resolvedPath
 }
 
+/** 断言配置字段是由非空字符串组成的数组，并按选项要求数组本身非空。 */
 function validateStringArray(
   value: unknown,
   path: string,
@@ -199,6 +204,7 @@ function validateStringArray(
   }
 }
 
+/** 判断输入是否为普通对象或无原型对象，排除数组和类实例。 */
 function isRecord(value: unknown): value is Record<string, unknown> {
   if (typeof value !== 'object' || value === null || Array.isArray(value)) {
     return false
@@ -208,6 +214,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return prototype === Object.prototype || prototype === null
 }
 
+/** 确认路径是否指向文件；路径不存在时返回 false，其他文件系统错误继续抛出。 */
 async function isFile(path: string): Promise<boolean> {
   try {
     return (await stat(path)).isFile()
@@ -219,6 +226,7 @@ async function isFile(path: string): Promise<boolean> {
   }
 }
 
+/** 识别文件不存在或中间路径不是目录的文件系统错误。 */
 function isMissingPathError(error: unknown): boolean {
   return (
     error instanceof Error &&

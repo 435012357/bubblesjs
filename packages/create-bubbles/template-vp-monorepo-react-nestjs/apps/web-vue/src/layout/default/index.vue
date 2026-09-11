@@ -14,6 +14,7 @@ const router = useRouter()
 
 const collapsed = ref(false)
 
+/** 根据当前路由匹配链计算菜单选中项。 */
 const selectedKeys = computed(() => {
   const matched = route.matched.map(item => item.name)
   return matched.filter(Boolean) as string[]
@@ -21,17 +22,19 @@ const selectedKeys = computed(() => {
 
 const openKeys = ref<string[]>([])
 
-watchEffect(() => {
+watchEffect(/** 路由变化时同步父菜单展开状态。 */ () => {
   const matched = route.matched.map(item => item.name).filter(Boolean) as string[]
   const parentKey = matched[0]
 
   openKeys.value = matched.length > 1 && parentKey !== undefined ? [parentKey] : []
 })
 
+/** 按菜单项的路由名称跳转。 */
 function handleMenuClick({ key }: { key: string }) {
   router.push({ name: key })
 }
 
+/** 将 `svg-` 前缀的菜单图标转换为图标组件，其余图标返回 `null`。 */
 function renderIcon(icon?: string) {
   if (!icon)
     return null
@@ -45,10 +48,11 @@ function renderIcon(icon?: string) {
   return null
 }
 
+/** 递归将可见路由转换为菜单项，保留标题、图标和子菜单层级。 */
 function getMenuItems(routes: MenuRouteRecordRawType[]): NonNullable<MenuProps['items']> {
   return routes
     .filter(item => !item.meta?.hideInMenu)
-    .map((item) => {
+    .map(/** 生成当前路由的菜单项，并递归构造可见子菜单。 */ (item) => {
       const hasChildren = item.children && item.children.length > 0
       const key = String(item.name ?? item.path)
       const label = item.meta?.title ?? key

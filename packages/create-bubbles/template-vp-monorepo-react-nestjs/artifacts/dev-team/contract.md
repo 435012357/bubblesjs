@@ -9,7 +9,7 @@
 - 以下路径不含环境中的 API 代理前缀。成功直接返回下述 JSON，不增加 `{code,data}` 包装；失败沿用 `ApiFailure = { code: string; message: string; details?: {path?: string; code: string; message: string}[] }`。请求追踪使用 `x-request-id`，审计使用同一个服务端 `request.id`。
 - 查询成功 200；创建企业、项目、成员、自定义角色、菜单节点成功 201；其他写操作成功 200。删除返回 `{deleted: true}`，不返回 204。已经不存在的普通删除目标返回 404；清理维护操作另有幂等约定。
 - 所有新管理端点声明访问策略，默认拒绝未声明策略的端点。现有公开根页、注册、登录、幂等退出保留 `@Public()`；`/auth/me` 明确为已登录策略；上传明确为已登录且 owner 策略。测试 DB / Redis 模块移出默认 AppModule，不能以“兼容旧接口”为由继续暴露。
-- 继续使用现有 alova 实例、页面旁 `api.ts`、React Router loader、现有弹窗 `show/hide` 规范，不恢复已删除的 auth Provider / Guard 目录。Web 文件遵守其 AGENTS 与按需规则。
+- 继续使用现有 alova 实例、页面旁 `api.ts`、React Router middleware、现有弹窗 `show/hide` 规范，不恢复已删除的 auth Provider / Guard 目录。Web 文件遵守其 AGENTS 与按需规则。
 
 ## 2. 基础类型与字段
 
@@ -538,9 +538,9 @@ scope CHECK 精确为：platform 两个 ID 均 NULL；company company_id 非 NUL
 | 503  | `AUTH.SERVICE_UNAVAILABLE`                            | 复用 Session Redis 明确依赖失败语义                                       |
 | 500  | `COMMON.INTERNAL_SERVER_ERROR`                        | 未知服务错误；底层信息不公开                                              |
 
-前端路由 `/login`、`/register`、`/workspaces` 加三套管理布局。登录成功 Cookie 保存 token，跳 `/workspaces`；注册成功跳登录并带账号 UI 状态，不保存密码。工作台只展示当前用户/作用域基本信息和可用入口，不虚构统计 API。权限上下文不持久化，管理 API 默认 `cacheFor:0, shareRequest:false`，可省去首期业务缓存隔离复杂度；仍须在切换/退出/换号取消旧请求并使用用户+scope+请求代次避免迟到响应写回。
+前端路由 `/login`、`/register`、`/workspaces` 加三套管理布局。登录成功 Cookie 保存 token，跳 `/`，由入口 middleware 获取企业、项目和平台入口：仅有一个项目且没有平台或额外企业管理职责时，直接进入该项目的首个已授权页面；其余情况进入 `/workspaces`。普通企业成员的默认权限不阻止单项目直达；手动访问 `/workspaces` 和具体企业、项目链接不执行默认入口分流。注册成功跳登录并带账号 UI 状态，不保存密码。工作台只展示当前用户/作用域基本信息和可用入口，不虚构统计 API。权限上下文不持久化，管理 API 默认 `cacheFor:0, shareRequest:false`，可省去首期业务缓存隔离复杂度；仍须在切换/退出/换号取消旧请求并使用用户+scope+请求代次避免迟到响应写回。
 
-403 刷新当前 access 一次，避免递归刷新；401 清 Cookie/用户缓存并回登录；404 显示无资源页，不泄漏其他作用域存在性；409 保留用户输入并提示刷新，不能自动用旧输入覆盖新版本。路由切换、窗口 focus、成功授权变更刷新上下文。页面读权限由 loader 校验，按钮消费同一上下文，后端始终独立鉴权。
+403 刷新当前 access 一次，避免递归刷新；401 清 Cookie/用户缓存并回登录；404 显示无资源页，不泄漏其他作用域存在性；409 保留用户输入并提示刷新，不能自动用旧输入覆盖新版本。路由切换、窗口 focus、成功授权变更刷新上下文。父级 scope middleware 获取一次权限上下文，叶子 access middleware 校验页面读权限，布局和按钮消费同一次导航提交的数据，后端始终独立鉴权。middleware 统一位于 `router/middleware`，路由分模块位于 `router/modules`；页面通过 `lazyLoad` 加载，`App.tsx` 统一承载 `RouteTransition`。
 
 15 项需求验收对应：1 企业/项目创建事务；2 scope隔离及企业管理员隐式项目访问；3 目录/页面/操作及接口一致；4 最新授权与停用；5 请求取消/换号；6 唯一约束/最后管理员；7 事务审计；8 既有认证/上传/迁移；9 自身状态保留恢复；10 平台补任与替换；11 内置企业管理员专属创建；12 内置角色目录升级；13 未知routeKey兼容；14 受控证明和事务清理；15 双顺序真实数据库锁验证。
 

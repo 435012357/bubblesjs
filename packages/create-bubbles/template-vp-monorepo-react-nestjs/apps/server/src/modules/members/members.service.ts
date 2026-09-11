@@ -41,10 +41,12 @@ export class MembersService {
     private readonly access: AccessService,
     private readonly seed: AccessSeedService,
   ) {}
+  /** 根据公司或项目作用域选择成员表；平台作用域没有成员记录，调用时拒绝访问。 */
   table(scope: AccessScope) {
     if (scope.type === 'platform') throw new AppException(ACCESS_ERRORS.NOT_FOUND)
     return scope.type === 'company' ? companyMembers : projectMembers
   }
+  /** 生成公司或项目成员的作用域查询条件，平台作用域返回 undefined。 */
   filter(scope: AccessScope) {
     return scope.type === 'company'
       ? eq(companyMembers.companyId, scope.companyId)
@@ -56,6 +58,11 @@ export class MembersService {
         : undefined
   }
 
+  /**
+   * 查找规范化账号对应的有效用户；添加项目成员时还要求其是该公司的有效成员。
+   *
+   * @throws 账号不存在、停用或缺少有效公司成员关系时抛出账号不可加入异常。
+   */
   async userForAccount(db: AccessDb, scope: AccessScope, account: string) {
     const [user] = await db
       .select()
@@ -78,6 +85,7 @@ export class MembersService {
     return user
   }
 
+  /** 读取指定作用域内的成员详情，聚合账号状态、成员状态及直接分配的角色。 */
   async record(db: AccessDb, scope: AccessScope, memberId: string): Promise<MemberRecord> {
     const table = this.table(scope)
     const [row] = await db
@@ -105,6 +113,12 @@ export class MembersService {
     }
   }
 
+  /**
+   * 在当前事务内创建或重新启用成员；新成员同时分配内置普通成员角色。
+   *
+   * 现有停用成员恢复时递增版本并保留原角色，调用方负责验证账号和上级成员资格。
+   * @returns 已有或新建成员的标识。
+   */
   async ensureMember(tx: AccessTx, scope: AccessScope, userId: string) {
     const table = this.table(scope)
     const [existing] = await tx
@@ -140,6 +154,12 @@ export class MembersService {
     return memberId!
   }
 
+  /**
+   * 验证角色属于当前作用域且授权未越权，然后全量替换用户在该作用域的角色。
+   *
+   * 管理员角色增删必须由管理员执行，新增普通角色的权限不得超出操作者权限。
+   * 调用方负责后续版本、最后一位管理员保护和审计检查。
+   */
   async validateRoleAssignment(
     tx: AccessTx,
     input: { access: VerifiedAccess; userId: string; roleIds: string[] },
@@ -173,9 +193,11 @@ export class MembersService {
       await tx.insert(userRoles).values(roleIds.map((roleId) => ({ roleId, userId })))
   }
 
+  /** 在成员读取权限下分页查询当前作用域成员，按状态、姓名或账号筛选并批量聚合角色。 */
   list(input: { actor: AccessActor; scope: AccessScope; query: EntityPageQuery }) {
     return this.access.read(
       { ...input, permission: `${input.scope.type}.members.read` },
+      /** 在一致性快照内分页读取成员，并批量查询本页用户的作用域角色。 */
       async (tx) => {
         const table = this.table(input.scope)
         const { page, pageSize, offset } = pageWindow(input.query)
@@ -215,6 +237,7 @@ export class MembersService {
                 ),
               )
           : []
+        /** 将批量查询的角色映射回成员，分别保留账号状态与成员状态。 */
         const items: MemberRecord[] = rows.map(({ member, user }) => {
           const assigned = assignments.filter((a) => a.userId === member.userId)
           return {
@@ -235,9 +258,11 @@ export class MembersService {
       },
     )
   }
+  /** 验证账号与上级成员资格后添加新成员、分配默认角色并记录审计；已有成员不重复添加。 */
   add(input: { actor: AccessActor; scope: AccessScope; body: AddMemberRequest }) {
     return this.access.write(
       { ...input, permission: `${input.scope.type}.members.add` },
+      /** 将账号资格检查、成员去重、默认角色初始化和审计记录放入同一事务。 */
       async (tx, access) => {
         const user = await this.userForAccount(tx, input.scope, input.body.account)
         const table = this.table(input.scope)
@@ -259,6 +284,12 @@ export class MembersService {
       },
     )
   }
+  /**
+   * 在权限与版本校验后修改成员状态、替换角色或移除成员，并保护变更前有效的管理员作用域。
+   *
+   * 移除公司成员会同步删除其项目成员关系和公司内全部角色分配。所有数据库变更与审计同事务提交。
+   * @returns 删除标记或变更后的成员详情。
+   */
   change(input: {
     actor: AccessActor
     scope: AccessScope
@@ -268,6 +299,7 @@ export class MembersService {
   }) {
     return this.access.write(
       { ...input, permission: `${input.scope.type}.members.${input.action}` },
+      /** 保存变更前有效管理员范围，修改成员或角色后复核该范围并记录审计。 */
       async (tx, access) => {
         const member = await this.record(tx, input.scope, input.memberId)
         checkVersion(member.version, input.body.expectedVersion)

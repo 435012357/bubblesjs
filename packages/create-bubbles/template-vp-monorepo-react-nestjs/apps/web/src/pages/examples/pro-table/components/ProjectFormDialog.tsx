@@ -7,7 +7,6 @@ import {
   ProFormText,
   ProFormTextArea,
 } from '@ant-design/pro-components'
-import { useImperativeHandle, useState, type Ref } from 'react'
 import {
   owners,
   priorityOptions,
@@ -26,6 +25,7 @@ interface ProjectFormDialogProps {
   onSave: (values: ProjectFormValues, project?: ProjectRecord) => void
 }
 
+/** 复用项目新增与编辑表单，校验后将规范化字段交给页面保存。 */
 export default function ProjectFormDialog({ ref, onSave }: ProjectFormDialogProps) {
   const [open, setOpen] = useState(false)
   const [project, setProject] = useState<ProjectRecord>()
@@ -35,6 +35,7 @@ export default function ProjectFormDialog({ ref, onSave }: ProjectFormDialogProp
   }
 
   useImperativeHandle(ref, () => ({
+    /** 载入待编辑记录并打开表单；未传记录时进入新增模式。 */
     show(record) {
       setProject(record)
       setOpen(true)
@@ -56,24 +57,26 @@ export default function ProjectFormDialog({ ref, onSave }: ProjectFormDialogProp
       onOpenChange={(visible) => {
         if (!visible) hide()
       }}
-      onFinish={async (values) => {
-        onSave(
-          {
-            ...values,
-            name: values.name.trim(),
-            description: values.description?.trim() ?? '',
-            progress:
-              values.status === 'completed'
-                ? 100
-                : values.status === 'planning'
-                  ? 0
-                  : values.progress,
-          },
-          project,
-        )
-        hide()
-        return true
-      }}
+      onFinish={
+        /** 规范化项目名称、说明和进度后提交保存，并关闭编辑弹窗。 */ async (values) => {
+          onSave(
+            {
+              ...values,
+              name: values.name.trim(),
+              description: values.description?.trim() ?? '',
+              progress:
+                values.status === 'completed'
+                  ? 100
+                  : values.status === 'planning'
+                    ? 0
+                    : values.progress,
+            },
+            project,
+          )
+          hide()
+          return true
+        }
+      }
     >
       <ProFormText
         name="name"

@@ -1,70 +1,57 @@
 import { LogoutOutlined, SwapOutlined } from '@ant-design/icons'
 import { ProLayout } from '@ant-design/pro-components'
 import { App, Avatar, Button, Tooltip } from 'antd'
-import { Suspense, useEffect } from 'react'
-import {
-  Link,
-  Outlet,
-  useLoaderData,
-  useLocation,
-  useNavigate,
-  useNavigation,
-  useRevalidator,
-} from 'react-router'
-import type { AccessContext, WorkspaceEntry } from 'shared/types'
+import type { AccessScope } from 'shared/types'
 import { accessScopeKey } from 'shared/utils'
 import { logout } from '@/api/auth'
 import PageLoading from '@/components/Loading/PageLoading'
 import { workspaceLayoutToken } from '@/config/theme'
+import { getWorkspaceState } from '@/pages/workspaces/state'
 import { navigationTree } from '@/router/page-registry'
 import { clearWorkspaceRequests } from '@/utils/request/workspace'
 import { cookie } from '@/utils/storage/cookie'
 import './workspace.css'
 
+/** 根据当前工作空间权限构建导航并同步刷新状态，页面懒加载交由全局边界等待。 */
 export default function WorkspaceLayout() {
-  const access = useLoaderData<AccessContext & { workspace?: WorkspaceEntry }>()
+  const { companyId, projectId } = useParams()
+  const scope: AccessScope = projectId
+    ? { type: 'project', companyId: companyId!, projectId }
+    : companyId
+      ? { type: 'company', companyId }
+      : { type: 'platform' }
+  const access = getWorkspaceState().accessByScope.get(accessScopeKey(scope))
   const location = useLocation()
   const navigation = useNavigation()
   const navigate = useNavigate()
   const revalidator = useRevalidator()
   const { message } = App.useApp()
-  const scopeName =
-    access?.scope.type === 'platform'
-      ? '平台空间'
-      : access?.scope.type === 'company'
-        ? '企业空间'
-        : '项目空间'
   const navigating = navigation.state !== 'idle'
   const refreshing = revalidator.state === 'loading'
-  const workspaceName = [access?.workspace?.companyName, access?.workspace?.name]
-    .filter(Boolean)
-    .join(' / ')
-  const brand = (
-    <Link className="workspace-brand" to="/workspaces" aria-label="万物工作空间">
-      <span className="wanwu-mark" aria-hidden="true" />
-      <span className="workspace-wordmark">
-        万物<small>WANWU</small>
-      </span>
-    </Link>
+
+  useEffect(
+    /** 监听窗口焦点和权限刷新事件，在卸载时移除订阅。 */ () => {
+      let requested = false
+      /** 在页面可见且未在刷新时重新校验工作空间权限，避免重复请求。 */
+      const refresh = () => {
+        if (document.visibilityState === 'hidden' || requested || revalidator.state !== 'idle')
+          return
+        requested = true
+        void revalidator.revalidate().finally(() => {
+          requested = false
+        })
+      }
+      window.addEventListener('focus', refresh)
+      window.addEventListener('workspace-access-refresh', refresh)
+      return /** 移除窗口焦点和权限更新监听，防止已卸载布局再次触发请求。 */ () => {
+        window.removeEventListener('focus', refresh)
+        window.removeEventListener('workspace-access-refresh', refresh)
+      }
+    },
+    [revalidator],
   )
 
-  useEffect(() => {
-    let requested = false
-    const refresh = () => {
-      if (document.visibilityState === 'hidden' || requested || revalidator.state !== 'idle') return
-      requested = true
-      void revalidator.revalidate().finally(() => {
-        requested = false
-      })
-    }
-    window.addEventListener('focus', refresh)
-    window.addEventListener('workspace-access-refresh', refresh)
-    return () => {
-      window.removeEventListener('focus', refresh)
-      window.removeEventListener('workspace-access-refresh', refresh)
-    }
-  }, [revalidator])
-
+  /** 结束当前登录会话，清理本地令牌并返回登录页。 */
   async function handleLogout() {
     clearWorkspaceRequests()
     try {
@@ -76,6 +63,27 @@ export default function WorkspaceLayout() {
     cookie.remove('token')
     void navigate('/login', { replace: true })
   }
+
+  // 撤权时旧布局可能仍在等待错误边界提交，暂时显示加载态，避免子页面读取空权限。
+  if (!access) return <PageLoading />
+
+  const scopeName =
+    access.scope.type === 'platform'
+      ? '平台空间'
+      : access.scope.type === 'company'
+        ? '企业空间'
+        : '项目空间'
+  const workspaceName = [access.workspace?.companyName, access.workspace?.name]
+    .filter(Boolean)
+    .join(' / ')
+  const brand = (
+    <Link className="workspace-brand" to="/workspaces" aria-label="万物工作空间">
+      <span className="wanwu-mark" aria-hidden="true" />
+      <span className="workspace-wordmark">
+        万物<small>WANWU</small>
+      </span>
+    </Link>
+  )
 
   return (
     <ProLayout
@@ -90,7 +98,7 @@ export default function WorkspaceLayout() {
       fixSiderbar
       siderWidth={232}
       location={location}
-      route={{ path: '/', routes: access ? navigationTree(access.menus, access.scope) : [] }}
+      route={{ path: '/', routes: navigationTree(access.menus, access.scope) }}
       menu={{ locale: false }}
       menuProps={{ selectedKeys: [location.pathname] }}
       menuItemRender={(item, dom, { isMobile }) =>
@@ -105,24 +113,24 @@ export default function WorkspaceLayout() {
       headerTitleRender={() => brand}
       menuHeaderRender={(_logo, _title, props) => (props && !props.isMobile ? null : brand)}
       headerContentRender={() => (
-        <div className={`workspace-context workspace-context-${access?.scope.type ?? 'platform'}`}>
+        <div className={`workspace-context workspace-context-${access.scope.type}`}>
           <span className="workspace-context-dot" aria-hidden="true" />
           <span className="workspace-context-type">{scopeName}</span>
           <strong title={workspaceName}>
-            {access?.workspace?.companyName && (
+            {access.workspace?.companyName && (
               <span className="workspace-context-parent">{access.workspace.companyName} / </span>
             )}
-            {access?.workspace?.name || scopeName}
+            {access.workspace?.name || scopeName}
           </strong>
         </div>
       )}
       actionsRender={() => [
-        <Tooltip title={`账号：${access?.user.account}`} key="user">
+        <Tooltip title={`账号：${access.user.account}`} key="user">
           <div className="workspace-user" tabIndex={0}>
-            <Avatar size={34}>{access?.user.name?.slice(0, 1).toUpperCase()}</Avatar>
+            <Avatar size={34}>{access.user.name.slice(0, 1).toUpperCase()}</Avatar>
             <span>
-              {access?.user.name}
-              <small>{access?.administrator ? '管理员' : '成员'}</small>
+              {access.user.name}
+              <small>{access.administrator ? '管理员' : '成员'}</small>
             </span>
           </div>
         </Tooltip>,
@@ -147,13 +155,11 @@ export default function WorkspaceLayout() {
       <div className="workspace-content">
         <div
           className="workspace-body"
-          key={access ? accessScopeKey(access.scope) : 'empty'}
+          key={accessScopeKey(scope)}
           aria-busy={navigating || refreshing}
         >
           <div hidden={refreshing} inert={navigating || refreshing} style={{ height: '100%' }}>
-            <Suspense fallback={<PageLoading />}>
-              <Outlet />
-            </Suspense>
+            <Outlet context={access} />
           </div>
           {refreshing && <PageLoading />}
           {navigating && !refreshing && (

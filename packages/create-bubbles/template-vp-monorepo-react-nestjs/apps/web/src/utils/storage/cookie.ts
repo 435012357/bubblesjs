@@ -9,6 +9,7 @@ export interface CookieOptions {
 }
 
 export const cookie = {
+  /** 按编码后的名称查找 Cookie 并解码值，格式损坏时保留原值。 */
   get(key: string): string | null {
     const prefix = `${encodeURIComponent(key)}=`
     const entry = document.cookie.split(';').find((item) => item.trim().startsWith(prefix))

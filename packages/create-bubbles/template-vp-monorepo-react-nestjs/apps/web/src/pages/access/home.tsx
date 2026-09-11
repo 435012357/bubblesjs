@@ -1,8 +1,8 @@
 import { Card, Descriptions, Empty, Space, Tag } from 'antd'
-import { Link } from 'react-router'
 import { navigationTree } from '@/router/page-registry'
 import { useAccess } from './use-access'
 
+/** 展示当前工作空间身份、授权信息及可访问的管理入口。 */
 export default function WorkspaceHome() {
   const access = useAccess()
   const typeName =

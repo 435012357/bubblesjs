@@ -1,9 +1,9 @@
 import { ArrowRightOutlined, TableOutlined } from '@ant-design/icons'
 import { PageContainer, ProCard } from '@ant-design/pro-components'
 import { Button, Tag, Typography } from 'antd'
-import { Link } from 'react-router'
 import styles from './index.module.css'
 
+/** 展示基础工作台的业务模块入口。 */
 export default function Home() {
   return (
     <PageContainer title="工作台" content="你的业务工作空间。">

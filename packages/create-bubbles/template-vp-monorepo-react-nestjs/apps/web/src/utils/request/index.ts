@@ -13,6 +13,7 @@ type WebRequestOption = BaseRequestOption<
   ReactHookExportType<unknown>
 >
 
+/** 保留完整 URL 和绝对路径，为相对接口前缀补齐开头斜杠。 */
 function normalizeBaseUrl(apiAffix?: string) {
   if (!apiAffix) return '/'
   if (/^https?:\/\//.test(apiAffix) || apiAffix.startsWith('/')) {
@@ -22,6 +23,7 @@ function normalizeBaseUrl(apiAffix?: string) {
   return `/${apiAffix}`
 }
 
+/** 组装 Web 请求配置，绑定登录凭据、提示方式及未授权跳转。 */
 function getBaseConfig(): WebRequestOption {
   return {
     baseUrl: normalizeBaseUrl(envVariables.API_AFFIX),
@@ -36,6 +38,7 @@ function getBaseConfig(): WebRequestOption {
     responseDataKey: 'data',
     responseMessageKey: 'message',
     errorDefaultMessage: '请求失败，请稍后重试',
+    /** 在发送请求时读取最新登录令牌，存在时附加 Bearer 鉴权头。 */
     commonHeaders: () => {
       const token = cookie.get('token')
       return token ? { Authorization: `Bearer ${token}` } : {}
@@ -46,6 +49,7 @@ function getBaseConfig(): WebRequestOption {
     errorMessageFunc: (msg) => {
       message.error(msg)
     },
+    /** 清除失效登录令牌，提示登录过期并跳转到登录页。 */
     unAuthorizedResponseFunc: () => {
       cookie.remove('token')
       message.error('登录过期或未登录')

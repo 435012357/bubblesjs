@@ -22,6 +22,9 @@ export const accessStatus = pgEnum('access_status', ['active', 'disabled'])
 export const scopeType = pgEnum('access_scope_type', ['platform', 'company', 'project'])
 export const menuType = pgEnum('menu_type', ['directory', 'page', 'operation'])
 export const builtinRole = pgEnum('builtin_role', ['administrator', 'member'])
+/**
+ * 为每张权限业务表创建独立的创建时间与更新时间列定义，并由数据库提供默认当前时间。
+ */
 const times = () => ({
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
@@ -38,6 +41,9 @@ export const companies = pgTable(
     version: integer('version').notNull().default(1),
     ...times(),
   },
+  /**
+   * 约束公司版本号为正数。
+   */
   (t) => [check('companies_version_positive', sql`${t.version} > 0`)],
 )
 export const projects = pgTable(
@@ -54,6 +60,9 @@ export const projects = pgTable(
     version: integer('version').notNull().default(1),
     ...times(),
   },
+  /**
+   * 约束公司内项目编码唯一及版本有效，并为公司下的项目状态查询建立索引。
+   */
   (t) => [
     unique('projects_company_code_uq').on(t.companyId, t.code),
     unique('projects_company_id_uq').on(t.companyId, t.id),
@@ -75,6 +84,9 @@ export const companyMembers = pgTable(
     version: integer('version').notNull().default(1),
     ...times(),
   },
+  /**
+   * 约束公司成员关系唯一及版本有效，并为按用户查找成员关系建立索引。
+   */
   (t) => [
     unique('company_members_company_user_uq').on(t.companyId, t.userId),
     check('company_members_version_positive', sql`${t.version} > 0`),
@@ -92,6 +104,9 @@ export const projectMembers = pgTable(
     version: integer('version').notNull().default(1),
     ...times(),
   },
+  /**
+   * 通过组合外键确保项目与成员归属同一公司，并约束项目成员唯一及版本有效。
+   */
   (t) => [
     unique('project_members_project_user_uq').on(t.projectId, t.userId),
     foreignKey({
@@ -119,6 +134,9 @@ export const roles = pgTable(
     version: integer('version').notNull().default(1),
     ...times(),
   },
+  /**
+   * 约束角色作用域与所属资源一致，并按作用域保证角色名称及内置角色唯一。
+   */
   (t) => [
     check(
       'roles_scope_check',
@@ -159,6 +177,9 @@ export const userRoles = pgTable(
       .notNull()
       .references(() => roles.id, { onDelete: 'cascade' }),
   },
+  /**
+   * 以用户和角色组成联合主键，避免重复授权，并为角色成员查询建立索引。
+   */
   (t) => [primaryKey({ columns: [t.userId, t.roleId] }), index('user_roles_role_idx').on(t.roleId)],
 )
 export const permissions = pgTable(
@@ -173,6 +194,9 @@ export const permissions = pgTable(
     adminOnly: boolean('admin_only').notNull().default(false),
     deprecated: boolean('deprecated').notNull().default(false),
   },
+  /**
+   * 约束操作权限必须引用同作用域的页面权限，页面权限不能再引用父页面。
+   */
   (t) => [
     unique('permissions_scope_key_uq').on(t.scopeType, t.key),
     foreignKey({
@@ -195,6 +219,9 @@ export const rolePermissions = pgTable(
       .notNull()
       .references(() => permissions.key),
   },
+  /**
+   * 以角色和权限组成联合主键，避免重复授权，并为权限反查角色建立索引。
+   */
   (t) => [
     primaryKey({ columns: [t.roleId, t.permissionKey] }),
     index('role_permissions_key_idx').on(t.permissionKey),
@@ -217,6 +244,9 @@ export const menus = pgTable(
     protected: boolean('protected').notNull().default(false),
     ...times(),
   },
+  /**
+   * 约束菜单父子关系及作用域内页面、权限唯一，并优化菜单树查询。
+   */
   (t) => [
     foreignKey({ columns: [t.parentId], foreignColumns: [t.id] }),
     unique('menus_permission_uq').on(t.scopeType, t.permissionKey),
@@ -247,6 +277,9 @@ export const auditLogs = pgTable(
     requestId: varchar('request_id', { length: 128 }).notNull(),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   },
+  /**
+   * 约束审计范围与公司、项目归属一致，并优化范围内按时间和 ID 查询日志。
+   */
   (t) => [
     check(
       'audit_scope_check',
@@ -261,6 +294,9 @@ export const menuVersions = pgTable(
     scopeType: scopeType('scope_type').primaryKey(),
     version: integer('version').notNull().default(1),
   },
+  /**
+   * 确保每个作用域的菜单版本号始终为正数。
+   */
   (t) => [check('menu_versions_positive', sql`${t.version} > 0`)],
 )
 export const cleanupTombstones = pgTable('permission_cleanup_tombstones', {
@@ -277,5 +313,8 @@ export const accessBootstrap = pgTable(
       .references(() => users.id),
     initializedAt: timestamp('initialized_at', { withTimezone: true }).defaultNow().notNull(),
   },
+  /**
+   * 将初始化状态限制为 ID 为 1 的单例记录，避免重复保存引导状态。
+   */
   (t) => [check('access_bootstrap_singleton', sql`${t.id} = 1`)],
 )

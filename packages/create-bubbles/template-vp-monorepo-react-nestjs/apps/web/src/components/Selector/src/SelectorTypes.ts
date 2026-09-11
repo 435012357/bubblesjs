@@ -1,6 +1,5 @@
 import type { ParamsType, ProTableProps } from '@ant-design/pro-components'
 import type { ModalProps } from 'antd'
-import type { Key, ReactNode, Ref } from 'react'
 
 export type SelectorRowKey<T> = (keyof T & string) | ((record: T) => Key)
 

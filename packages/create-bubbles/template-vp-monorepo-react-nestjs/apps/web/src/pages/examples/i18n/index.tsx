@@ -18,6 +18,7 @@ const rightStore = await i18n.init({
   storage: createJsonStorage(localStorage),
 })
 
+/** 展示翻译后的文案，并提供语言切换示例。 */
 const I18nTestNode = ({ title, switchLocale }: { title: string; switchLocale: string }) => {
   const { tr, loadLocale, locale } = useI18n()
 
@@ -32,6 +33,7 @@ const I18nTestNode = ({ title, switchLocale }: { title: string; switchLocale: st
   )
 }
 
+/** 组合两个独立语言作用域，演示各自切换并保存语言偏好。 */
 const I18nExample = () => {
   return (
     <PageContainer title="国际化示例" content="两个独立语言作用域，分别切换并保存语言偏好。">

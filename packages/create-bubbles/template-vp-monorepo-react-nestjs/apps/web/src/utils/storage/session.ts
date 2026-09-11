@@ -1,3 +1,4 @@
+/** 为本地或会话存储提供 JSON 序列化读写封装。 */
 function createStorage(type: 'localStorage' | 'sessionStorage') {
   return {
     /** 自动序列化为 JSON；同名写入即为更新。 */

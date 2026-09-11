@@ -1,5 +1,3 @@
-import type { ComponentType, SVGProps } from 'react'
-
 export type SvgIconProps = Omit<SVGProps<SVGSVGElement>, 'width' | 'height'> & {
   icon: ComponentType<SVGProps<SVGSVGElement>>
   size?: number | string

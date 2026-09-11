@@ -10,11 +10,18 @@ import type { AccessScope, WorkspacesResult } from 'shared/types'
 export class WorkspacesService {
   constructor(private readonly access: AccessService) {}
 
+  /** 校验用户对目标工作空间的访问资格，返回经过可见性过滤的菜单和有效权限上下文。 */
   context(input: { actor: AccessActor; scope: AccessScope }) {
     return this.access.read(input, async (_tx, access) => this.access.context(access))
   }
+  /**
+   * 在一致性快照中列出有效账号可进入的平台、公司及项目工作空间。
+   *
+   * 仅包含启用的公司、项目及有效成员关系；公司管理员可进入所属公司的全部启用项目。
+   */
   workspaces(actor: AccessActor): Promise<WorkspacesResult> {
     return this.access.db.transaction(
+      /** 在同一快照内校验账号，汇总平台角色、有效成员关系及可继承的公司管理员身份。 */
       async (tx) => {
         const [user] = await tx
           .select({ id: users.id, name: users.name, account: users.account, status: users.status })

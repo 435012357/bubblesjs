@@ -8,12 +8,14 @@ import { WorkspacesService } from './workspaces.service'
 export class WorkspacesController {
   constructor(private readonly workspacesService: WorkspacesService) {}
 
+  /** 为已登录用户返回可进入的工作空间及其管理员身份。 */
   @Get('workspaces')
   @Authenticated()
   workspaces(@Req() req: FastifyRequest) {
     return this.workspacesService.workspaces(actor(req))
   }
 
+  /** 根据路由推导工作空间，返回该空间的用户权限、菜单和版本上下文。 */
   @Get([
     'platform/access',
     'companies/:companyId/access',

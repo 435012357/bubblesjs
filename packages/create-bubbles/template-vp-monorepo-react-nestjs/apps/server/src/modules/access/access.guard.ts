@@ -18,6 +18,13 @@ export class AccessGuard implements CanActivate {
     private readonly reflector: Reflector,
     private readonly access: AccessService,
   ) {}
+  /**
+   * 读取路由访问策略并验证当前作用域权限；公开接口和预检请求直接放行。
+   *
+   * 仅要求登录的策略交由认证守卫处理，其余策略在只读事务中重新验证权限。
+   * 未声明访问策略的受保护接口默认拒绝访问。
+   * @returns 权限校验通过时返回 true，否则抛出对应业务异常。
+   */
   async canActivate(context: ExecutionContext) {
     const request = context.switchToHttp().getRequest<FastifyRequest>()
     if (

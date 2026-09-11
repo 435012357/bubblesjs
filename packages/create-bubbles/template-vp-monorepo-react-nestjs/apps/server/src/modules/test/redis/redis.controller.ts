@@ -8,6 +8,9 @@ import { GetQueryDto, SetQueryDto } from './dto/redis-quary.dto'
 export class RedisController {
   constructor(private readonly redisService: RedisService) {}
 
+  /**
+   * 调用 Redis 连通性探测并将结果包装为 HTTP 响应。
+   */
   @ApiOperation({ summary: '测试 Redis 连接' })
   @Get('ping')
   async ping() {
@@ -15,6 +18,9 @@ export class RedisController {
   }
 
   // GET /redis/set?key=name&value=tom&ttl=60
+  /**
+   * 接收 Redis 测试键值和可选有效期，写入后返回提交的信息。
+   */
   @ApiOperation({ summary: '设置键值对' })
   @Post('set')
   async set(@Body() body: SetQueryDto) {
@@ -23,6 +29,9 @@ export class RedisController {
   }
 
   // GET /redis/get?key=name
+  /**
+   * 读取测试查询指定的 Redis 键，并返回键名及当前值。
+   */
   @ApiOperation({ summary: '获取键值对' })
   @Get('get')
   async get(@Query('key') query: GetQueryDto) {

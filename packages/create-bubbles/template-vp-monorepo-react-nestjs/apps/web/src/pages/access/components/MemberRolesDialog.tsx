@@ -1,12 +1,12 @@
 import { ModalForm, ProFormSelect } from '@ant-design/pro-components'
 import { Alert } from 'antd'
-import { useImperativeHandle, useState, type Ref } from 'react'
 import type { AccountRecord, MemberRecord, RoleRecord } from 'shared/types'
 
 export interface MemberRolesDialogRef {
   show: (record: MemberRecord | AccountRecord, roles: RoleRecord[]) => void
   hide: () => void
 }
+/** 展示成员当前角色与可分配角色，提交最新角色选择。 */
 export default function MemberRolesDialog({
   ref,
   onSave,
@@ -24,6 +24,7 @@ export default function MemberRolesDialog({
       : record.roleIds
     : []
   useImperativeHandle(ref, () => ({
+    /** 载入目标成员和可选角色，打开角色分配弹窗。 */
     show: (item, options) => {
       setRecord(item)
       setRoles(options)
@@ -42,12 +43,14 @@ export default function MemberRolesDialog({
         if (!visible) hide()
       }}
       submitter={{ searchConfig: { submitText: '保存角色' } }}
-      onFinish={async (values) => {
-        if (!record) return false
-        const ok = await onSave(record, values.roleIds ?? [])
-        if (ok) hide()
-        return ok
-      }}
+      onFinish={
+        /** 提交成员最新角色集合，保存成功后关闭弹窗。 */ async (values) => {
+          if (!record) return false
+          const ok = await onSave(record, values.roleIds ?? [])
+          if (ok) hide()
+          return ok
+        }
+      }
     >
       <Alert
         type="info"

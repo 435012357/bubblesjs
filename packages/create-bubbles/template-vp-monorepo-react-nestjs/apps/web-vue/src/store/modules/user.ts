@@ -12,6 +12,7 @@ export const useUserStore = defineStore('user', {
   },
 })
 
+/** 显式绑定全局 Pinia 实例，供组件外部读取或修改用户状态。 */
 export function useUserStoreWithOut() {
   return useUserStore(store)
 }

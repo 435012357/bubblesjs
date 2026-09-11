@@ -34,6 +34,7 @@ export class ProjectsService {
     private readonly administrators: AdministratorsService,
   ) {}
 
+  /** 按公司和项目标识共同查找项目，隔离跨公司访问并转换时间字段。 */
   async project(
     db: AccessDb,
     scope: { companyId: string; projectId: string },
@@ -45,6 +46,7 @@ export class ProjectsService {
     return toTimestampRecord(requireFound(row))
   }
 
+  /** 读取公司内指定项目的资料，以及该项目直接分配的管理员状态。 */
   async projectDetail(
     db: AccessDb,
     scope: { companyId: string; projectId: string },
@@ -55,6 +57,11 @@ export class ProjectsService {
     }
   }
 
+  /**
+   * 在公司项目读取权限下分页查询项目，普通成员仅能查询具有成员关系的项目。
+   *
+   * 公司管理员可查询公司内全部项目，支持状态、名称和编码筛选。
+   */
   listProjects(input: { actor: AccessActor; companyId: string; query: EntityPageQuery }) {
     return this.access.read(
       {
@@ -62,6 +69,7 @@ export class ProjectsService {
         scope: { type: 'company', companyId: input.companyId },
         permission: 'company.projects.read',
       },
+      /** 按操作者管理员身份限定项目可见范围，并在同一快照内读取总数和分页记录。 */
       async (tx, access) => {
         const { page, pageSize, offset } = pageWindow(input.query)
         const joined = tx
@@ -92,6 +100,11 @@ export class ProjectsService {
     )
   }
 
+  /**
+   * 要求公司管理员具备创建权限，验证公司内编码唯一性和管理员成员资格后创建项目并记录审计。
+   *
+   * 同时初始化项目内置角色与首位管理员，返回项目详情。
+   */
   create(input: { actor: AccessActor; companyId: string; body: CreateProjectRequest }) {
     return this.access.write(
       {
@@ -100,6 +113,7 @@ export class ProjectsService {
         permission: 'company.projects.create',
         adminOnly: true,
       },
+      /** 校验初始管理员公司成员资格，原子创建项目、内置角色及管理员关系。 */
       async (tx, access) => {
         const user = await this.members.userForAccount(
           tx,
@@ -139,6 +153,7 @@ export class ProjectsService {
     )
   }
 
+  /** 使用项目资料读取权限验证目标项目访问资格，返回项目资料及管理员列表。 */
   get(input: { actor: AccessActor; companyId: string; projectId: string }) {
     return this.access.read(
       {
@@ -150,6 +165,7 @@ export class ProjectsService {
     )
   }
 
+  /** 在项目作用域中校验修改权限、数据版本及公司内编码唯一性，更新项目资料并记录审计。 */
   profile(input: {
     actor: AccessActor
     companyId: string
@@ -162,6 +178,7 @@ export class ProjectsService {
         scope: { type: 'project', companyId: input.companyId, projectId: input.projectId },
         permission: 'project.profile.update',
       },
+      /** 读取项目版本并检查公司内编码唯一性，资料更新与审计同步提交。 */
       async (tx, access) => {
         const existing = await this.project(tx, input)
         checkVersion(existing.version, input.body.expectedVersion)
@@ -191,6 +208,11 @@ export class ProjectsService {
     )
   }
 
+  /**
+   * 使用公司项目状态权限启停项目，普通操作者还必须具备目标项目成员关系。
+   *
+   * 校验客户端版本，启用时检查管理员完整性，并在事务内写入审计。
+   */
   status(input: { actor: AccessActor; companyId: string; projectId: string; body: StatusRequest }) {
     return this.access.write(
       {
@@ -198,6 +220,7 @@ export class ProjectsService {
         scope: { type: 'company', companyId: input.companyId },
         permission: 'company.projects.status',
       },
+      /** 检查普通操作者的项目成员关系，变更状态后验证启用项目的管理员并写入审计。 */
       async (tx, access) => {
         const target = await this.project(tx, input)
         if (!access.administrator) {
@@ -240,6 +263,11 @@ export class ProjectsService {
     )
   }
 
+  /**
+   * 要求公司管理员具备项目管理员设置权限，为公司内指定项目追加或替换管理员并记录审计。
+   *
+   * @returns 新管理员状态及被替换用户标识。
+   */
   setAdministrator(input: {
     actor: AccessActor
     companyId: string
@@ -253,6 +281,7 @@ export class ProjectsService {
         permission: 'company.projects.administrator',
         adminOnly: true,
       },
+      /** 先确认项目属于指定公司，再调整管理员关系并记录替换目标。 */
       async (tx, access): Promise<SetAdministratorResult> => {
         await this.project(tx, input)
         const scope: AccessScope = {
@@ -283,6 +312,7 @@ export class ProjectsService {
     )
   }
 
+  /** 要求公司管理员具备项目管理员设置权限，返回目标项目直接分配的管理员及其有效状态。 */
   projectAdministrators(input: { actor: AccessActor; companyId: string; projectId: string }) {
     return this.access.read(
       {
@@ -291,6 +321,7 @@ export class ProjectsService {
         permission: 'company.projects.administrator',
         adminOnly: true,
       },
+      /** 确认项目存在且属于指定公司后读取其直接分配的管理员。 */
       async (tx) => {
         await this.project(tx, input)
         return this.administrators.administrators(tx, {

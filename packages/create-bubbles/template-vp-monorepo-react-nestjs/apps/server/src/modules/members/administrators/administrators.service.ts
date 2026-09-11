@@ -22,6 +22,11 @@ export class AdministratorsService {
     private readonly seed: AccessSeedService,
   ) {}
 
+  /**
+   * 列出公司或项目直接分配的管理员，附带账号状态、成员状态和当前身份是否有效。
+   *
+   * 没有对应成员关系的角色分配会被忽略，继承的公司管理员不在项目直接分配列表中。
+   */
   async administrators(db: AccessDb, scope: AccessScope): Promise<AdministratorSummary[]> {
     const assignments = await db
       .select({
@@ -51,6 +56,7 @@ export class AdministratorsService {
     return result
   }
 
+  /** 在现有事务中补齐内置角色和有效成员关系，并幂等授予指定用户管理员角色。 */
   async initialize(tx: AccessTx, scope: AccessScope, userId: string) {
     const builtins = await this.seed.ensureRoles(tx, scope)
     await this.members.ensureMember(tx, scope, userId)
@@ -63,6 +69,12 @@ export class AdministratorsService {
       .onConflictDoNothing()
   }
 
+  /**
+   * 验证新管理员账号并保证成员关系有效，授予管理员角色后按需撤销被替换用户的管理员角色。
+   *
+   * 新旧成员版本都会递增；调用方负责作用域鉴权、审计记录及事务提交。
+   * @returns 新管理员对应的用户记录。
+   */
   async assign(tx: AccessTx, input: { scope: AccessScope; body: SetAdministratorRequest }) {
     const { scope, body } = input
     const user = await this.members.userForAccount(tx, scope, body.account)

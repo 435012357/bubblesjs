@@ -10,6 +10,7 @@ export interface I18nConfig {
   report?: string
 }
 
+/** 原样返回国际化配置，同时保留字面量类型以提供配置校验和编辑器提示。 */
 export function defineConfig<const Config extends I18nConfig>(config: Config): Config {
   return config
 }

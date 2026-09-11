@@ -80,6 +80,9 @@ const PUBLIC_HTTP_ERRORS: Readonly<Record<number, PublicHttpError>> = {
   },
 }
 
+/**
+ * 将公开文本中的控制字符替换为空格并限制长度；非字符串返回空串。
+ */
 function cleanPublicText(value: unknown, maxLength: number): string {
   if (typeof value !== 'string') {
     return ''
@@ -99,6 +102,9 @@ function cleanPublicText(value: unknown, maxLength: number): string {
   )
 }
 
+/**
+ * 清理字段错误码并校验允许字符，非法值统一替换为 invalid。
+ */
 function cleanDetailCode(value: unknown): string {
   const code = cleanPublicText(value, MAX_DETAIL_CODE_LENGTH)
   if (/^[A-Za-z][A-Za-z0-9._-]*$/.test(code)) {
@@ -107,9 +113,13 @@ function cleanDetailCode(value: unknown): string {
   return 'invalid'
 }
 
+/**
+ * 限制字段错误数量并清理路径、错误码和公开文案，空详情不输出。
+ */
 function normalizeDetails(
   details: readonly ApiErrorDetail[] | undefined,
 ): ApiErrorDetail[] | undefined {
+  /** 清理单项公开字段错误，并限制整体错误数量，避免响应携带过量或不可见内容。 */
   const normalized = details?.slice(0, MAX_DETAIL_COUNT).map((detail) => {
     const path = cleanPublicText(detail.path, MAX_DETAIL_PATH_LENGTH)
     const message = cleanPublicText(detail.message, MAX_PUBLIC_MESSAGE_LENGTH) || '请求内容无效'
@@ -123,6 +133,9 @@ function normalizeDetails(
   return normalized?.length ? normalized : undefined
 }
 
+/**
+ * 仅接受 400 至 599 的整数 HTTP 状态，其他值回退为 500。
+ */
 function normalizeStatus(value: unknown): number {
   if (typeof value !== 'number' || !Number.isInteger(value)) {
     return HttpStatus.INTERNAL_SERVER_ERROR
@@ -162,10 +175,8 @@ function sanitizeLogText(value: string, maxLength: number): string {
     .slice(0, maxLength)
 }
 /**
- * /u2028 行分隔符
- * /u2029 段落分隔符
- * @param error
- * @returns
+ * 提取数量和长度受限的脱敏堆栈帧，消息中包含换行时不采信堆栈内容。
+ * @returns 可用于结构化日志的调用帧；堆栈缺失或不可信时返回 undefined。
  */
 function sanitizeStackFrame(error: Error): string[] | undefined {
   if (!error.stack || /[\r\n\u2028\u2029]/.test(error.message)) {
@@ -183,6 +194,9 @@ function sanitizeStackFrame(error: Error): string[] | undefined {
   return frames.length ? frames : undefined
 }
 
+/**
+ * 生成脱敏后的日志错误对象，最多递归保留两层 cause，避免泄漏凭据或无限遍历。
+ */
 function serializeError(value: unknown, depth = 0): Record<string, unknown> {
   if (!(value instanceof Error)) {
     return {
@@ -208,6 +222,9 @@ export class GlobalExceptionFilter implements ExceptionFilter {
 
   constructor(private readonly adapterHost: HttpAdapterHost) {}
 
+  /**
+   * 从请求参数校验异常提取数量和长度受限的公开字段错误。
+   */
   private getZodDetails(exception: ZodValidationException): ApiErrorDetail[] | undefined {
     const zodError = exception.getZodError()
 
@@ -215,6 +232,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       return undefined
     }
 
+    /** 将 Zod 路径转换成点分隔字段路径，并过滤不适合公开的控制字符。 */
     const details = zodError.issues.slice(0, MAX_DETAIL_COUNT).map((issue) => {
       const path = cleanPublicText(issue.path.map(String).join('.'), MAX_DETAIL_PATH_LENGTH)
       const message = cleanPublicText(issue.message, MAX_PUBLIC_MESSAGE_LENGTH) || '请求内容无效'
@@ -228,6 +246,9 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     return details.length ? details : undefined
   }
 
+  /**
+   * 将 Nest HTTP 异常映射为固定公开文案，隐藏内部异常文本并标记 401 质询。
+   */
   private normalizeLegacyHttpException(exception: HttpException): NormalizedFailure {
     const status = normalizeStatus(exception.getStatus())
 
@@ -263,6 +284,9 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     }
   }
 
+  /**
+   * 统一转换业务异常、Zod 异常和未知异常，生成安全响应及仅供服务端日志使用的原因。
+   */
   private normalize(exception: unknown): NormalizedFailure {
     if (exception instanceof ZodSerializationException) {
       return {
@@ -320,6 +344,9 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     }
   }
 
+  /**
+   * 记录带请求关联 ID 的 5xx 日志，使用路由模板并对异常原因脱敏。
+   */
   private logServerFailure(
     exception: unknown,
     normalized: NormalizedFailure,
@@ -340,6 +367,10 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     })
   }
 
+  /**
+   * 捕获 HTTP 异常，记录服务端故障并返回统一错误结构、请求 ID 和必要的 Bearer 质询。
+   * @remarks 响应头已发送时只结束响应，避免重复写入。
+   */
   catch(exception: unknown, host: ArgumentsHost): void {
     const http = host.switchToHttp()
     const request = http.getRequest<FastifyRequest>()

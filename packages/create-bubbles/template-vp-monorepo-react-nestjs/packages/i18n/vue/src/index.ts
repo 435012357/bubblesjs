@@ -30,12 +30,18 @@ export const I18nProvider = defineComponent({
       required: true,
     },
   },
+  /** 为后代组件注入国际化容器，并原样渲染默认插槽。 */
   setup(props, { slots }) {
     provide(I18nKey, props.store)
     return () => slots.default?.()
   },
 })
 
+/**
+ * 订阅注入的国际化容器，提供始终读取最新词条的翻译和语言切换方法。
+ * @returns 翻译方法、异步语言切换方法和响应式语言引用。
+ * @throws 未被 `I18nProvider` 包裹时抛出错误。
+ */
 export function useI18n(): UseI18nReturn {
   const store = inject(I18nKey)
   if (!store) throw new Error('useI18n must be used within I18nProvider')

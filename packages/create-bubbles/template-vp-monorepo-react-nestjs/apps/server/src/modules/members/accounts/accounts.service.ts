@@ -21,6 +21,7 @@ export class AccountsService {
     private readonly members: MembersService,
     private readonly sessions: SessionStoreService,
   ) {}
+  /** 读取账号的公开资料和平台角色标识，并将时间字段转换为接口时间字符串。 */
   async accountRecord(db: AccessDb, userId: string): Promise<AccountRecord> {
     const [user] = await db
       .select({
@@ -41,9 +42,11 @@ export class AccountsService {
       ),
     }
   }
+  /** 在平台账号读取权限下，按状态、姓名或账号分页查询账号及其平台角色。 */
   accounts(input: { actor: AccessActor; query: AccountPageQuery }) {
     return this.access.read(
       { actor: input.actor, scope: { type: 'platform' }, permission: 'platform.accounts.read' },
+      /** 分页读取账号并批量聚合平台角色，避免对每个账号重复查询角色。 */
       async (tx) => {
         const { page, pageSize, offset } = pageWindow(input.query)
         const condition = and(
@@ -92,6 +95,12 @@ export class AccountsService {
       },
     )
   }
+  /**
+   * 在用户行锁与权限写锁保护下修改账号状态或平台角色，并验证最后一位管理员仍然有效。
+   *
+   * 成功校验并写入审计后，停用账号还会撤销其全部会话；数据库异常交由事务回滚。
+   * @returns 更新后的账号资料及平台角色。
+   */
   accountChange(input: {
     actor: AccessActor
     userId: string
@@ -103,6 +112,7 @@ export class AccountsService {
         scope: { type: 'platform' },
         permission: 'status' in input.body ? 'platform.accounts.status' : 'platform.accounts.roles',
       },
+      /** 锁定目标用户行后更新账号或角色，管理员保护和审计通过后才撤销停用账号的会话。 */
       async (tx, access) => {
         const [user] = await tx.select().from(users).where(eq(users.id, input.userId)).for('update')
         requireFound(user)

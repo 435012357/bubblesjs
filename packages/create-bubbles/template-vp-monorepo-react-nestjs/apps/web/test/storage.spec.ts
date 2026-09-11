@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vite-plus/test'
 import { cookie } from '../src/utils/storage/cookie'
 import { local, session } from '../src/utils/storage/session'
 
+/** 以 Map 模拟浏览器存储接口，供序列化行为测试使用。 */
 function createMemoryStorage() {
   const values = new Map<string, string>()
   return {

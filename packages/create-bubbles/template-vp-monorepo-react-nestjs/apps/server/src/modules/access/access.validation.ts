@@ -32,6 +32,11 @@ export const statusSchema = z.strictObject({
   status: z.enum(['active', 'disabled']),
 })
 export const deleteSchema = z.strictObject({ expectedVersion: z.coerce.number().int().positive() })
+/**
+ * 按照给定 Zod 规则校验并转换请求数据，将失败结果交给统一参数异常处理。
+ *
+ * @returns 通过校验且已应用默认值、规范化等转换的数据。
+ */
 export function parse<T>(schema: z.ZodType<T>, input: unknown): T {
   const result = schema.safeParse(input)
   if (!result.success) throw new ZodValidationException(result.error)

@@ -1,15 +1,19 @@
 import { App } from 'antd'
-import { useLoaderData } from 'react-router'
 import type { AccessContext } from 'shared/types'
 import { refreshAccess } from '@/utils/request/workspace'
 
+/** 从父布局读取当前空间权限，保证页面与布局使用同一份数据。 */
 export function useAccess() {
-  return useLoaderData<AccessContext>()
+  return useOutletContext<AccessContext>()
 }
 
+/** 统一执行管理操作，处理取消、版本冲突提示及保存后的权限刷新。 */
 export function useManagementAction() {
   const { message } = App.useApp()
-  return async (action: () => Promise<unknown>, onSuccess?: () => void) => {
+  return /** 执行管理请求并反馈结果，成功后刷新权限，冲突时提示重新加载。 */ async (
+    action: () => Promise<unknown>,
+    onSuccess?: () => void,
+  ) => {
     try {
       await action()
       void message.success('已保存')

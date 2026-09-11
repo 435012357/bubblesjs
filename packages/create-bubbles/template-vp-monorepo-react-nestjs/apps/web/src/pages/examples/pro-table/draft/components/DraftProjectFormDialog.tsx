@@ -8,7 +8,6 @@ import {
   type ProFormInstance,
 } from '@ant-design/pro-components'
 import { Button } from 'antd'
-import { useImperativeHandle, useRef, useState, type Ref } from 'react'
 import { owners, priorityOptions, statusOptions, type ProjectFormValues } from '../../config'
 import { currentUser, type DraftProjectRecord, type SaveProjectInput } from '../config'
 
@@ -22,6 +21,7 @@ interface DraftProjectFormDialogProps {
   onSave: (input: SaveProjectInput) => boolean
 }
 
+/** 提供项目编辑弹窗，允许保存不完整草稿或校验后发布。 */
 export default function DraftProjectFormDialog({ ref, onSave }: DraftProjectFormDialogProps) {
   const formRef = useRef<ProFormInstance<ProjectFormValues>>(undefined)
   const [open, setOpen] = useState(false)
@@ -33,6 +33,7 @@ export default function DraftProjectFormDialog({ ref, onSave }: DraftProjectForm
   }
 
   useImperativeHandle(ref, () => ({
+    /** 载入待编辑记录并打开表单；未传记录时进入新增模式。 */
     show(project) {
       setRecord(project)
       setOpen(true)
@@ -65,10 +66,12 @@ export default function DraftProjectFormDialog({ ref, onSave }: DraftProjectForm
           !isPublished && (
             <Button
               key="draft"
-              onClick={() => {
-                const values = formRef.current?.getFieldsFormatValue?.()
-                if (values && onSave({ values, original: record, stage: 'draft' })) hide()
-              }}
+              onClick={
+                /** 读取未强制校验的表单内容保存草稿，保存成功后关闭弹窗。 */ () => {
+                  const values = formRef.current?.getFieldsFormatValue?.()
+                  if (values && onSave({ values, original: record, stage: 'draft' })) hide()
+                }
+              }
             >
               保存草稿
             </Button>
@@ -78,11 +81,13 @@ export default function DraftProjectFormDialog({ ref, onSave }: DraftProjectForm
           </Button>,
         ],
       }}
-      onFinish={async (values) => {
-        const saved = onSave({ values, original: record, stage: 'published' })
-        if (saved) hide()
-        return saved
-      }}
+      onFinish={
+        /** 提交校验通过的项目为已发布状态，保存成功后关闭弹窗。 */ async (values) => {
+          const saved = onSave({ values, original: record, stage: 'published' })
+          if (saved) hide()
+          return saved
+        }
+      }
     >
       <ProFormText
         name="name"

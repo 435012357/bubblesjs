@@ -7,9 +7,6 @@ import {
 import { ProLayout } from '@ant-design/pro-components'
 import { useRequest } from 'alova/client'
 import { App, Button } from 'antd'
-import { Suspense } from 'react'
-import { Link, Outlet, useLocation, useNavigate } from 'react-router'
-import PageLoading from '@/components/Loading/PageLoading'
 import { workspaceLayoutToken } from '@/config/theme'
 import { logout } from '@/api/auth'
 import { cookie } from '@/utils/storage/cookie'
@@ -31,6 +28,7 @@ const menuRoutes = [
   { path: '/examples/i18n', name: '国际化示例', icon: <TranslationOutlined /> },
 ]
 
+/** 组织基础导航、登录入口及退出登录，页面懒加载交由全局边界等待。 */
 export default function BasicLayout() {
   const location = useLocation()
   const navigate = useNavigate()
@@ -38,6 +36,7 @@ export default function BasicLayout() {
   const { message } = App.useApp()
   const { send, loading } = useRequest(logout, { immediate: false })
 
+  /** 结束当前登录会话，清理本地令牌并返回登录页。 */
   async function handleLogout() {
     if (loading) return
     try {
@@ -100,9 +99,7 @@ export default function BasicLayout() {
         </Link>
       )}
     >
-      <Suspense fallback={<PageLoading />}>
-        <Outlet />
-      </Suspense>
+      <Outlet />
     </ProLayout>
   )
 }

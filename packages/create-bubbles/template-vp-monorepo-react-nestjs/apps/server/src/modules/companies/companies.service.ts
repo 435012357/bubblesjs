@@ -34,11 +34,13 @@ export class CompaniesService {
     private readonly administrators: AdministratorsService,
   ) {}
 
+  /** 读取指定公司并将时间字段转换为接口格式；公司不存在时抛出资源不存在异常。 */
   async company(db: AccessDb, id: string): Promise<CompanyRecord> {
     const [row] = await db.select().from(companies).where(eq(companies.id, id))
     return toTimestampRecord(requireFound(row))
   }
 
+  /** 在同一数据库上下文中读取公司资料及其直接分配的管理员状态。 */
   async companyDetail(db: AccessDb, id: string): Promise<CompanyDetail> {
     return {
       ...(await this.company(db, id)),
@@ -49,9 +51,11 @@ export class CompaniesService {
     }
   }
 
+  /** 在平台公司读取权限下，按状态、公司名称或编码分页查询公司。 */
   listCompanies(input: { actor: AccessActor; query: EntityPageQuery }) {
     return this.access.read(
       { actor: input.actor, scope: { type: 'platform' }, permission: 'platform.companies.read' },
+      /** 使用相同筛选条件查询公司总数和当前页，避免分页信息来自不同快照。 */
       async (tx) => {
         const { page, pageSize, offset } = pageWindow(input.query)
         const condition = and(
@@ -71,6 +75,11 @@ export class CompaniesService {
     )
   }
 
+  /**
+   * 要求平台管理员具备创建权限，校验公司编码和管理员账号后创建公司及首位管理员并记录审计。
+   *
+   * @returns 新公司资料与管理员列表。
+   */
   create(input: { actor: AccessActor; body: CreateCompanyRequest }) {
     return this.access.write(
       {
@@ -79,6 +88,7 @@ export class CompaniesService {
         permission: 'platform.companies.create',
         adminOnly: true,
       },
+      /** 在同一事务内校验管理员账号和公司编码，创建公司及首位管理员并记录审计。 */
       async (tx, access) => {
         const user = await this.members.userForAccount(
           tx,
@@ -116,6 +126,11 @@ export class CompaniesService {
     )
   }
 
+  /**
+   * 根据请求入口使用平台公司读取权限或公司资料读取权限，返回公司及管理员详情。
+   *
+   * @param input - platform 为 true 时按平台权限读取，默认使用公司作用域鉴权。
+   */
   get(input: { actor: AccessActor; companyId: string; platform?: boolean }) {
     const scope: AccessScope = input.platform
       ? { type: 'platform' }
@@ -130,6 +145,7 @@ export class CompaniesService {
     )
   }
 
+  /** 在公司作用域内校验资料修改权限、数据版本和编码唯一性，更新资料并记录审计。 */
   profile(input: { actor: AccessActor; companyId: string; body: UpdateProfileRequest }) {
     return this.access.write(
       {
@@ -137,6 +153,7 @@ export class CompaniesService {
         scope: { type: 'company', companyId: input.companyId },
         permission: 'company.profile.update',
       },
+      /** 检查公司版本与编码冲突，再将资料变更和字段审计一并写入。 */
       async (tx, access) => {
         const existing = await this.company(tx, input.companyId)
         checkVersion(existing.version, input.body.expectedVersion)
@@ -166,9 +183,15 @@ export class CompaniesService {
     )
   }
 
+  /**
+   * 在平台权限下启停公司并递增版本；重新启用时必须确认相关有效作用域仍有管理员。
+   *
+   * 状态变更与审计记录在同一事务内提交。
+   */
   status(input: { actor: AccessActor; companyId: string; body: StatusRequest }) {
     return this.access.write(
       { actor: input.actor, scope: { type: 'platform' }, permission: 'platform.companies.status' },
+      /** 根据预期版本启停公司，启用时验证管理员完整性并记录前后状态。 */
       async (tx, access) => {
         const target = await this.company(tx, input.companyId)
         checkVersion(target.version, input.body.expectedVersion)
@@ -195,6 +218,11 @@ export class CompaniesService {
     )
   }
 
+  /**
+   * 要求平台管理员具备公司管理员设置权限，为目标公司追加或替换管理员并记录审计。
+   *
+   * @returns 新管理员状态和被替换用户标识。
+   */
   setAdministrator(input: {
     actor: AccessActor
     companyId: string
@@ -207,6 +235,7 @@ export class CompaniesService {
         permission: 'platform.companies.administrator',
         adminOnly: true,
       },
+      /** 确认公司存在后变更管理员分配，并返回新管理员状态及替换记录。 */
       async (tx, access): Promise<SetAdministratorResult> => {
         await this.company(tx, input.companyId)
         const scope: AccessScope = { type: 'company', companyId: input.companyId }

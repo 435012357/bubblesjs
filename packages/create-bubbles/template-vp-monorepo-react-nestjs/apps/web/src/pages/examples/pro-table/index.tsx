@@ -1,7 +1,6 @@
 import FullHeightProTable from '@/components/FullHeightProTable/FullHeightProTable'
 import { PlusOutlined } from '@ant-design/icons'
 import { App, Button, Empty, Popconfirm } from 'antd'
-import { useMemo, useRef, useState, type Key } from 'react'
 import ProjectFormDialog, { type ProjectFormDialogRef } from './components/ProjectFormDialog'
 import {
   initialProjects,
@@ -11,6 +10,7 @@ import {
 } from './config'
 import { createProjectColumns } from './config/columns'
 
+/** 演示项目列表的筛选、分页、行选择及新增编辑删除。 */
 export default function ProTableExample() {
   const { message } = App.useApp()
   const formDialogRef = useRef<ProjectFormDialogRef>(null)
@@ -21,22 +21,29 @@ export default function ProTableExample() {
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(6)
 
-  const filteredProjects = useMemo(() => {
-    const keyword = search.name?.trim().toLowerCase()
-    return projects.filter((project) => {
-      if (keyword && !`${project.name} ${project.id}`.toLowerCase().includes(keyword)) return false
-      if (search.status && project.status !== search.status) return false
-      if (search.owner && project.owner !== search.owner) return false
-      if (search.priority && project.priority !== search.priority) return false
-      if (
-        search.dueDate &&
-        (project.dueDate < search.dueDate[0] || project.dueDate > search.dueDate[1])
+  const filteredProjects = useMemo(
+    /** 根据项目搜索条件计算当前列表，避免无关状态更新时重复筛选。 */ () => {
+      const keyword = search.name?.trim().toLowerCase()
+      return projects.filter(
+        /** 依次校验关键字、状态、负责人、优先级及截止日期范围。 */ (project) => {
+          if (keyword && !`${project.name} ${project.id}`.toLowerCase().includes(keyword))
+            return false
+          if (search.status && project.status !== search.status) return false
+          if (search.owner && project.owner !== search.owner) return false
+          if (search.priority && project.priority !== search.priority) return false
+          if (
+            search.dueDate &&
+            (project.dueDate < search.dueDate[0] || project.dueDate > search.dueDate[1])
+          )
+            return false
+          return true
+        },
       )
-        return false
-      return true
-    })
-  }, [projects, search])
+    },
+    [projects, search],
+  )
 
+  /** 新增项目或替换编辑记录，更新页面列表并提示保存成功。 */
   function saveProject(values: ProjectFormValues, original?: ProjectRecord) {
     if (original) {
       setProjects((current) =>
@@ -52,6 +59,7 @@ export default function ProTableExample() {
     void message.success(original ? '项目已保存' : '项目已新增')
   }
 
+  /** 从项目列表及行选择中移除指定项目，并提示删除数量。 */
   function deleteProjects(ids: Key[]) {
     setProjects((current) => current.filter((project) => !ids.includes(project.id)))
     setSelectedRowKeys((current) => current.filter((id) => !ids.includes(id)))
@@ -74,16 +82,20 @@ export default function ProTableExample() {
         search={{ labelWidth: 'auto', defaultCollapsed: true }}
         form={{ name: 'project-search' }}
         dateFormatter="string"
-        onSubmit={(values) => {
-          setSearch(values)
-          setPage(1)
-          setSelectedRowKeys([])
-        }}
-        onReset={() => {
-          setSearch({})
-          setPage(1)
-          setSelectedRowKeys([])
-        }}
+        onSubmit={
+          /** 应用新的项目查询条件，同时回到第一页并清除行选择。 */ (values) => {
+            setSearch(values)
+            setPage(1)
+            setSelectedRowKeys([])
+          }
+        }
+        onReset={
+          /** 清空项目查询条件，同时回到第一页并清除行选择。 */ () => {
+            setSearch({})
+            setPage(1)
+            setSelectedRowKeys([])
+          }
+        }
         options={{ reload: false, density: true, setting: true, fullScreen: true }}
         toolBarRender={() => [
           <Button
@@ -115,6 +127,7 @@ export default function ProTableExample() {
           showSizeChanger: true,
           pageSizeOptions: [6, 12, 24],
           showTotal: (total) => `共 ${total} 个项目`,
+          /** 同步分页页码与每页条数。 */
           onChange: (current, size) => {
             setPage(current)
             setPageSize(size)

@@ -12,7 +12,6 @@ import {
   HomeOutlined,
   ProfileOutlined,
 } from '@ant-design/icons'
-import type { ReactNode } from 'react'
 import type { AccessContext, AccessScope, MenuNode } from 'shared/types'
 import { accessRoutePath, filterSupportedAccessMenus } from 'shared/utils'
 
@@ -40,14 +39,18 @@ export const pageRegistry = {
 export type RegisteredPage = keyof typeof pageRegistry
 export const registeredRouteKeys = Object.keys(pageRegistry)
 
+/** 仅为前端已注册的页面生成指定作用域路径，未知页面返回 null。 */
 export function pagePath(scope: AccessScope, routeKey: string) {
   const page = pageRegistry[routeKey as RegisteredPage]
   return page ? accessRoutePath({ scope, routeKey }) : null
 }
 
+/** 优先按可见菜单顺序寻找授权页面，再从已注册页面中兜底选择。 */
 export function firstAccessiblePagePath(context: AccessContext): string | null {
+  /** 仅为拥有读取权限的页面生成当前工作空间路径。 */
   const allowedPath = (key: string) =>
     context.permissionKeys.includes(`${key}.read`) ? pagePath(context.scope, key) : null
+  /** 深度优先遍历可见且启用的菜单，返回首个已授权页面路径。 */
   const visit = (nodes: MenuNode[]): string | null => {
     for (const node of nodes) {
       if (node.hidden || node.status !== 'active' || node.type === 'operation') continue
@@ -87,18 +90,23 @@ interface NavigationItem {
   routes?: NavigationItem[]
 }
 
+/** 过滤未发布和不可见功能，将有效菜单递归转换为布局导航数据。 */
 export function navigationTree(nodes: MenuNode[], scope: AccessScope): NavigationItem[] {
   return filterSupportedAccessMenus({
     menus: nodes,
     supportedRouteKeys: registeredRouteKeys,
-  }).flatMap((node): NavigationItem[] => {
-    if (node.hidden || node.status !== 'active' || node.type === 'operation') return []
-    const icon = menuIcons[node.icon as keyof typeof menuIcons] ?? <ApartmentOutlined />
-    if (node.type === 'page') {
-      const path = pagePath(scope, node.routeKey ?? '')
-      return path ? [{ key: path, path, name: node.name, icon }] : []
-    }
-    const routes = navigationTree(node.children, scope)
-    return routes.length ? [{ key: node.id, name: node.name, icon, routes }] : []
-  })
+  }).flatMap(
+    /** 丢弃不可导航节点，解析页面路径或递归生成目录下的有效导航项。 */ (
+      node,
+    ): NavigationItem[] => {
+      if (node.hidden || node.status !== 'active' || node.type === 'operation') return []
+      const icon = menuIcons[node.icon as keyof typeof menuIcons] ?? <ApartmentOutlined />
+      if (node.type === 'page') {
+        const path = pagePath(scope, node.routeKey ?? '')
+        return path ? [{ key: path, path, name: node.name, icon }] : []
+      }
+      const routes = navigationTree(node.children, scope)
+      return routes.length ? [{ key: node.id, name: node.name, icon, routes }] : []
+    },
+  )
 }

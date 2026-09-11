@@ -1,7 +1,6 @@
 import { PlusOutlined } from '@ant-design/icons'
 import type { ActionType, ProColumns } from '@ant-design/pro-components'
 import { App, Button, Popconfirm, Space, Tag } from 'antd'
-import { useRef, useState } from 'react'
 import type { AccountRecord, EntityStatus, MemberRecord } from 'shared/types'
 import FullHeightProTable from '@/components/FullHeightProTable/FullHeightProTable'
 import { managementApi } from './api'
@@ -9,6 +8,7 @@ import AddMemberDialog, { type AddMemberDialogRef } from './components/AddMember
 import MemberRolesDialog, { type MemberRolesDialogRef } from './components/MemberRolesDialog'
 import { useAccess, useManagementAction } from './use-access'
 
+/** 按作用域管理账号或成员，处理状态、移除及角色分配。 */
 export default function MembersPage() {
   const access = useAccess()
   const platform = access.scope.type === 'platform'
@@ -21,10 +21,12 @@ export default function MembersPage() {
   const [openingId, setOpeningId] = useState<string>()
   const prefix = `${access.scope.type}.${platform ? 'accounts' : 'members'}`
   const allowed = (action: string) => access.permissionKeys.includes(`${prefix}.${action}`)
+  /** 重新查询当前表格，使管理操作立即反映到列表。 */
   const refresh = () => {
     void actionRef.current?.reload()
   }
 
+  /** 加载可分配角色，并将当前成员或账号带入角色分配弹窗。 */
   async function openRoles(record: AccountRecord | MemberRecord) {
     setOpeningId(record.id)
     try {
@@ -170,16 +172,18 @@ export default function MembersPage() {
           platform ? '全局账号' : access.scope.type === 'company' ? '企业成员' : '项目成员'
         }
         pagination={{ defaultPageSize: 20, showSizeChanger: true, pageSizeOptions: [20, 50, 100] }}
-        request={async (params) => {
-          const query = {
-            page: params.current ?? 1,
-            pageSize: params.pageSize ?? 20,
-            query: params.query as string | undefined,
-            status: params.status as EntityStatus | undefined,
+        request={
+          /** 按作用域查询全局账号或空间成员，并转换为表格分页结果。 */ async (params) => {
+            const query = {
+              page: params.current ?? 1,
+              pageSize: params.pageSize ?? 20,
+              query: params.query as string | undefined,
+              status: params.status as EntityStatus | undefined,
+            }
+            const result = platform ? await api.accounts(query) : await api.members(query)
+            return { data: result.items, total: result.total, success: true }
           }
-          const result = platform ? await api.accounts(query) : await api.members(query)
-          return { data: result.items, total: result.total, success: true }
-        }}
+        }
         onRequestError={(error) => {
           if (error.name !== 'AbortError') void message.error(error.message)
         }}

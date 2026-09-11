@@ -12,6 +12,7 @@ export const router = createRouter({
   scrollBehavior: () => ({ left: 0, top: 0 }),
 })
 
+/** 先注册导航守卫，再将路由安装到 Vue 应用。 */
 export function setupRouter(app: App) {
   setupGuard(router)
   app.use(router)

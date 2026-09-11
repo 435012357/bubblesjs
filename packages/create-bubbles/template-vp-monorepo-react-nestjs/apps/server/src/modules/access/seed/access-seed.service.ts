@@ -29,6 +29,7 @@ import { lockAccess, scopeColumns, scopeFilter, type AccessTx } from '../access.
 @Injectable()
 export class AccessSeedService implements OnModuleInit {
   constructor(@Inject(DRIZZLE) private readonly db: DrizzleDB) {}
+  /** 服务启动时在权限写锁保护下同步权限目录、默认菜单和各作用域内置角色。 */
   async onModuleInit() {
     await this.db.transaction(async (tx) => {
       await lockAccess(tx)
@@ -36,6 +37,12 @@ export class AccessSeedService implements OnModuleInit {
     })
   }
 
+  /**
+   * 幂等创建作用域内置管理员和普通成员角色，并补齐尚未清理的默认权限。
+   *
+   * 只追加缺失权限，发生追加时递增角色版本；清理墓碑标记的权限不会恢复。
+   * @returns 当前作用域的内置角色记录。
+   */
   async ensureRoles(tx: AccessTx, scope: AccessScope) {
     for (const builtin of ['administrator', 'member'] as const) {
       await tx
@@ -75,6 +82,11 @@ export class AccessSeedService implements OnModuleInit {
     return found.filter((r) => r.builtin)
   }
 
+  /**
+   * 将代码权限目录同步到数据库，补建菜单及各作用域内置角色，同时保留已有菜单配置。
+   *
+   * 清理墓碑中的权限不会重建；新增菜单时递增对应作用域的菜单版本。
+   */
   async sync(tx: AccessTx) {
     const tombstones = new Set(
       (await tx.select().from(cleanupTombstones)).map((t) => t.permissionKey),
@@ -121,6 +133,12 @@ export class AccessSeedService implements OnModuleInit {
       })
   }
 
+  /**
+   * 为有效账号执行首次平台管理员初始化，同步基础权限并写入初始化标记和审计记录。
+   *
+   * @param account - 待授予首位平台管理员身份的账号，会先进行规范化。
+   * @returns 初始化状态；相同账号重复调用可安全返回，其他账号再次初始化会被拒绝。
+   */
   async initialize(account: string) {
     return this.db.transaction(async (tx) => {
       await lockAccess(tx)

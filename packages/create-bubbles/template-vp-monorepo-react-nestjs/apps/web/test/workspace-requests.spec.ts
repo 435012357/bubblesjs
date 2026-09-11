@@ -13,6 +13,7 @@ import {
 const dispatchEvent = vi.fn()
 const assign = vi.fn()
 
+/** 创建可手动完成或拒绝的请求替身，用于验证取消与迟到响应。 */
 function deferredMethod<T>() {
   let resolve!: (value: T) => void
   let reject!: (reason: unknown) => void

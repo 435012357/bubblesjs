@@ -1,32 +1,34 @@
 import { ArrowRightOutlined, LogoutOutlined, ReloadOutlined } from '@ant-design/icons'
 import { App, Button, Card, Empty, Input, Space, Tag } from 'antd'
-import { useEffect, useState } from 'react'
-import { Link, useLoaderData, useNavigate, useRevalidator } from 'react-router'
-import type { WorkspacesResult } from 'shared/types'
 import { accessScopeBasePath, accessScopeKey } from 'shared/utils'
 import { logout } from '@/api/auth'
+import PageLoading from '@/components/Loading/PageLoading'
 import { clearWorkspaceRequests } from '@/utils/request/workspace'
 import { cookie } from '@/utils/storage/cookie'
+import { getWorkspaceState } from './state'
 import '@/layouts/WorkspaceLayout/workspace.css'
 
+/** 展示可访问工作空间，支持搜索、权限刷新及退出登录。 */
 export default function WorkspacesPage() {
-  const data = useLoaderData<WorkspacesResult>()
+  const data = getWorkspaceState().workspaces
   const [query, setQuery] = useState('')
   const navigate = useNavigate()
   const revalidator = useRevalidator()
   const { message } = App.useApp()
-  const entries = data.workspaces.filter((item) =>
-    `${item.name} ${item.companyName ?? ''}`.toLowerCase().includes(query.toLowerCase()),
+
+  useEffect(
+    /** 注册窗口焦点刷新，在组件卸载时取消监听。 */ () => {
+      /** 窗口重新获得焦点时，在路由空闲状态下刷新工作空间列表。 */
+      const refresh = () => {
+        if (revalidator.state === 'idle') void revalidator.revalidate()
+      }
+      window.addEventListener('focus', refresh)
+      return () => window.removeEventListener('focus', refresh)
+    },
+    [revalidator],
   )
 
-  useEffect(() => {
-    const refresh = () => {
-      if (revalidator.state === 'idle') void revalidator.revalidate()
-    }
-    window.addEventListener('focus', refresh)
-    return () => window.removeEventListener('focus', refresh)
-  }, [revalidator])
-
+  /** 结束当前登录会话，清理本地令牌并返回登录页。 */
   async function handleLogout() {
     clearWorkspaceRequests()
     try {
@@ -37,6 +39,11 @@ export default function WorkspacesPage() {
       void message.error(error instanceof Error ? error.message : '退出失败，请重试')
     }
   }
+
+  if (!data) return <PageLoading />
+  const entries = data.workspaces.filter((item) =>
+    `${item.name} ${item.companyName ?? ''}`.toLowerCase().includes(query.toLowerCase()),
+  )
 
   return (
     <main className="workspace-landing">
@@ -129,6 +136,7 @@ export default function WorkspacesPage() {
   )
 }
 
+/** 以等宽样式展示当前登录账号。 */
 function TypographyAccount({ account }: { account: string }) {
   return <code>{account}</code>
 }

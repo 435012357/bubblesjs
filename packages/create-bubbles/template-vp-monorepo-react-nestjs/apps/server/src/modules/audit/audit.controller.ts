@@ -13,6 +13,7 @@ import { auditSchema } from './audit.validation'
 ])
 export class AuditController {
   constructor(private readonly audit: AuditService) {}
+  /** 校验分页、操作者及时间筛选参数，读取路由对应作用域内的审计日志。 */
   @Get()
   @AccessPolicy({ scope: 'route', permission: '{scope}.audit.read' })
   list(@Req() req: FastifyRequest, @Query() raw: unknown) {

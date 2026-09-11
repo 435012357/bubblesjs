@@ -23,6 +23,7 @@ const identifierContinuePattern = /[\p{ID_Continue}_$]/u
 const whitespacePattern = /\s/u
 const hexPattern = /^[\dA-Fa-f]+$/
 
+/** 扫描文本中的翻译调用及其静态字符串参数，返回词条与从 1 开始的行列位置；跳过插值模板和动态表达式。 */
 export function scanSource(source: string, options: ScanOptions = {}): MessageOccurrence[] {
   const callNames = normalizeCallNames(options.callNames)
   const occurrences: MessageOccurrence[] = []
@@ -81,6 +82,7 @@ export function scanSource(source: string, options: ScanOptions = {}): MessageOc
   return occurrences
 }
 
+/** 去除空调用名和重复项，并优先匹配更长的名称；未配置时使用 tr。 */
 function normalizeCallNames(callNames: readonly string[] | undefined): string[] {
   const names = callNames ?? ['tr']
   return [...new Set(names.filter((name) => name.length > 0))].sort(
@@ -88,6 +90,7 @@ function normalizeCallNames(callNames: readonly string[] | undefined): string[] 
   )
 }
 
+/** 检查候选调用名的两侧，避免把较长标识符中的片段识别为翻译函数。 */
 function hasIdentifierBoundaries(source: string, index: number, callName: string): boolean {
   const firstCharacter = callName[0]
   const lastCharacter = callName[callName.length - 1]
@@ -101,6 +104,7 @@ function hasIdentifierBoundaries(source: string, index: number, callName: string
   )
 }
 
+/** 判断字符是否可以继续组成 JavaScript 标识符，兼容 Unicode 连接字符。 */
 function isIdentifierContinue(character: string | undefined): boolean {
   return (
     character !== undefined &&
@@ -110,6 +114,7 @@ function isIdentifierContinue(character: string | undefined): boolean {
   )
 }
 
+/** 从指定位置跳过空白字符，返回下一个非空白字符的索引。 */
 function skipWhitespace(source: string, startIndex: number): number {
   let index = startIndex
   while (index < source.length && whitespacePattern.test(source[index] ?? '')) {
@@ -118,6 +123,7 @@ function skipWhitespace(source: string, startIndex: number): number {
   return index
 }
 
+/** 解析引号包裹的静态词条并还原转义；未闭合、非法换行或包含模板插值时返回 undefined。 */
 function parseString(
   source: string,
   startIndex: number,
@@ -157,6 +163,7 @@ function parseString(
   return undefined
 }
 
+/** 解析反斜杠后的字符转义、续行和 Unicode 转义，返回解码结果与后续扫描位置。 */
 function parseEscape(source: string, slashIndex: number): ParsedEscape | undefined {
   const escaped = source[slashIndex + 1]
   if (escaped === undefined) {
@@ -208,6 +215,7 @@ function parseEscape(source: string, slashIndex: number): ParsedEscape | undefin
   return { value: escaped, nextIndex: slashIndex + 2 }
 }
 
+/** 解码指定长度的十六进制转义；位数不足或包含非十六进制字符时返回 undefined。 */
 function parseFixedHexEscape(
   source: string,
   slashIndex: number,
@@ -226,6 +234,7 @@ function parseFixedHexEscape(
   }
 }
 
+/** 解码花括号包裹的 Unicode 码点，并拒绝缺失括号或超出 Unicode 范围的值。 */
 function parseCodePointEscape(source: string, slashIndex: number): ParsedEscape | undefined {
   const digitsStart = slashIndex + 3
   const closingBraceIndex = source.indexOf('}', digitsStart)
@@ -249,6 +258,7 @@ function parseCodePointEscape(source: string, slashIndex: number): ParsedEscape 
   }
 }
 
+/** 收集每行起始偏移，兼容 LF、CRLF 和 CR 换行。 */
 function collectLineStarts(source: string): number[] {
   const starts = [0]
 
@@ -266,6 +276,7 @@ function collectLineStarts(source: string): number[] {
   return starts
 }
 
+/** 使用二分查找将字符偏移转换为从 1 开始的行号与列号。 */
 function locatePosition(
   lineStarts: readonly number[],
   index: number,

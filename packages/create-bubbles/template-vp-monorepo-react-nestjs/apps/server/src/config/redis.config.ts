@@ -7,6 +7,9 @@ export interface RedisConfig {
   db: number
 }
 
+/**
+ * 加载会话 Redis 的单节点连接配置及逻辑库编号。
+ */
 export default registerAs(
   'redis',
   (): RedisConfig => ({

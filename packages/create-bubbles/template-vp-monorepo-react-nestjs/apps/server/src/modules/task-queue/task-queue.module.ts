@@ -12,6 +12,9 @@ import { TaskQueueService } from './task-queue.service'
     BullModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
+      /**
+       * 根据队列专属配置创建 Redis 连接、指数退避和任务保留策略。
+       */
       useFactory: (config: ConfigService) => {
         const queue = config.getOrThrow<QueueConfig>('queue')
 

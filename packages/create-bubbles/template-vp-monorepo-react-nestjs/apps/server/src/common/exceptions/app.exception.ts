@@ -15,6 +15,10 @@ export interface AppExceptionOptions {
   readonly details?: readonly ApiErrorDetail[]
 }
 
+/**
+ * 校验业务错误码、公开文案和 HTTP 状态，并要求 401 错误声明 Bearer 质询。
+ * @throws 错误定义不满足约定时抛出 TypeError。
+ */
 function assertErrorDefinition(definition: AppErrorDefinition): void {
   if (!ERROR_CODE_PATTERN.test(definition.code) || definition.code.length > 80) {
     throw new TypeError('Invalid application error code: ' + definition.code)
@@ -41,6 +45,11 @@ export class AppException extends HttpException {
   readonly definition: AppErrorDefinition
   readonly details?: readonly ApiErrorDetail[]
 
+  /**
+   * 创建携带稳定业务错误定义的 HTTP 异常。
+   * @param options 保留内部原因用于日志，附加可公开的字段错误详情。
+   * @throws 错误定义不合法时抛出 TypeError。
+   */
   constructor(definition: AppErrorDefinition, options: AppExceptionOptions = {}) {
     assertErrorDefinition(definition)
 

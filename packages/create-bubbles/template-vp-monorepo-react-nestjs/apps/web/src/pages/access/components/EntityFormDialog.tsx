@@ -1,5 +1,4 @@
 import { ModalForm, ProFormText, ProFormTextArea } from '@ant-design/pro-components'
-import { useImperativeHandle, useState, type Ref } from 'react'
 import type { CreateCompanyRequest } from 'shared/types'
 import { ACCOUNT_PATTERN, normalizeAccount } from 'shared/utils'
 
@@ -8,6 +7,7 @@ export interface EntityFormDialogRef {
   hide: () => void
 }
 
+/** 收集企业或项目资料及初始管理员信息，交由页面创建实体。 */
 export default function EntityFormDialog({
   ref,
   project,
@@ -31,16 +31,18 @@ export default function EntityFormDialog({
       onOpenChange={(visible) => {
         if (!visible) hide()
       }}
-      onFinish={async (values) => {
-        const ok = await onSave({
-          name: values.name.trim(),
-          code: values.code.trim().toLowerCase(),
-          description: values.description?.trim(),
-          administratorAccount: normalizeAccount(values.administratorAccount),
-        })
-        if (ok) hide()
-        return ok
-      }}
+      onFinish={
+        /** 规范化实体名称、编码和管理员账号，创建成功后关闭弹窗。 */ async (values) => {
+          const ok = await onSave({
+            name: values.name.trim(),
+            code: values.code.trim().toLowerCase(),
+            description: values.description?.trim(),
+            administratorAccount: normalizeAccount(values.administratorAccount),
+          })
+          if (ok) hide()
+          return ok
+        }
+      }
     >
       <ProFormText
         name="name"

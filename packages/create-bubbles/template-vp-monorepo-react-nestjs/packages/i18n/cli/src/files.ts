@@ -32,6 +32,7 @@ const defaultExcludes = [
   '**/node_modules/**',
 ]
 
+/** 按项目的包含和排除规则扫描源码，跳过含空字节的文件并收集去重词条及出现位置。 */
 export async function scanFiles(options: ScanFilesOptions): Promise<ScanFilesResult> {
   const files = await fg([...options.include], {
     absolute: true,

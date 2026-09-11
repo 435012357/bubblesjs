@@ -1,7 +1,6 @@
 import { PlusOutlined } from '@ant-design/icons'
 import type { ActionType, ProColumns } from '@ant-design/pro-components'
 import { App, Button, Popconfirm, Space, Tag } from 'antd'
-import { useRef, useState } from 'react'
 import type { RoleRecord } from 'shared/types'
 import FullHeightProTable from '@/components/FullHeightProTable/FullHeightProTable'
 import { managementApi } from './api'
@@ -11,6 +10,7 @@ import RolePermissionsDialog, {
 } from './components/RolePermissionsDialog'
 import { useAccess, useManagementAction } from './use-access'
 
+/** 管理当前作用域的角色，并按授权范围开放角色和权限编辑。 */
 export default function RolesPage() {
   const access = useAccess()
   const api = managementApi(access.scope)
@@ -22,10 +22,12 @@ export default function RolesPage() {
   const [openingId, setOpeningId] = useState<string>()
   const allowed = (operation: string) =>
     access.permissionKeys.includes(`${access.scope.type}.roles.${operation}`)
+  /** 重新查询当前表格，使管理操作立即反映到列表。 */
   const refresh = () => {
     void actionRef.current?.reload()
   }
 
+  /** 同时读取角色详情和权限目录，按编辑权限打开配置弹窗。 */
   async function openPermissions(record: RoleRecord) {
     setOpeningId(record.id)
     try {
@@ -107,14 +109,16 @@ export default function RolesPage() {
         columns={columns}
         headerTitle="角色管理"
         pagination={{ defaultPageSize: 20, showSizeChanger: true, pageSizeOptions: [20, 50, 100] }}
-        request={async (params) => {
-          const result = await api.roles({
-            page: params.current,
-            pageSize: params.pageSize,
-            query: params.query as string | undefined,
-          })
-          return { data: result.items, total: result.total, success: true }
-        }}
+        request={
+          /** 查询当前作用域角色，并转换为表格分页结果。 */ async (params) => {
+            const result = await api.roles({
+              page: params.current,
+              pageSize: params.pageSize,
+              query: params.query as string | undefined,
+            })
+            return { data: result.items, total: result.total, success: true }
+          }
+        }
         onRequestError={(error) => {
           if (error.name !== 'AbortError') void message.error(error.message)
         }}

@@ -62,16 +62,18 @@ const projectNames = [
 const statuses: ProjectStatus[] = ['active', 'active', 'planning', 'active', 'completed', 'paused']
 const priorities: ProjectPriority[] = ['high', 'medium', 'low']
 
-export const initialProjects: ProjectRecord[] = projectNames.map((name, index) => {
-  const status = statuses[index % statuses.length]!
-  return {
-    id: `PRJ-${String(index + 1).padStart(3, '0')}`,
-    name,
-    owner: owners[index % owners.length]!,
-    status,
-    priority: priorities[index % priorities.length]!,
-    progress: status === 'completed' ? 100 : status === 'planning' ? 0 : 24 + ((index * 13) % 65),
-    dueDate: `2026-${index < 12 ? '09' : '10'}-${String(10 + (index % 12)).padStart(2, '0')}`,
-    description: `围绕${name}完善团队协作与交付体验。`,
-  }
-})
+export const initialProjects: ProjectRecord[] = projectNames.map(
+  /** 按固定名称、负责人和状态序列生成可重复的项目演示数据。 */ (name, index) => {
+    const status = statuses[index % statuses.length]!
+    return {
+      id: `PRJ-${String(index + 1).padStart(3, '0')}`,
+      name,
+      owner: owners[index % owners.length]!,
+      status,
+      priority: priorities[index % priorities.length]!,
+      progress: status === 'completed' ? 100 : status === 'planning' ? 0 : 24 + ((index * 13) % 65),
+      dueDate: `2026-${index < 12 ? '09' : '10'}-${String(10 + (index % 12)).padStart(2, '0')}`,
+      description: `围绕${name}完善团队协作与交付体验。`,
+    }
+  },
+)

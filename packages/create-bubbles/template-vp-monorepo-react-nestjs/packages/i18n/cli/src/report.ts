@@ -26,6 +26,7 @@ export interface CreateSyncReportOptions {
   files?: readonly SyncFileReport[]
 }
 
+/** 填充同步报告的默认选项，并复制各文件的变更数组以隔离调用方修改。 */
 export function createSyncReport(options: CreateSyncReportOptions = {}): SyncReport {
   return {
     command: options.command ?? 'sync',
@@ -40,6 +41,7 @@ export function createSyncReport(options: CreateSyncReportOptions = {}): SyncRep
   }
 }
 
+/** 将报告写入同目录临时文件后重命名替换目标；失败时清理临时文件并传播异常。 */
 export async function writeSyncReport(report: SyncReport, path: string): Promise<void> {
   const content = `${JSON.stringify(report, undefined, 2)}\n`
   const directory = dirname(path)

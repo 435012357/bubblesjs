@@ -48,6 +48,7 @@ afterAll(
     ),
 )
 
+/** 创建带鉴权和错误回调监视器的请求实例，供响应处理测试复用。 */
 function setup() {
   const unauthorized = vi.fn()
   const errorMessage = vi.fn()

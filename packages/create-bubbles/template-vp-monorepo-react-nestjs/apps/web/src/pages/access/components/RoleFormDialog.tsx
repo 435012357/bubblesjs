@@ -1,11 +1,11 @@
 import { ModalForm, ProFormText, ProFormTextArea } from '@ant-design/pro-components'
-import { useImperativeHandle, useState, type Ref } from 'react'
 import type { CreateRoleRequest, RoleRecord } from 'shared/types'
 
 export interface RoleFormDialogRef {
   show: (record?: RoleRecord) => void
   hide: () => void
 }
+/** 复用新增与编辑角色表单，并保留原角色的版本信息。 */
 export default function RoleFormDialog({
   ref,
   onSave,
@@ -17,6 +17,7 @@ export default function RoleFormDialog({
   const [record, setRecord] = useState<RoleRecord>()
   const hide = () => setOpen(false)
   useImperativeHandle(ref, () => ({
+    /** 载入待编辑记录并打开表单；未传记录时进入新增模式。 */
     show: (item) => {
       setRecord(item)
       setOpen(true)
@@ -34,14 +35,16 @@ export default function RoleFormDialog({
         if (!visible) hide()
       }}
       submitter={{ searchConfig: { submitText: '保存角色' } }}
-      onFinish={async (values) => {
-        const ok = await onSave(
-          { name: values.name.trim(), description: values.description?.trim() },
-          record,
-        )
-        if (ok) hide()
-        return ok
-      }}
+      onFinish={
+        /** 规范化角色名称与说明，提交新增或编辑后按结果关闭弹窗。 */ async (values) => {
+          const ok = await onSave(
+            { name: values.name.trim(), description: values.description?.trim() },
+            record,
+          )
+          if (ok) hide()
+          return ok
+        }
+      }
     >
       <ProFormText
         name="name"

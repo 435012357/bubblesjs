@@ -43,6 +43,7 @@ const summaryNames: Record<string, string> = {
   description: '说明',
 }
 
+/** 按当前工作空间查询操作日志，展示操作者、目标对象及变更摘要。 */
 export default function AuditPage() {
   const access = useAccess()
   const api = managementApi(access.scope)
@@ -61,6 +62,7 @@ export default function AuditPage() {
       valueType: 'dateTimeRange',
       hideInTable: true,
       search: {
+        /** 将审计查询时间范围转换为接口要求的 ISO 起止时间。 */
         transform: (value: string[]) => ({
           from: value[0] ? new Date(value[0]).toISOString() : undefined,
           to: value[1] ? new Date(value[1]).toISOString() : undefined,
@@ -122,17 +124,19 @@ export default function AuditPage() {
       columns={columns}
       headerTitle="操作日志"
       pagination={{ defaultPageSize: 20, showSizeChanger: true, pageSizeOptions: [20, 50, 100] }}
-      request={async (params) => {
-        const result = await api.audits({
-          page: params.current,
-          pageSize: params.pageSize,
-          query: params.query as string | undefined,
-          action: params.action as string | undefined,
-          from: params.from as string | undefined,
-          to: params.to as string | undefined,
-        })
-        return { data: result.items, total: result.total, success: true }
-      }}
+      request={
+        /** 转换表格查询条件为审计分页参数，并适配返回结果。 */ async (params) => {
+          const result = await api.audits({
+            page: params.current,
+            pageSize: params.pageSize,
+            query: params.query as string | undefined,
+            action: params.action as string | undefined,
+            from: params.from as string | undefined,
+            to: params.to as string | undefined,
+          })
+          return { data: result.items, total: result.total, success: true }
+        }
+      }
       onRequestError={(error) => {
         if (error.name !== 'AbortError') void message.error(error.message)
       }}

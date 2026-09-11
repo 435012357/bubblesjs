@@ -8,6 +8,10 @@ import { QueueSmokePayloadSchema } from './task-queue.contracts'
 export class TaskQueueProcessor extends WorkerHost {
   private readonly logger = new Logger(TaskQueueProcessor.name)
 
+  /**
+   * 按任务名称校验并执行队列任务，冒烟任务返回标记及处理时间。
+   * @throws 未知任务或无效负载抛出 UnrecoverableError，阻止无意义的自动重试。
+   */
   async process(job: Job): Promise<unknown> {
     switch (job.name) {
       case TASK_JOB_NAMES.QUEUE_SMOKE: {
@@ -28,6 +32,9 @@ export class TaskQueueProcessor extends WorkerHost {
     }
   }
 
+  /**
+   * 记录任务完成事件及任务标识，便于按队列和尝试次数追踪处理结果。
+   */
   @OnWorkerEvent('completed')
   onCompleted(job: Job) {
     this.logger.log({
@@ -39,6 +46,9 @@ export class TaskQueueProcessor extends WorkerHost {
     })
   }
 
+  /**
+   * 记录任务失败事件，允许任务记录缺失，并仅输出错误名称。
+   */
   @OnWorkerEvent('failed')
   onFailed(job: Job | undefined, error: Error) {
     this.logger.error({
@@ -51,6 +61,9 @@ export class TaskQueueProcessor extends WorkerHost {
     })
   }
 
+  /**
+   * 记录 Worker 运行错误的名称，便于定位消费者基础设施故障。
+   */
   @OnWorkerEvent('error')
   onWorkerError(error: Error) {
     this.logger.error({

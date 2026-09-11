@@ -1745,6 +1745,7 @@ export const graph = {
   ],
 }
 
+/** 根据《悲惨世界》人物关系数据生成支持漫游和邻接高亮的关系图配置。 */
 export function getOption(): EChartsOption {
   return {
     title: {

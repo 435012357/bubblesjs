@@ -64,6 +64,9 @@ export class UploadService {
   private readonly bucket: string
   private readonly sessionTtlMs: number
 
+  /**
+   * 读取上传目标桶及会话有效期，并注入上传记录与对象存储依赖。
+   */
   constructor(
     private readonly uploadRepository: UploadRepository,
     @Inject(STORAGE_PORT) private readonly storage: StoragePort,
@@ -73,6 +76,12 @@ export class UploadService {
     this.sessionTtlMs = config.getOrThrow<number>('storage.sessionTtlMs')
   }
 
+  /**
+   * 幂等创建分片上传会话与存储 UploadId；并发请求复用已创建会话，多余存储上传会被补偿取消。
+   * @param ownerId 上传所属用户 ID。
+   * @param input 文件元数据及客户端生成的上传标识。
+   * @returns 上传会话状态及已有分片信息。
+   */
   async initiate(ownerId: string, input: InitiateMultipartUploadDto) {
     this.validateNewFile(input.fileSize)
 
@@ -146,6 +155,10 @@ export class UploadService {
     }
   }
 
+  /**
+   * 拒绝空文件及超过上传大小上限的文件。
+   * @param fileSize 文件字节数。
+   */
   private validateNewFile(fileSize: number) {
     if (fileSize === 0) {
       throw new AppException(UPLOAD_ERRORS.FILE_EMPTY)
@@ -156,6 +169,9 @@ export class UploadService {
     }
   }
 
+  /**
+   * 检查同一客户端上传标识对应的名称、大小及内容类型一致，防止误复用其他文件会话。
+   */
   private assertSameClientFile(session: UploadSession, input: InitiateMultipartUploadDto): void {
     if (
       session.originalName !== input.fileName.trim() ||
@@ -166,6 +182,10 @@ export class UploadService {
     }
   }
 
+  /**
+   * 按用户归属读取上传会话，避免跨用户访问。
+   * @throws 当前用户下找不到会话时抛出会话不存在错误。
+   */
   private async requireSession(ownerId: string, uploadSessionId: string): Promise<UploadSession> {
     const session = await this.uploadRepository.findById(ownerId, uploadSessionId)
 
@@ -176,6 +196,9 @@ export class UploadService {
     return session
   }
 
+  /**
+   * 尽力取消多余或过期的存储分片上传，失败只记录警告，保留主流程的原始结果。
+   */
   private async safeAbort(identity: MultipartIdentity): Promise<void> {
     try {
       await this.storage.abortMultipartUpload(identity)
@@ -184,6 +207,9 @@ export class UploadService {
       this.logger.warn(`Compensating AbortMultipartUpload failed: ${message}`)
     }
   }
+  /**
+   * 从数据库上传会话提取对象存储定位所需的桶、对象键和 UploadId。
+   */
   private toMultipartIdentity(session: UploadSession): MultipartIdentity {
     return {
       bucket: session.bucket,
@@ -192,6 +218,10 @@ export class UploadService {
     }
   }
 
+  /**
+   * 检查上传期限；到期时标记会话过期并尽力清理存储分片。
+   * @throws 会话已到期时抛出上传过期错误。
+   */
   private async ensureNotExpired(session: UploadSession): Promise<void> {
     if (session.expiresAt.getTime() > Date.now()) {
       return
@@ -206,6 +236,9 @@ export class UploadService {
     throw new AppException(UPLOAD_ERRORS.UPLOAD_EXPIRED)
   }
 
+  /**
+   * 沿最多八层 cause 链识别请求取消错误，兼容 SDK 对 AbortError 的包装。
+   */
   private isAbortError(cause: unknown): boolean {
     let current = cause
 
@@ -229,6 +262,9 @@ export class UploadService {
     return false
   }
 
+  /**
+   * 在对象存储调用边界区分分片长度错误、上传丢失和取消，将其他失败转换为存储不可用。
+   */
   private async callStorage<T>(operation: () => Promise<T>): Promise<T> {
     try {
       return await operation()
@@ -253,6 +289,10 @@ export class UploadService {
     }
   }
 
+  /**
+   * 探测已合并对象并核对会话元数据与大小，恢复未成功落库的完成状态。
+   * @returns 恢复或已完成的上传记录，无法确认对象完成时返回 null。
+   */
   private async recoverCompletedObject(session: UploadSession): Promise<UploadSession | null> {
     const object = await this.callStorage(() =>
       this.storage.headObject({
@@ -284,6 +324,9 @@ export class UploadService {
     return latest?.status === 'completed' ? latest : null
   }
 
+  /**
+   * 将数据库会话及存储分片转换为客户端状态，日期统一输出为 ISO 字符串。
+   */
   private toStatusResponse(
     session: UploadSession,
     parts: readonly StoragePart[],
@@ -305,6 +348,9 @@ export class UploadService {
     }
   }
 
+  /**
+   * 读取上传状态和已上传分片，同时处理过期会话并尝试恢复正在完成的上传。
+   */
   async getStatus(ownerId: string, uploadSessionId: string): Promise<UploadStatusResponse> {
     let session = await this.requireSession(ownerId, uploadSessionId)
 
@@ -334,6 +380,10 @@ export class UploadService {
     return this.toStatusResponse(session, parts)
   }
 
+  /**
+   * 按客户端上传标识幂等创建分片会话，写库失败或并发冲突时补偿取消新建存储上传。
+   * @returns 可恢复上传的会话状态及已有分片信息。
+   */
   async initate(ownerId: string, input: InitiateMultipartUploadDto): Promise<UploadStatusResponse> {
     this.validateNewFile(input.fileSize)
 
@@ -408,6 +458,10 @@ export class UploadService {
     }
   }
 
+  /**
+   * 将 Content-Length 转换为正安全整数。
+   * @throws 请求头缺失或无法表示有效分片长度时抛出长度必填错误。
+   */
   private parseContentLength(value: string | undefined): number {
     if (!value) {
       throw new AppException(UPLOAD_ERRORS.PART_LENGTH_REQUIRED)
@@ -421,6 +475,12 @@ export class UploadService {
     return parsed
   }
 
+  /**
+   * 校验会话归属、状态、分片序号和字节数后，将受长度约束的请求流写入对象存储。
+   * @param input 包含请求体、声明长度和取消信号的分片上传命令。
+   * @returns 上传分片的序号、字节数和 ETag。
+   * @remarks 失败或结束时解除管道及监听器，必要时排空剩余请求字节。
+   */
   async uploadPart(input: UploadPartCommandInput) {
     const session = await this.requireSession(input.ownerId, input.uploadSessionId)
 
@@ -451,6 +511,9 @@ export class UploadService {
     }
 
     const exactSizeStream = new ExactSizeTransform(expectedSize)
+    /**
+     * 将请求体错误传递给长度校验流，使下游存储上传及时失败。
+     */
     const onSourceError = (cause: Error) => exactSizeStream.destroy(cause)
     input.body.once('error', onSourceError)
 
@@ -489,6 +552,9 @@ export class UploadService {
     }
   }
 
+  /**
+   * 从已完成的上传记录生成客户端所需的对象键与 ETag。
+   */
   private toCompletedResponse(session: UploadSession): CompletedUploadResponse {
     return {
       uploadSessionId: session.id,
@@ -498,6 +564,10 @@ export class UploadService {
     }
   }
 
+  /**
+   * 检查分片数量、连续序号、ETag 和每片长度，确保总字节数与原文件完全一致。
+   * @throws 分片缺失或大小不匹配时抛出分片不完整错误。
+   */
   private assertCompleteParts(session: UploadSession, parts: readonly StoragePart[]): void {
     if (parts.length !== session.totalParts) {
       throw new AppException(UPLOAD_ERRORS.PARTS_INCOMPLETE)
@@ -531,6 +601,10 @@ export class UploadService {
     }
   }
 
+  /**
+   * 抢占完成状态后校验并合并分片，再持久化对象信息；重复调用可复用完成结果。
+   * @remarks 合并尚未发出时可回退上传状态；发出后无法确认结果时保留 completing 并尝试对象探测恢复。
+   */
   async complete(ownerId: string, uploadSessionId: string): Promise<CompletedUploadResponse> {
     let session = await this.requireSession(ownerId, uploadSessionId)
 
@@ -646,6 +720,10 @@ export class UploadService {
     }
   }
 
+  /**
+   * 抢占取消状态、清理存储分片并记录取消结果；已取消会话可重复调用。
+   * @throws 已完成或正在完成的会话不允许取消。
+   */
   async abort(ownerId: string, uploadSessionId: string) {
     let session = await this.requireSession(ownerId, uploadSessionId)
     if (session.status === 'aborted') {

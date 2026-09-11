@@ -9,6 +9,7 @@ interface ProjectColumnOptions {
   onDelete: (project: ProjectRecord) => void
 }
 
+/** 生成项目列表的业务列、状态展示及编辑删除操作入口。 */
 export function createProjectColumns({
   onEdit,
   onDelete,

@@ -20,6 +20,9 @@ import {
   UploadPartInput,
 } from './storage.port'
 
+/**
+ * 兼容 AWS SDK 的 name 与 S3 响应的 Code 字段，判断存储错误类别。
+ */
 function hasErrorName(cause: unknown, expected: string): boolean {
   if (typeof cause !== 'object' || cause === null) {
     return false
@@ -28,6 +31,9 @@ function hasErrorName(cause: unknown, expected: string): boolean {
   return record.name === expected || record.Code === expected
 }
 
+/**
+ * 将 NoSuchUpload 转换为存储端口约定的异常，其余错误保留原始原因并抛出。
+ */
 function throwMappedMultipartError(cause: unknown): never {
   if (hasErrorName(cause, 'NoSuchUpload')) {
     throw new StorageMultipartNotFoundError(cause)
@@ -41,6 +47,9 @@ export class MinioStorageAdapter implements StoragePort, OnModuleDestroy {
   private readonly client: S3Client
   private readonly bucket: string
 
+  /**
+   * 根据存储配置创建 S3 客户端，并禁用不可回放上传流的自动重试。
+   */
   constructor(config: ConfigService) {
     this.bucket = config.getOrThrow<string>('storage.bucket')
     this.client = new S3Client({
@@ -58,6 +67,9 @@ export class MinioStorageAdapter implements StoragePort, OnModuleDestroy {
     })
   }
 
+  /**
+   * 通过 HeadBucket 验证目标桶存在且可访问，失败交由调用方处理。
+   */
   private async assertBucketAvailable(): Promise<void> {
     await this.client.send(
       new HeadBucketCommand({
@@ -66,14 +78,24 @@ export class MinioStorageAdapter implements StoragePort, OnModuleDestroy {
     )
   }
 
+  /**
+   * 在模块销毁时释放 S3 客户端的网络资源。
+   */
   onModuleDestroy() {
     this.client.destroy()
   }
 
+  /**
+   * 在模块初始化时探测上传桶，及早暴露配置或存储访问异常。
+   */
   async onModuleInit() {
     await this.assertBucketAvailable()
   }
 
+  /**
+   * 向对象存储创建分片上传，写入内容类型和元数据并返回 UploadId。
+   * @throws 存储未返回 UploadId 时抛出错误。
+   */
   async createMultipartUpload(input: CreateMultipartInput) {
     const response = await this.client.send(
       new CreateMultipartUploadCommand({
@@ -93,6 +115,9 @@ export class MinioStorageAdapter implements StoragePort, OnModuleDestroy {
     }
   }
 
+  /**
+   * 流式上传指定分片并传递取消信号，返回后续合并所需的 ETag。
+   */
   async uploadPart(input: UploadPartInput) {
     try {
       const response = await this.client.send(
@@ -121,6 +146,9 @@ export class MinioStorageAdapter implements StoragePort, OnModuleDestroy {
     }
   }
 
+  /**
+   * 逐页读取全部已上传分片，校验记录与游标有效性，并按分片序号升序返回。
+   */
   async listParts(input: MultipartIdentity): Promise<StoragePart[]> {
     const parts: StoragePart[] = []
     let partNumberMarker: string | undefined
@@ -164,6 +192,9 @@ export class MinioStorageAdapter implements StoragePort, OnModuleDestroy {
     return parts.sort((left, right) => left.partNumber - right.partNumber)
   }
 
+  /**
+   * 提交分片序号和 ETag 列表完成对象合并，返回存储对象的 ETag。
+   */
   async completeMultipartUpload(input: MultipartIdentity & { parts: readonly StoragePart[] }) {
     try {
       const response = await this.client.send(
@@ -187,6 +218,9 @@ export class MinioStorageAdapter implements StoragePort, OnModuleDestroy {
     }
   }
 
+  /**
+   * 取消对象存储中的分片上传；UploadId 已不存在时视为成功，保持取消操作幂等。
+   */
   async abortMultipartUpload(input: MultipartIdentity): Promise<void> {
     try {
       await this.client.send(
@@ -204,6 +238,9 @@ export class MinioStorageAdapter implements StoragePort, OnModuleDestroy {
     }
   }
 
+  /**
+   * 读取对象大小、ETag 及元数据；确认仅对象缺失时返回 null，桶不可用时仍抛出错误。
+   */
   async headObject(input: { bucket: string; objectKey: string }): Promise<StorageObject | null> {
     try {
       const response = await this.client.send(

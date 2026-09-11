@@ -11,6 +11,7 @@ interface ProjectColumnOptions {
   onDelete: (project: DraftProjectRecord) => void
 }
 
+/** 按项目或草稿视图生成列配置，展示缺失字段和继续编辑入口。 */
 export function createDraftProjectColumns({
   onEdit,
   onDelete,
@@ -83,6 +84,7 @@ export function createDraftProjectColumns({
       width: 200,
       search: false,
       sorter: (first, second) => first.savedAt.localeCompare(second.savedAt),
+      /** 将保存时间转换为今天、昨天或具体日期，并保留完整时间提示。 */
       render: (_, project) => {
         const date = dayjs(project.savedAt)
         const prefix = date.isSame(dayjs(), 'day')

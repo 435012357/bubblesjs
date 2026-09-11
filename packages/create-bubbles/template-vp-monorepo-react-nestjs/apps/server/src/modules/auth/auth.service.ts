@@ -24,6 +24,9 @@ const LOGIN_DUMMY_PASSWORD_HASH =
 export class AuthService {
   private readonly idleExpiresIn: number
 
+  /**
+   * 读取会话闲置时长，并换算成登录响应使用的秒数。
+   */
   constructor(
     private readonly authRepository: AuthRepository,
     private readonly passwordService: PasswordService,
@@ -34,6 +37,11 @@ export class AuthService {
     this.idleExpiresIn = Math.floor(config.getOrThrow<number>('session.idleTtlMs') / 1000)
   }
 
+  /**
+   * 标准化账号并保存 Argon2 密码摘要，返回不含密码的注册资料。
+   * @param input 用户提交的账号、名称和明文密码。
+   * @throws 账号重复时抛出账号已存在错误，认证依赖失败时返回服务不可用错误。
+   */
   async register(input: RegisterDto): Promise<RegisterResult> {
     const account = normalizeAccount(input.account)
     const passwordHash = await this.useAuthInfrastrutrue(() =>
@@ -57,6 +65,12 @@ export class AuthService {
     }
   }
 
+  /**
+   * 校验启用账号及密码，并替换该用户在当前终端的 Redis 会话。
+   * @param metadata 登录 IP 和 User-Agent，用于识别终端并记录会话来源。
+   * @returns 仅本次返回的明文 Bearer 令牌及会话过期信息。
+   * @throws 账号不可用或密码不匹配时抛出凭据无效错误。
+   */
   async login(input: LoginDto, metadata: LoginMetadata) {
     const account = normalizeAccount(input.account)
     const user = await this.useAuthInfrastrutrue(() => this.authRepository.findByAccount(account))
@@ -90,6 +104,10 @@ export class AuthService {
     }
   }
 
+  /**
+   * 在认证基础设施边界执行操作，保留业务异常并将未知异常转换为认证服务不可用。
+   * @returns 原操作的结果。
+   */
   private async useAuthInfrastrutrue<T>(operation: () => Promise<T>): Promise<T> {
     try {
       return await operation()
@@ -101,6 +119,10 @@ export class AuthService {
     }
   }
 
+  /**
+   * 读取仍处于启用状态的用户公开资料。
+   * @throws 用户不存在或已停用时抛出会话失效错误。
+   */
   async getCurrentUser(userId: string): Promise<AuthUser> {
     const user = await this.useAuthInfrastrutrue(() => this.authRepository.findPublicById(userId))
 
@@ -115,6 +137,9 @@ export class AuthService {
     }
   }
 
+  /**
+   * 撤销请求令牌对应的会话；未提供有效格式的令牌时仍返回退出成功。
+   */
   async logout(authorization: string | undefined): Promise<LogoutResult> {
     const rawToken = this.sessionTokenService.extractBearerToken(authorization)
     if (!rawToken) {

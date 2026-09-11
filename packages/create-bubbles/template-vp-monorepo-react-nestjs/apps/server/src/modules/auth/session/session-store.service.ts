@@ -23,14 +23,29 @@ import { CreatedSession, CreateSessionInput, CurrentAuthType } from './session.t
 const INVALID_SESSION_CODES = new Set(['NOT_FOUND', 'REPLACED', 'ABSOLUTE_EXPIRED'])
 
 type SessionRedis = Redis & {
+  /**
+   * 执行创建或替换会话的 Lua 命令，参数依次包含键、摘要、身份、有效期和登录来源。
+   */
   authCreateOrReplaceSession(...args: string[]): Promise<unknown>
+  /**
+   * 执行会话验证和闲置续期 Lua 命令，返回脚本协议数组供服务层校验。
+   */
   authValidateAndTouchSession(...args: string[]): Promise<unknown>
+  /**
+   * 执行原子退出 Lua 命令，避免删除已被新会话替换的终端槽位。
+   */
   authLogoutSession(...args: string[]): Promise<unknown>
+  /**
+   * 执行用户所有终端会话撤销 Lua 命令，键列表对应各终端槽位。
+   */
   authRevokeUserSessions(...args: string[]): Promise<unknown>
 }
 
 const SCRIPT_CODE_PATTERN = /^[A-Z][A-Z0-9_]{0,79}$/
 
+/**
+ * 只保留符合白名单格式的 Lua 返回码，构造不包含原始 Redis 数据的协议错误。
+ */
 function createScriptProtocolError(operation: string, value: string | undefined): Error {
   const code = SCRIPT_CODE_PATTERN.test(value ?? '') ? value : 'UNKNOWN'
   return new Error(`Redis ${operation} script returned ${code}`)
@@ -43,6 +58,9 @@ export class SessionStoreService {
   private readonly idleTtlMs: number
   private readonly absoluteTtlMs: number
 
+  /**
+   * 读取会话时限并注册 Lua 命令，使会话和终端槽位的变更在 Redis 中原子执行。
+   */
   constructor(@InjectRedis() redis: Redis, config: ConfigService) {
     this.redis = redis as SessionRedis
     this.idleTtlMs = config.getOrThrow<number>('session.idleTtlMs')
@@ -69,6 +87,10 @@ export class SessionStoreService {
     })
   }
 
+  /**
+   * 执行会话 Lua 命令并规范化数组结果。
+   * @throws Redis 调用失败或返回格式异常时抛出认证服务不可用错误。
+   */
   private async execute(command: () => Promise<unknown>) {
     try {
       const result = await command()
@@ -82,6 +104,11 @@ export class SessionStoreService {
     }
   }
 
+  /**
+   * 原子创建会话并替换该用户同一终端的旧会话。
+   * @param input 令牌摘要、用户终端及登录来源信息。
+   * @returns 初始闲置过期时间与不可延长的绝对过期时间，单位为毫秒。
+   */
   async createOrReplace(input: CreateSessionInput): Promise<CreatedSession> {
     const result = await this.execute(() =>
       this.redis.authCreateOrReplaceSession(
@@ -125,6 +152,10 @@ export class SessionStoreService {
     }
   }
 
+  /**
+   * 校验令牌对应会话并刷新闲置有效期，刷新不会超过绝对有效期。
+   * @returns 用户及终端身份；会话缺失、被替换或过期时返回 null。
+   */
   async validateAndTouch(tokenDigest: string): Promise<CurrentAuthType | null> {
     const result = await this.execute(() =>
       this.redis.authValidateAndTouchSession(
@@ -169,6 +200,9 @@ export class SessionStoreService {
     }
   }
 
+  /**
+   * 原子撤销令牌对应会话，并仅在槽位仍指向该令牌时清理终端槽位。
+   */
   async logout(tokenDigest: string) {
     const result = await this.execute(() =>
       this.redis.authLogoutSession(createSessionKey(tokenDigest), tokenDigest, SESSION_SLOT_PREFIX),
@@ -186,6 +220,9 @@ export class SessionStoreService {
     }
   }
 
+  /**
+   * 原子撤销用户在所有支持终端上的会话，供停用用户等操作使用。
+   */
   async revokeAllForUser(userId: string) {
     const slotKeys = SESSION_TERMINALS.map((terminal) => createSessionSlotKey(userId, terminal))
     const result = await this.execute(() =>

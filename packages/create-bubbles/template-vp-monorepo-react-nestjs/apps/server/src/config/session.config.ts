@@ -1,5 +1,9 @@
 import { registerAs } from '@nestjs/config'
 
+/**
+ * 按十进制读取会话时长配置，并确保解析结果为正安全整数。
+ * @throws 解析失败或非正数时抛出配置错误。
+ */
 function readPositiveInteger(name: string, fallback: number) {
   const value = Number.parseInt(process.env[name] ?? String(fallback), 10)
 
@@ -9,6 +13,9 @@ function readPositiveInteger(name: string, fallback: number) {
   return value
 }
 
+/**
+ * 校验令牌摘要密钥和闲置、绝对有效期，并将会话时长转换为毫秒。
+ */
 export default registerAs('session', () => {
   const tokenPepper = process.env.SESSION_TOKEN_PEPPER
   /**

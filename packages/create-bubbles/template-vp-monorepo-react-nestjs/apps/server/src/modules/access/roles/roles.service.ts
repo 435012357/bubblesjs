@@ -29,12 +29,18 @@ import {
 @Injectable()
 export class RolesService {
   constructor(private readonly access: AccessService) {}
+  /** 返回角色读取允许的权限集合，同时支持角色管理和成员角色分配界面读取角色。 */
   readPermissions(scope: AccessScope) {
     return [
       `${scope.type}.roles.read`,
       scope.type === 'platform' ? 'platform.accounts.roles' : `${scope.type}.members.roles`,
     ]
   }
+  /**
+   * 读取当前作用域的角色详情，聚合权限、成员数量并计算操作者是否可以分配该角色。
+   *
+   * 管理员角色仅允许管理员分配，其他角色的权限不得超出操作者有效权限。
+   */
   async record(db: AccessDb, access: VerifiedAccess, id: string): Promise<RoleRecord> {
     const [row] = await db
       .select()
@@ -64,6 +70,11 @@ export class RolesService {
       updatedAt: role.updatedAt.toISOString(),
     }
   }
+  /**
+   * 校验角色权限属于当前作用域且可授权，并确保页面依赖完整、未超过操作者权限。
+   *
+   * 管理员专属或已废弃权限不可写入自定义角色。
+   */
   validatePermissions(access: VerifiedAccess, keys: string[]) {
     for (const key of keys) {
       const p = ACCESS_PERMISSION_CATALOG.find((p) => p.key === key)
@@ -78,6 +89,7 @@ export class RolesService {
       if (!access.permissionKeys.includes(key)) throw new AppException(ACCESS_ERRORS.FORBIDDEN)
     }
   }
+  /** 在当前事务内全量替换角色权限；调用方负责校验权限集合并维护角色版本。 */
   async replacePermissions(tx: AccessTx, roleId: string, permissionKeys: string[]) {
     await tx.delete(rolePermissions).where(eq(rolePermissions.roleId, roleId))
     if (permissionKeys.length)
@@ -85,9 +97,11 @@ export class RolesService {
         .insert(rolePermissions)
         .values(permissionKeys.map((permissionKey) => ({ roleId, permissionKey })))
   }
+  /** 校验角色读取权限后，按名称分页查询当前作用域角色及其可分配状态。 */
   list(input: { actor: AccessActor; scope: AccessScope; query: PageQuery }) {
     return this.access.read(
       { ...input, permission: this.readPermissions(input.scope) },
+      /** 在同一快照内计算角色总数、读取当前页并聚合角色授权详情。 */
       async (tx, access) => {
         const { page, pageSize, offset } = pageWindow(input.query)
         const condition = and(scopeFilter(input.scope), searchSql([roles.name], input.query.query))
@@ -108,12 +122,14 @@ export class RolesService {
       },
     )
   }
+  /** 校验角色读取权限后，返回当前作用域内指定角色的完整记录。 */
   get(input: { actor: AccessActor; scope: AccessScope; roleId: string }) {
     return this.access.read(
       { ...input, permission: this.readPermissions(input.scope) },
       (tx, access) => this.record(tx, access, input.roleId),
     )
   }
+  /** 返回作用域的菜单树、权限目录及操作者可授予的权限键，供角色授权界面使用。 */
   permissions(input: { actor: AccessActor; scope: AccessScope }) {
     return this.access.read(
       { ...input, permission: this.readPermissions(input.scope) },
@@ -133,9 +149,11 @@ export class RolesService {
       }),
     )
   }
+  /** 验证权限集合与名称唯一性后创建自定义角色，写入权限和审计记录并返回角色详情。 */
   create(input: { actor: AccessActor; scope: AccessScope; body: CreateRoleRequest }) {
     return this.access.write(
       { ...input, permission: `${input.scope.type}.roles.create` },
+      /** 将名称检查、角色创建、权限绑定和审计写入作为一个原子操作。 */
       async (tx, access) => {
         this.validatePermissions(access, input.body.permissionKeys ?? [])
         const [existing] = await tx
@@ -164,6 +182,12 @@ export class RolesService {
       },
     )
   }
+  /**
+   * 按操作类型修改、替换权限或删除自定义角色，并校验权限、版本与资源引用。
+   *
+   * 内置角色不可修改；已分配给成员的角色不可删除。成功后记录审计，修改时递增版本。
+   * @returns 删除标记或变更后的角色详情。
+   */
   change(input: {
     actor: AccessActor
     scope: AccessScope
@@ -173,6 +197,7 @@ export class RolesService {
   }) {
     return this.access.write(
       { ...input, permission: `${input.scope.type}.roles.${input.action}` },
+      /** 基于锁内角色版本执行目标变更，保证角色资料、权限和审计一起提交。 */
       async (tx, access) => {
         const role = await this.record(tx, access, input.roleId)
         if (role.builtin) throw new AppException(ACCESS_ERRORS.BUILTIN_ROLE_IMMUTABLE)

@@ -1,6 +1,9 @@
 import { registerAs } from '@nestjs/config'
 
 const SESSION_TTL_MS = 24 * 60 * 60 * 1000
+/**
+ * 读取并修剪必填环境变量，缺失或只有空白时终止配置加载。
+ */
 function readRequired(name: string): string {
   const value = process.env[name]?.trim()
 
@@ -11,6 +14,9 @@ function readRequired(name: string): string {
   return value
 }
 
+/**
+ * 验证存储端点为 HTTP 或 HTTPS URL，并去掉末尾斜杠供 S3 客户端使用。
+ */
 function readEndpoint(): string {
   const value = readRequired('STORAGE_ENDPOINT')
   const url = new URL(value)
@@ -22,6 +28,9 @@ function readEndpoint(): string {
   return url.toString().replace(/\/$/, '')
 }
 
+/**
+ * 加载并校验对象存储连接凭据、目标桶和上传会话有效期。
+ */
 export default registerAs('storage', () => ({
   endpoint: readEndpoint(),
   region: process.env.STORAGE_REGION?.trim() || 'us-east-1',

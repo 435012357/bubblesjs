@@ -6,10 +6,16 @@ const color = {
   bold: (text: string) => `\x1b[1m${text}\x1b[0m`,
 }
 
+/**
+ * 为地址添加 OSC 8 超链接和颜色，使支持该协议的终端可以直接打开链接。
+ */
 function terminalLink(url: string) {
   return `\x1b]8;;${url}\x1b\\${color.cyan(url)}\x1b]8;;\x1b\\`
 }
 
+/**
+ * 枚举本机非回环 IPv4 网卡，生成给定服务端口的局域网访问地址。
+ */
 export function getNetworkUrls(port: number) {
   return Object.values(networkInterfaces())
     .flatMap((items) => items ?? [])

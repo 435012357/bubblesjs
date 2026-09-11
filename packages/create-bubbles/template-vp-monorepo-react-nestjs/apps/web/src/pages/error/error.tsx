@@ -1,6 +1,6 @@
 import { Button, Result, Space } from 'antd'
-import { isRouteErrorResponse, Link, useRevalidator, useRouteError } from 'react-router'
 
+/** 根据路由错误状态展示访问失败原因、重试及返回入口。 */
 export default function RouteError() {
   const error = useRouteError()
   const revalidator = useRevalidator()

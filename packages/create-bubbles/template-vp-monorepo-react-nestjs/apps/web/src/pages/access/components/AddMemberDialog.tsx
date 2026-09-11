@@ -1,5 +1,4 @@
 import { ModalForm, ProFormText } from '@ant-design/pro-components'
-import { useImperativeHandle, useState, type Ref } from 'react'
 import type { AddMemberRequest } from 'shared/types'
 import { ACCOUNT_PATTERN, normalizeAccount } from 'shared/utils'
 
@@ -7,6 +6,7 @@ export interface AddMemberDialogRef {
   show: () => void
   hide: () => void
 }
+/** 通过完整账号添加工作空间成员，并在保存成功后关闭弹窗。 */
 export default function AddMemberDialog({
   ref,
   project,
@@ -29,11 +29,13 @@ export default function AddMemberDialog({
         if (!visible) hide()
       }}
       submitter={{ searchConfig: { submitText: '添加成员' } }}
-      onFinish={async (values) => {
-        const ok = await onSave({ account: normalizeAccount(values.account) })
-        if (ok) hide()
-        return ok
-      }}
+      onFinish={
+        /** 规范化完整账号并提交成员添加，成功后关闭弹窗。 */ async (values) => {
+          const ok = await onSave({ account: normalizeAccount(values.account) })
+          if (ok) hide()
+          return ok
+        }
+      }
     >
       <ProFormText
         name="account"

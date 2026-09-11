@@ -139,16 +139,19 @@ const defaultRequestOption: BaseRequestOption<any, any, any, any> = {
   requestAdapter: axiosRequestAdapter(),
 }
 
+/** 兼容不同 Method 元数据位置，优先读取请求配置内的选项。 */
 function getMethodMeta(method: unknown): RequestMeta {
   const methodRecord = method as { meta?: RequestMeta; config?: { meta?: RequestMeta } } | undefined
   return methodRecord?.config?.meta ?? methodRecord?.meta ?? {}
 }
 
+/** 读取请求级布尔开关，未显式指定时使用实例默认值。 */
 function getMetaFlag(meta: RequestMeta, key: keyof RequestMeta, fallback: boolean): boolean {
   const value = meta[key]
   return typeof value === 'boolean' ? value : fallback
 }
 
+/** 以单值、集合或自定义函数判断 HTTP 状态是否命中规则。 */
 function isMatchedStatus<RE>(
   status: number,
   matcher: StatusMatcher<RE> | undefined,
@@ -161,18 +164,21 @@ function isMatchedStatus<RE>(
   return Array.isArray(matcher) ? matcher.includes(status) : matcher === status
 }
 
+/** 将业务码转为字符串匹配；未配置匹配集合时视为命中。 */
 function isMatchedCode(code: unknown, matcher: CodeMatcher | undefined): boolean {
   if (!matcher?.length) return true
 
   return matcher.some((item) => String(item) === String(code))
 }
 
+/** 兼容 statusCode 和 status 字段，将响应状态转换为数字。 */
 function getResponseStatus(response: unknown): number {
   const responseRecord = response as { status?: unknown; statusCode?: unknown }
   const status = responseRecord.statusCode ?? responseRecord.status
   return typeof status === 'number' ? status : Number(status)
 }
 
+/** 按配置字段及常见消息字段读取提示，内容不可用时返回默认文案。 */
 function getResponseMessage(data: unknown, messageKey: string, defaultMessage: string): string {
   if (!isPlainObject(data)) return defaultMessage
 
@@ -183,10 +189,12 @@ function getResponseMessage(data: unknown, messageKey: string, defaultMessage: s
   return defaultMessage
 }
 
+/** 仅从普通对象读取指定响应字段，其他响应形态返回 undefined。 */
 function getResponseField(data: unknown, key: string): unknown {
   return isPlainObject(data) ? data[key] : undefined
 }
 
+/** 根据内容类型解析 Fetch 响应，204 返回空值并为 JSON 失败提供文本回退。 */
 async function parseFetchResponse(response: {
   status?: number
   body?: unknown
@@ -219,6 +227,7 @@ async function parseFetchResponse(response: {
   return undefined
 }
 
+/** 兼容 Headers 和普通对象读取响应头，缺失或非字符串值返回空串。 */
 function getHeaderValue(
   headers: Headers | Record<string, unknown> | undefined,
   key: string,
@@ -233,6 +242,7 @@ function getHeaderValue(
   return typeof value === 'string' ? value : ''
 }
 
+/** 统一提取 Axios 或 Fetch 响应内容，并尝试解析对象、数组形式的 JSON 文本。 */
 async function getResponseData(response: unknown): Promise<unknown> {
   const responseRecord = response as {
     body?: unknown
@@ -255,12 +265,14 @@ async function getResponseData(response: unknown): Promise<unknown> {
   return response
 }
 
+/** 求值静态或异步请求头配置，忽略空值并将有效结果转为字符串。 */
 async function resolveHeaderValue(value: HeaderValue): Promise<string | undefined> {
   const resolved = typeof value === 'function' ? await value() : value
   if (resolved === null || resolved === undefined) return undefined
   return String(resolved)
 }
 
+/** 兼容 Headers、键值对数组及普通对象写入请求头。 */
 function setHeader(target: unknown, key: string, value: string): void {
   if (typeof Headers !== 'undefined' && target instanceof Headers) {
     target.set(key, value)
@@ -275,12 +287,14 @@ function setHeader(target: unknown, key: string, value: string): void {
   ;(target as Record<string, string>)[key] = value
 }
 
+/** 将实例配置递归合并到请求默认项，保留未覆盖的默认设置。 */
 function resolveConfig<RC extends object, RE, RH, SE extends StatesExport<any>>(
   option: BaseRequestOption<RC, RE, RH, SE>,
 ): ResolvedRequestOption<RC, RE, RH, SE> {
   return deepMergeObject(defaultRequestOption, option) as ResolvedRequestOption<RC, RE, RH, SE>
 }
 
+/** 创建统一处理公共请求头、响应解析、业务错误与未授权回调的 alova 实例。 */
 export function createInstance<
   RC extends object = AlovaAxiosRequestConfig,
   RE = AxiosResponse,
@@ -289,6 +303,7 @@ export function createInstance<
 >(option: RequestOption<RC, RE, RH, SE> = {}) {
   const config = resolveConfig(option)
 
+  /** 从响应内容构造包含 HTTP 状态及业务码的可识别错误。 */
   function responseError(data: unknown, status: number) {
     const code = getResponseField(data, config.responseCodeKey)
     return Object.assign(
@@ -306,6 +321,7 @@ export function createInstance<
     requestAdapter: config.requestAdapter!,
     l1Cache: config.l1Cache,
     l2Cache: config.l2Cache ?? config.storageAdapter,
+    /** 逐项求值公共请求头，并写入本次请求配置。 */
     beforeRequest: async (method) => {
       const methodConfig = method.config as { headers?: unknown }
       const headers = methodConfig.headers ?? {}
@@ -318,6 +334,7 @@ export function createInstance<
     },
     responded: {
       // HTTP 成败由适配器判断；这里只解析成功响应并检查业务 code。
+      /** 按请求元数据解析成功响应，检查业务码并按配置提示或返回业务数据。 */
       onSuccess: async (response, method) => {
         const meta = getMethodMeta(method)
         const shouldTransform = getMetaFlag(meta, 'isTransformResponse', config.isTransformResponse)
@@ -360,6 +377,7 @@ export function createInstance<
         return responseData
       },
       // 统一处理 HTTP 错误、网络故障和超时；onSuccess 抛出的业务错误直接传给调用方。
+      /** 统一处理 HTTP 和网络错误，触发未授权回调并抛出标准错误。 */
       onError: async (error, method) => {
         const meta = getMethodMeta(method)
         const showError = getMetaFlag(meta, 'isShowErrorMessage', config.isShowErrorMessage)
@@ -402,6 +420,7 @@ export type DualCallInstance<
 > = RequestInstance<RC, RE, RH, SE> &
   ((option?: RequestOption<RC, RE, RH, SE>) => RequestInstance<RC, RE, RH, SE>)
 
+/** 提供默认请求实例的方法，同时支持通过函数调用创建覆盖配置的新实例。 */
 export function createDualCallInstance<
   RC extends object = AlovaAxiosRequestConfig,
   RE = AxiosResponse,
@@ -409,7 +428,9 @@ export function createDualCallInstance<
   SE extends StatesExport<any> = StatesExport<any>,
 >(baseConfig: BaseRequestOption<RC, RE, RH, SE>): DualCallInstance<RC, RE, RH, SE> {
   const defaultInstance = createInstance(baseConfig)
-  const dualInstance = ((option?: RequestOption<RC, RE, RH, SE>) => {
+  const dualInstance = /** 未传配置时复用默认请求实例，传入配置时合并基础设置创建独立实例。 */ ((
+    option?: RequestOption<RC, RE, RH, SE>,
+  ) => {
     if (!option) return defaultInstance
     return createInstance(deepMergeObject(baseConfig, option))
   }) as DualCallInstance<RC, RE, RH, SE>

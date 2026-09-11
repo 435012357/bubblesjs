@@ -14,6 +14,9 @@ export type DrizzleDB = NodePgDatabase<typeof schema>
     {
       provide: DRIZZLE,
       inject: [ConfigService],
+      /**
+       * 根据数据库配置创建 PostgreSQL 连接池，并绑定表结构生成可注入的 Drizzle 客户端。
+       */
       useFactory: (config: ConfigService) => {
         const pool = new Pool({
           host: config.get<string>('database.host'),

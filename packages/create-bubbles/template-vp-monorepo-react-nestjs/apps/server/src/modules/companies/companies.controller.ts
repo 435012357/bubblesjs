@@ -10,6 +10,7 @@ import { CompaniesService } from './companies.service'
 @Controller()
 export class CompaniesController {
   constructor(private readonly companiesService: CompaniesService) {}
+  /** 校验分页筛选参数，从平台入口查询公司列表。 */
   @Get('platform/companies')
   @AccessPolicy({ scope: 'platform', permission: 'platform.companies.read' })
   companies(@Req() req: FastifyRequest, @Query() query: unknown) {
@@ -18,6 +19,7 @@ export class CompaniesController {
       query: parse(entityListSchema, query),
     })
   }
+  /** 校验公司标识，从平台入口读取公司资料及管理员详情。 */
   @Get('platform/companies/:companyId')
   @AccessPolicy({ scope: 'platform', permission: 'platform.companies.read' })
   companyDetail(@Req() req: FastifyRequest) {
@@ -27,11 +29,13 @@ export class CompaniesController {
       platform: true,
     })
   }
+  /** 校验公司资料和初始管理员账号，提交平台管理员创建公司操作。 */
   @Post('platform/companies')
   @AccessPolicy({ scope: 'platform', permission: 'platform.companies.create', adminOnly: true })
   createCompany(@Req() req: FastifyRequest, @Body() body: unknown) {
     return this.companiesService.create({ actor: actor(req), body: parse(createScopeSchema, body) })
   }
+  /** 校验公司标识、预期版本及状态，提交平台侧公司启停操作。 */
   @Patch('platform/companies/:companyId/status')
   @AccessPolicy({ scope: 'platform', permission: 'platform.companies.status' })
   companyStatus(@Req() req: FastifyRequest, @Body() body: unknown) {
@@ -41,6 +45,7 @@ export class CompaniesController {
       body: parse(statusSchema, body),
     })
   }
+  /** 校验公司标识及管理员账号，提交平台管理员追加或替换公司管理员操作。 */
   @Post('platform/companies/:companyId/administrator')
   @HttpCode(200)
   @AccessPolicy({
@@ -55,11 +60,13 @@ export class CompaniesController {
       body: parse(administratorSchema, body),
     })
   }
+  /** 校验公司标识，在公司作用域中读取当前公司资料和管理员详情。 */
   @Get('companies/:companyId')
   @AccessPolicy({ scope: 'company', permission: 'company.profile.read' })
   profile(@Req() req: FastifyRequest) {
     return this.companiesService.get({ actor: actor(req), companyId: ids(req).companyId! })
   }
+  /** 校验公司标识、预期版本与资料字段，提交当前公司的资料更新。 */
   @Patch('companies/:companyId')
   @AccessPolicy({ scope: 'route', permission: '{scope}.profile.update' })
   updateProfile(@Req() req: FastifyRequest, @Body() body: unknown) {

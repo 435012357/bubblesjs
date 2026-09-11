@@ -8,18 +8,27 @@ import { CreateUserDto } from './dto/create-user.dto'
 export class DbController {
   constructor(private readonly dbService: DbService) {}
 
+  /**
+   * 返回数据库当前时间，供 HTTP 层验证数据库连通性。
+   */
   @ApiOperation({ summary: '测试数据库连接' })
   @Get()
   async ping() {
     return { time: await this.dbService.ping() }
   }
 
+  /**
+   * 返回数据库示例服务查询的全部用户记录。
+   */
   @ApiOperation({ summary: '获取所有用户' })
   @Get('users')
   async list() {
     return this.dbService.findAll()
   }
 
+  /**
+   * 将经 DTO 校验的请求体提交给数据库示例服务创建用户。
+   */
   @ApiOperation({ summary: '创建用户' })
   @Post('user')
   async create(@Body() body: CreateUserDto) {

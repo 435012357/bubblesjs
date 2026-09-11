@@ -1,7 +1,6 @@
 import { ClearOutlined, PlusOutlined, ReloadOutlined } from '@ant-design/icons'
 import type { ProColumns } from '@ant-design/pro-components'
 import { Alert, App, Button, Popconfirm, Space, Tabs, Tag } from 'antd'
-import { useEffect, useRef, useState } from 'react'
 import type {
   CreateMenuRequest,
   FunctionCatalogResult,
@@ -19,6 +18,7 @@ interface MenuRow extends MenuNode {
   parentName: string
 }
 
+/** 管理各作用域的菜单树、功能绑定和废弃权限清理。 */
 export default function MenusPage() {
   const access = useAccess()
   const { message } = App.useApp()
@@ -35,32 +35,41 @@ export default function MenusPage() {
   const cleanupRef = useRef<CleanupDialogRef>(null)
   const allowed = (action: string) => access.permissionKeys.includes(`platform.menus.${action}`)
 
-  useEffect(() => {
-    let current = true
-    setLoading(true)
-    setTree(undefined)
-    setCatalog(undefined)
-    setError(undefined)
-    void Promise.all([menuApi.tree(scopeType), menuApi.catalog(scopeType)])
-      .then(([data, functions]) => {
-        if (current) {
-          setTree(data)
-          setCatalog(functions)
-        }
-      })
-      .catch((cause: unknown) => {
-        if (current && (cause as Error).name !== 'AbortError')
-          setError(cause instanceof Error ? cause.message : '无法加载菜单')
-      })
-      .finally(() => {
-        if (current) setLoading(false)
-      })
-    return () => {
-      current = false
-    }
-  }, [scopeType, refresh])
+  useEffect(
+    /** 按作用域加载菜单树和功能目录，忽略已失效加载周期的结果。 */ () => {
+      let current = true
+      setLoading(true)
+      setTree(undefined)
+      setCatalog(undefined)
+      setError(undefined)
+      void Promise.all([menuApi.tree(scopeType), menuApi.catalog(scopeType)])
+        .then(
+          /** 仅提交当前加载周期的菜单树与功能目录，避免旧作用域覆盖新状态。 */ ([
+            data,
+            functions,
+          ]) => {
+            if (current) {
+              setTree(data)
+              setCatalog(functions)
+            }
+          },
+        )
+        .catch((cause: unknown) => {
+          if (current && (cause as Error).name !== 'AbortError')
+            setError(cause instanceof Error ? cause.message : '无法加载菜单')
+        })
+        .finally(() => {
+          if (current) setLoading(false)
+        })
+      return () => {
+        current = false
+      }
+    },
+    [scopeType, refresh],
+  )
 
   const rows: MenuRow[] = []
+  /** 递归展开菜单树，保留父级路径供表格搜索和展示。 */
   const append = (items: MenuNode[], parentName: string) => {
     for (const item of items) {
       rows.push({ ...item, children: [], parentName })
@@ -69,6 +78,7 @@ export default function MenusPage() {
   }
   append(tree?.items ?? [], '根目录')
   const filteredRows = rows.filter(
+    /** 按菜单名称或功能标识匹配关键字，并叠加状态及节点类型筛选。 */
     (row) =>
       (!filter.query ||
         `${row.name} ${row.routeKey ?? ''} ${row.permissionKey ?? ''}`
@@ -78,6 +88,7 @@ export default function MenusPage() {
       (!filter.type || row.type === filter.type),
   )
 
+  /** 加载废弃权限清理预览，并展示请求失败信息。 */
   async function previewCleanup() {
     setPreviewing(true)
     try {
@@ -182,11 +193,13 @@ export default function MenusPage() {
     <div className="menu-management">
       <Tabs
         activeKey={scopeType}
-        onChange={(key) => {
-          setTree(undefined)
-          setFilter({})
-          setScopeType(key as ScopeType)
-        }}
+        onChange={
+          /** 切换菜单作用域前清除旧树和筛选条件，等待新作用域数据。 */ (key) => {
+            setTree(undefined)
+            setFilter({})
+            setScopeType(key as ScopeType)
+          }
+        }
         items={[
           { key: 'platform', label: '平台菜单' },
           { key: 'company', label: '企业菜单' },

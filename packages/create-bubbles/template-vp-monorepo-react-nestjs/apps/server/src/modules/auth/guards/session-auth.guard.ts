@@ -17,6 +17,10 @@ export class SessionAuthGuard implements CanActivate {
     private readonly authRepository: AuthRepository,
   ) {}
 
+  /**
+   * 放行预检和公开路由，否则校验 Bearer 会话及用户状态，并将身份写入 request.auth。
+   * @throws 令牌缺失、会话失效或用户停用时抛出相应认证错误。
+   */
   async canActivate(context: ExecutionContext) {
     const request = context.switchToHttp().getRequest<AuthenticatedRequest>()
 

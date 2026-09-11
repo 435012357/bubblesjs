@@ -189,6 +189,7 @@ describe('runCli', () => {
   })
 })
 
+/** 在测试根目录写入 ESM 配置，声明源码扫描规则、两种语言包及同步报告路径。 */
 async function writeConfig(root: string): Promise<void> {
   await writeFile(
     join(root, 'i18n.config.mjs'),

@@ -7,6 +7,9 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger'
 import { cleanupOpenApiDoc } from 'nestjs-zod'
 import { createFastifyAdapter } from './common/adapters/fastify.adapter'
 
+/**
+ * 创建 Nest/Fastify 应用，配置跨域、关闭钩子和 Swagger 文档后监听端口并打印访问地址。
+ */
 async function bootstrap() {
   const app = await NestFactory.create<NestFastifyApplication>(AppModule, createFastifyAdapter(), {
     logger: new ConsoleLogger({
@@ -49,6 +52,7 @@ async function bootstrap() {
   logNetworkUrls(port)
 }
 
+/** 记录启动失败并设置进程退出码，让部署环境能够识别服务未能启动。 */
 void bootstrap().catch((cause: unknown) => {
   const logger = new Logger('Bootstrap')
   logger.error('Server boostrap failed', cause instanceof Error ? cause.stack : undefined)

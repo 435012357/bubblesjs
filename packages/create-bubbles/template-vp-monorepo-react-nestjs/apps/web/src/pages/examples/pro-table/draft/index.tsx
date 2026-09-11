@@ -3,7 +3,6 @@ import { local } from '@/utils/storage/session'
 import { PlusOutlined } from '@ant-design/icons'
 import type { ProFormInstance } from '@ant-design/pro-components'
 import { App, Button, Empty, Popconfirm } from 'antd'
-import { useMemo, useRef, useState, type Key } from 'react'
 import type { ProjectSearchValues } from '../config'
 import DraftProjectFormDialog, {
   type DraftProjectFormDialogRef,
@@ -18,18 +17,21 @@ import {
 import { createDraftProjectColumns } from './config/columns'
 import { filterProjectRecords, saveProjectRecord } from './config/projects'
 
+/** 演示已发布项目与个人草稿的切换、编辑及本地持久化。 */
 export default function ProTableDraftExample() {
   const { message } = App.useApp()
   const dialogRef = useRef<DraftProjectFormDialogRef>(null)
   const searchFormRef = useRef<ProFormInstance>(undefined)
-  const [records, setRecords] = useState<DraftProjectRecord[]>(() => {
-    try {
-      const saved = local.get<DraftProjectRecord[]>(storageKey)
-      return Array.isArray(saved) ? saved : initialRecords
-    } catch {
-      return initialRecords
-    }
-  })
+  const [records, setRecords] = useState<DraftProjectRecord[]>(
+    /** 优先恢复浏览器内的草稿记录，存储不可读或数据形态错误时使用演示初始值。 */ () => {
+      try {
+        const saved = local.get<DraftProjectRecord[]>(storageKey)
+        return Array.isArray(saved) ? saved : initialRecords
+      } catch {
+        return initialRecords
+      }
+    },
+  )
   const [view, setView] = useState<DraftTableView>('list')
   const [search, setSearch] = useState<ProjectSearchValues>({})
   const [selectedRowKeys, setSelectedRowKeys] = useState<Key[]>([])
@@ -43,6 +45,7 @@ export default function ProTableDraftExample() {
     (record) => record.stage === 'draft' && record.createdBy === currentUser,
   ).length
 
+  /** 重置查询表单、行选择及页码，使视图从第一页重新展示。 */
   function resetSearch() {
     searchFormRef.current?.resetFields()
     setSearch({})
@@ -50,11 +53,13 @@ export default function ProTableDraftExample() {
     setPage(1)
   }
 
+  /** 切换列表与草稿视图，同时清除旧视图的查询和选择状态。 */
   function changeView(next: DraftTableView) {
     setView(next)
     resetSearch()
   }
 
+  /** 先写入浏览器存储再更新页面数据，写入失败时保留现有记录。 */
   function persist(next: DraftProjectRecord[]) {
     try {
       local.set(storageKey, next)
@@ -66,6 +71,7 @@ export default function ProTableDraftExample() {
     }
   }
 
+  /** 持久化新增或编辑后的项目，按保存阶段切换视图并提示结果。 */
   function saveProject(input: SaveProjectInput) {
     if (!persist(saveProjectRecord(records, input))) return false
     changeView(input.stage === 'draft' ? 'draft' : 'list')
@@ -79,6 +85,7 @@ export default function ProTableDraftExample() {
     return true
   }
 
+  /** 持久化移除所选项目或草稿，成功后清除行选择并提示结果。 */
   function deleteProjects(ids: Key[]) {
     if (!persist(records.filter((record) => !ids.includes(record.id)))) return
     setSelectedRowKeys([])
@@ -100,11 +107,13 @@ export default function ProTableDraftExample() {
         formRef={searchFormRef}
         form={{ name: 'draft-project-search' }}
         search={{ labelWidth: 'auto', defaultCollapsed: true }}
-        onSubmit={(values) => {
-          setSearch(values)
-          setPage(1)
-          setSelectedRowKeys([])
-        }}
+        onSubmit={
+          /** 应用新的项目查询条件，同时回到第一页并清除行选择。 */ (values) => {
+            setSearch(values)
+            setPage(1)
+            setSelectedRowKeys([])
+          }
+        }
         onReset={resetSearch}
         options={{ reload: () => resetSearch(), density: false, setting: true }}
         toolBarRender={() => [
@@ -137,6 +146,7 @@ export default function ProTableDraftExample() {
           showQuickJumper: true,
           pageSizeOptions: [10, 20, 50],
           showTotal: (total) => `共 ${total} 条`,
+          /** 同步分页页码与每页条数。 */
           onChange: (current, size) => {
             setPage(current)
             setPageSize(size)

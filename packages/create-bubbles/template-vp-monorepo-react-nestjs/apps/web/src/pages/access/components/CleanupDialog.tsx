@@ -1,11 +1,11 @@
 import { Alert, Button, Checkbox, Descriptions, Empty, List, Modal, Space, Tag } from 'antd'
-import { useImperativeHandle, useState, type Ref } from 'react'
 import type { CleanupPreview, CleanupRequest } from 'shared/types'
 
 export interface CleanupDialogRef {
   show: (preview: CleanupPreview) => void
   hide: () => void
 }
+/** 展示废弃权限影响范围，在确认预览凭据后提交清理。 */
 export default function CleanupDialog({
   ref,
   onSave,
@@ -19,6 +19,7 @@ export default function CleanupDialog({
   const [saving, setSaving] = useState(false)
   const hide = () => setOpen(false)
   useImperativeHandle(ref, () => ({
+    /** 载入本次清理预览并重置人工确认状态。 */
     show: (value) => {
       setPreview(value)
       setConfirmed(false)
@@ -28,6 +29,7 @@ export default function CleanupDialog({
   }))
   const executable = preview?.eligible && preview.items.length > 0 && Boolean(preview.proofDigest)
 
+  /** 校验清理条件和人工确认状态，携带预览凭据提交废弃权限清理。 */
   async function clean() {
     if (!preview?.proofDigest || !executable || !confirmed) return
     setSaving(true)

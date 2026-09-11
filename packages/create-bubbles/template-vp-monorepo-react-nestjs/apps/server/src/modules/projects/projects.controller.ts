@@ -10,6 +10,7 @@ import { ProjectsService } from './projects.service'
 @Controller()
 export class ProjectsController {
   constructor(private readonly projectsService: ProjectsService) {}
+  /** 校验公司、项目标识和资料字段，提交项目资料更新及预期版本。 */
   @Patch('companies/:companyId/projects/:projectId')
   @AccessPolicy({ scope: 'route', permission: '{scope}.profile.update' })
   updateProfile(@Req() req: FastifyRequest, @Body() body: unknown) {
@@ -20,6 +21,7 @@ export class ProjectsController {
       body: parse(profileSchema, body),
     })
   }
+  /** 校验公司标识与分页筛选参数，读取当前用户可查询的公司项目列表。 */
   @Get('companies/:companyId/projects')
   @AccessPolicy({ scope: 'company', permission: 'company.projects.read' })
   projects(@Req() req: FastifyRequest, @Query() query: unknown) {
@@ -29,6 +31,7 @@ export class ProjectsController {
       query: parse(entityListSchema, query),
     })
   }
+  /** 校验公司标识、项目资料和初始管理员账号，提交公司管理员创建项目操作。 */
   @Post('companies/:companyId/projects')
   @AccessPolicy({ scope: 'company', permission: 'company.projects.create', adminOnly: true })
   createProject(@Req() req: FastifyRequest, @Body() body: unknown) {
@@ -38,6 +41,7 @@ export class ProjectsController {
       body: parse(createScopeSchema, body),
     })
   }
+  /** 校验公司和项目标识，读取项目资料及管理员详情。 */
   @Get('companies/:companyId/projects/:projectId')
   @AccessPolicy({ scope: 'project', permission: 'project.profile.read' })
   projectDetail(@Req() req: FastifyRequest) {
@@ -48,6 +52,7 @@ export class ProjectsController {
       projectId: params.projectId!,
     })
   }
+  /** 校验公司、项目标识及预期版本，提交公司权限下的项目启停操作。 */
   @Patch('companies/:companyId/projects/:projectId/status')
   @AccessPolicy({ scope: 'company', permission: 'company.projects.status' })
   projectStatus(@Req() req: FastifyRequest, @Body() body: unknown) {
@@ -59,6 +64,7 @@ export class ProjectsController {
       body: parse(statusSchema, body),
     })
   }
+  /** 校验公司、项目标识及管理员账号，提交追加或替换项目管理员操作。 */
   @Post('companies/:companyId/projects/:projectId/administrator')
   @HttpCode(200)
   @AccessPolicy({ scope: 'company', permission: 'company.projects.administrator', adminOnly: true })
@@ -71,6 +77,7 @@ export class ProjectsController {
       body: parse(administratorSchema, body),
     })
   }
+  /** 校验公司和项目标识，返回公司管理员可管理的项目管理员列表。 */
   @Get('companies/:companyId/projects/:projectId/administrators')
   @AccessPolicy({ scope: 'company', permission: 'company.projects.administrator', adminOnly: true })
   projectAdministrators(@Req() req: FastifyRequest) {

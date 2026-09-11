@@ -14,6 +14,7 @@ import { memberRolesSchema, memberSchema } from './members.validation'
 @Controller(['companies/:companyId/members', 'companies/:companyId/projects/:projectId/members'])
 export class MembersController {
   constructor(private readonly members: MembersService) {}
+  /** 校验分页与筛选参数，查询路由对应公司或项目的成员列表。 */
   @Get()
   @AccessPolicy({ scope: 'route', permission: '{scope}.members.read' })
   list(@Req() req: FastifyRequest, @Query() query: unknown) {
@@ -23,6 +24,7 @@ export class MembersController {
       query: parse(entityListSchema, query),
     })
   }
+  /** 校验成员账号，在路由对应公司或项目中添加成员。 */
   @Post()
   @AccessPolicy({ scope: 'route', permission: '{scope}.members.add' })
   add(@Req() req: FastifyRequest, @Body() body: unknown) {
@@ -32,6 +34,7 @@ export class MembersController {
       body: parse(memberSchema, body),
     })
   }
+  /** 校验成员标识、预期版本及目标状态，提交当前作用域的成员启停操作。 */
   @Patch(':memberId/status')
   @AccessPolicy({ scope: 'route', permission: '{scope}.members.status' })
   status(@Req() req: FastifyRequest, @Body() body: unknown) {
@@ -43,6 +46,7 @@ export class MembersController {
       body: parse(statusSchema, body),
     })
   }
+  /** 校验成员标识、预期版本和角色集合，替换当前作用域的成员角色。 */
   @Put(':memberId/roles')
   @AccessPolicy({ scope: 'route', permission: '{scope}.members.roles' })
   roles(@Req() req: FastifyRequest, @Body() body: unknown) {
@@ -54,6 +58,7 @@ export class MembersController {
       body: parse(memberRolesSchema, body),
     })
   }
+  /** 校验成员标识和预期版本，移除当前公司或项目的成员关系。 */
   @Delete(':memberId')
   @AccessPolicy({ scope: 'route', permission: '{scope}.members.remove' })
   remove(@Req() req: FastifyRequest, @Query() query: unknown) {

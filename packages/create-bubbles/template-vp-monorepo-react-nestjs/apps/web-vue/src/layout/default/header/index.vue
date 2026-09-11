@@ -4,6 +4,7 @@ import { useUserStoreWithOut } from '@/store/modules/user'
 const userStore = useUserStoreWithOut()
 const router = useRouter()
 
+/** 处理用户菜单；退出登录时重置用户状态并跳转到登录页。 */
 function handleMenuClick({ key }: { key: string }) {
   if (key === 'logout') {
     userStore.$reset()

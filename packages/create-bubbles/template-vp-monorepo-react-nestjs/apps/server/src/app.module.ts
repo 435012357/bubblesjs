@@ -45,6 +45,9 @@ import { ENV_ARR } from './utils/env-arr'
     DatabaseModule,
     RedisModule.forRootAsync({
       inject: [ConfigService],
+      /**
+       * 为会话 Redis 创建单节点连接，限制连接和命令等待，并禁用离线排队以便及时暴露故障。
+       */
       useFactory: (config) => ({
         type: 'single',
         options: {

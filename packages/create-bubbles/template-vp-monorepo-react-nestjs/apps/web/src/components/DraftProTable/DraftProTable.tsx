@@ -3,7 +3,6 @@ import { InfoCircleOutlined } from '@ant-design/icons'
 import type { ParamsType } from '@ant-design/pro-components'
 import { Badge } from 'antd'
 import classNames from 'classnames'
-import type { ReactNode } from 'react'
 import FullHeightProTable, {
   type FullHeightProTableProps,
 } from '../FullHeightProTable/FullHeightProTable'

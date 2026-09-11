@@ -54,6 +54,7 @@ export interface VerifiedAccess {
 export class AccessService {
   constructor(@Inject(DRIZZLE) readonly db: DrizzleDB) {}
 
+  /** 查询用户在指定作用域内直接分配的角色，不包含从上级公司继承的管理员身份。 */
   async roleAssignments(db: AccessDb, scope: AccessScope, userId: string) {
     return db
       .select({ role: roles })
@@ -62,10 +63,16 @@ export class AccessService {
       .where(and(eq(userRoles.userId, userId), scopeFilter(scope)))
   }
 
+  /** 判断用户在指定作用域内是否拥有有效管理员身份；项目支持继承公司管理员身份。 */
   async isAdministrator(db: AccessDb, scope: AccessScope, userId: string): Promise<boolean> {
     return this.hasAdministrator(db, scope, userId)
   }
 
+  /**
+   * 检查作用域内是否存在满足账号状态、成员状态及角色约束的管理员。
+   *
+   * @param userId - 指定时只检查该用户，省略时用于判断是否仍存在任意有效管理员。
+   */
   private async hasAdministrator(db: AccessDb, scope: AccessScope, userId?: string) {
     const companyMembership =
       scope.type === 'platform'
@@ -122,6 +129,12 @@ export class AccessService {
     return !!found
   }
 
+  /**
+   * 枚举本次变更可能影响的作用域，并筛选仍存在有效管理员的作用域。
+   *
+   * 用户筛选用于缩小受影响公司范围，平台作用域始终纳入检查。
+   * @returns 待检查的作用域 scopes 与仍有有效管理员的作用域 effective。
+   */
   async effectiveAdministratorScopes(
     db: AccessDb,
     options: {
@@ -167,6 +180,12 @@ export class AccessService {
     for (const scope of scopes) if (await this.hasAdministrator(db, scope)) effective.push(scope)
     return { scopes, effective }
   }
+  /**
+   * 确保需要保留的作用域仍有有效管理员，防止成员或角色变更移除最后一位管理员。
+   *
+   * @param options - 可提供变更前的作用域快照 previous；未提供时检查当前全部候选作用域。
+   * @throws 任一目标作用域失去有效管理员时抛出 LAST_ADMINISTRATOR。
+   */
   async assertAdministrators(
     db: AccessDb,
     options: {
@@ -185,6 +204,13 @@ export class AccessService {
     }
   }
 
+  /**
+   * 验证操作者、作用域和成员状态，并结合角色授权与启用菜单计算有效权限。
+   *
+   * 公司管理员可继承项目管理权限；操作权限还要求所属页面权限同时有效。
+   * 要求多个权限时，满足其中任意一个即可通过；adminOnly 额外要求管理员身份。
+   * @returns 已验证的用户、管理员身份、权限键及完整菜单树和版本。
+   */
   async authorize(db: AccessDb, requirement: AccessRequirement): Promise<VerifiedAccess> {
     const { actor, scope } = requirement
     const [user] = await db
@@ -255,6 +281,7 @@ export class AccessService {
     )
     const menuRows = await db.select().from(menus).where(eq(menus.scopeType, scope.type))
     const byId = new Map(menuRows.map((m) => [m.id, m]))
+    /** 沿菜单父链检查启用状态，遇到停用节点或循环引用时判定该菜单无效。 */
     const enabled = (id: string): boolean => {
       const visited = new Set<string>()
       let node = byId.get(id)
@@ -296,7 +323,13 @@ export class AccessService {
     }
   }
 
+  /**
+   * 将菜单平铺记录递归组装为树，同级按 sort 和标识稳定排序。
+   *
+   * @param rows - 父子关系已经过校验的菜单记录。
+   */
   tree(rows: Omit<MenuNode, 'children'>[]): MenuNode[] {
+    /** 递归构造指定父节点下的有序子树，null 表示从根菜单开始。 */
     const build = (parentId: string | null): MenuNode[] =>
       rows
         .filter((m) => m.parentId === parentId)
@@ -319,7 +352,13 @@ export class AccessService {
     return build(null)
   }
 
+  /**
+   * 生成客户端访问上下文，递归剔除停用、隐藏、无权限菜单及空目录。
+   *
+   * 完整有效权限键仍保留，用于页面操作鉴权和客户端权限判断。
+   */
   context(access: VerifiedAccess): AccessContext {
+    /** 递归筛选当前用户可见的菜单，并移除过滤后不再包含子节点的目录。 */
     const filter = (nodes: MenuNode[]): MenuNode[] =>
       nodes
         .filter(
@@ -341,6 +380,12 @@ export class AccessService {
     }
   }
 
+  /**
+   * 在可重复读的只读事务中先校验权限，再执行查询，保证权限与业务数据来自同一快照。
+   *
+   * @param operation - 接收当前事务和已验证访问上下文的查询。
+   * @returns 查询的返回结果。
+   */
   read<T>(
     requirement: AccessRequirement,
     operation: (tx: AccessTx, access: VerifiedAccess) => Promise<T>,
@@ -350,6 +395,12 @@ export class AccessService {
       accessMode: 'read only',
     })
   }
+  /**
+   * 在事务中获取权限写锁并重新鉴权，再执行业务变更；异常时回滚数据库修改。
+   *
+   * @param operation - 接收当前事务和已验证访问上下文的写操作。
+   * @returns 写操作的返回结果。
+   */
   write<T>(
     requirement: AccessRequirement,
     operation: (tx: AccessTx, access: VerifiedAccess) => Promise<T>,
@@ -359,6 +410,11 @@ export class AccessService {
       return operation(tx, await this.authorize(tx, requirement))
     })
   }
+  /**
+   * 在业务事务内写入审计记录，保存操作者快照、访问作用域及变更摘要。
+   *
+   * 请求标识最多保留 128 个字符；审计记录随业务事务一同提交或回滚。
+   */
   async audit(
     tx: AccessTx,
     input: {

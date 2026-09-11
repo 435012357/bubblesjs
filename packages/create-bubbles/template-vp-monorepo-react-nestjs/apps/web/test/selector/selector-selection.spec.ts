@@ -21,6 +21,7 @@ describe('Selector 跨页选择与完整对象契约', () => {
       multiple: true,
       columns: [{ title: '名称', dataIndex: 'name' }],
       request: async () => ({ data: [alice], total: 1, success: true }),
+      /** 合并行禁选规则，并在确认过程中禁用选择控件。 */
       getCheckboxProps: (row) => ({ disabled: row.id === 'disabled' }),
       onChange: (_keys, rows) => {
         expectTypeOf(rows).toEqualTypeOf<Row[]>()
