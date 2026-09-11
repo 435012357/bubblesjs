@@ -1,3 +1,6 @@
+import { logout } from '@/api/auth'
+import { workspaceLayoutToken } from '@/config/theme'
+import { cookie } from '@/utils/storage/cookie'
 import {
   DashboardOutlined,
   LogoutOutlined,
@@ -7,11 +10,8 @@ import {
 import { ProLayout } from '@ant-design/pro-components'
 import { useRequest } from 'alova/client'
 import { App, Button } from 'antd'
-import { workspaceLayoutToken } from '@/config/theme'
-import { logout } from '@/api/auth'
-import { cookie } from '@/utils/storage/cookie'
-import styles from './BasicLayout.module.css'
 import '../WorkspaceLayout/workspace.css'
+import styles from './BasicLayout.module.css'
 
 const menuRoutes = [
   { path: '/home', name: '工作台', icon: <DashboardOutlined /> },
@@ -70,7 +70,7 @@ export default function BasicLayout() {
                 loading={loading}
                 onClick={() => void handleLogout()}
               >
-                退出登录
+                退出登录1
               </Button>,
             ]
           : [

@@ -1,12 +1,12 @@
+import { logout } from '@/api/auth'
+import PageLoading from '@/components/Loading/PageLoading'
+import '@/layouts/WorkspaceLayout/workspace.css'
+import { clearWorkspaceRequests } from '@/utils/request/workspace'
+import { cookie } from '@/utils/storage/cookie'
 import { ArrowRightOutlined, LogoutOutlined, ReloadOutlined } from '@ant-design/icons'
 import { App, Button, Card, Empty, Input, Space, Tag } from 'antd'
 import { accessScopeBasePath, accessScopeKey } from 'shared/utils'
-import { logout } from '@/api/auth'
-import PageLoading from '@/components/Loading/PageLoading'
-import { clearWorkspaceRequests } from '@/utils/request/workspace'
-import { cookie } from '@/utils/storage/cookie'
 import { getWorkspaceState } from './state'
-import '@/layouts/WorkspaceLayout/workspace.css'
 
 /** 展示可访问工作空间，支持搜索、权限刷新及退出登录。 */
 export default function WorkspacesPage() {
