@@ -12,7 +12,7 @@ import { projectRoutes } from './project'
 export const routes: RouteObject[] = [
   {
     id: 'root',
-    element: <RouteTransition />,
+    element: <Outlet />,
     errorElement: (
       <RouteTransition>
         <RouteError />

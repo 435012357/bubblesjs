@@ -7,6 +7,7 @@ import {
   ProFormText,
 } from '@ant-design/pro-components'
 import { Alert } from 'antd'
+import { useI18n } from '@bubblesjs/i18n-react'
 import type {
   CreateMenuRequest,
   FunctionCatalogResult,
@@ -35,6 +36,7 @@ export default function MenuFormDialog({
 }) {
   const [open, setOpen] = useState(false)
   const [state, setState] = useState<EditorState>()
+  const { tr } = useI18n()
   const hide = () => setOpen(false)
   useImperativeHandle(ref, () => ({
     /** 载入菜单树、功能目录及可选编辑节点，打开菜单表单。 */
@@ -73,7 +75,7 @@ export default function MenuFormDialog({
 
   return (
     <ModalForm<CreateMenuRequest>
-      title={record ? '编辑菜单节点' : '新增菜单节点'}
+      title={record ? tr('编辑菜单节点') : tr('新增菜单节点')}
       open={open}
       width={620}
       initialValues={
@@ -83,7 +85,7 @@ export default function MenuFormDialog({
       onOpenChange={(visible) => {
         if (!visible) hide()
       }}
-      submitter={{ searchConfig: { submitText: '保存菜单' } }}
+      submitter={{ searchConfig: { submitText: tr('保存菜单') } }}
       onFinish={
         /** 规范化菜单字段并携带树版本提交新增或编辑，成功后关闭弹窗。 */ async (values) => {
           if (!state) return false
@@ -119,27 +121,27 @@ export default function MenuFormDialog({
         <Alert
           type="info"
           showIcon
-          title="此节点属于受保护的管理入口，不能隐藏、停用或移到不可用位置。"
+          title={tr('此节点属于受保护的管理入口，不能隐藏、停用或移到不可用位置。')}
           style={{ marginBottom: 18 }}
         />
       )}
       {!record && (
         <ProFormSelect
           name="type"
-          label="节点类型"
+          label={tr('节点类型')}
           options={[
-            { value: 'directory', label: '目录' },
-            { value: 'page', label: '页面' },
-            { value: 'operation', label: '按钮 / 操作' },
+            { value: 'directory', label: tr('目录') },
+            { value: 'page', label: tr('页面') },
+            { value: 'operation', label: tr('按钮 / 操作') },
           ]}
           rules={[{ required: true }]}
         />
       )}
       <ProFormText
         name="name"
-        label="显示名称"
+        label={tr('显示名称')}
         fieldProps={{ maxLength: 100 }}
-        rules={[{ required: true, whitespace: true, max: 100, message: '请输入显示名称' }]}
+        rules={[{ required: true, whitespace: true, max: 100, message: tr('请输入显示名称') }]}
       />
       <ProFormDependency name={['type', 'parentId']}>
         {
@@ -160,12 +162,14 @@ export default function MenuFormDialog({
               <>
                 <ProFormSelect
                   name="parentId"
-                  label="父级节点"
+                  label={tr('父级节点')}
                   allowClear={nodeType !== 'operation'}
-                  placeholder={nodeType === 'operation' ? '选择所属页面' : '不选择，放在根目录'}
+                  placeholder={
+                    nodeType === 'operation' ? tr('选择所属页面') : tr('不选择，放在根目录')
+                  }
                   rules={
                     nodeType === 'operation'
-                      ? [{ required: true, message: '操作必须属于一个页面' }]
+                      ? [{ required: true, message: tr('操作必须属于一个页面') }]
                       : []
                   }
                   options={availableParents.map((node) => ({ value: node.id, label: node.name }))}
@@ -173,20 +177,20 @@ export default function MenuFormDialog({
                 {!record && nodeType === 'page' && (
                   <ProFormSelect
                     name="routeKey"
-                    label="绑定页面"
-                    placeholder="选择已发布的页面"
-                    rules={[{ required: true, message: '请选择页面' }]}
+                    label={tr('绑定页面')}
+                    placeholder={tr('选择已发布的页面')}
+                    rules={[{ required: true, message: tr('请选择页面') }]}
                     options={pages
                       .filter((item) => !boundPages.has(item.routeKey))
-                      .map((item) => ({ value: item.routeKey, label: item.title }))}
+                      .map((item) => ({ value: item.routeKey, label: tr(item.title) }))}
                   />
                 )}
                 {!record && nodeType === 'operation' && (
                   <ProFormSelect
                     name="permissionKey"
-                    label="绑定操作"
-                    placeholder="先选择所属页面"
-                    rules={[{ required: true, message: '请选择操作' }]}
+                    label={tr('绑定操作')}
+                    placeholder={tr('先选择所属页面')}
+                    rules={[{ required: true, message: tr('请选择操作') }]}
                     options={(state?.catalog.items ?? [])
                       .filter(
                         (item) =>
@@ -195,15 +199,17 @@ export default function MenuFormDialog({
                           item.routeKey === parent?.routeKey &&
                           !boundOperations.has(item.key),
                       )
-                      .map((item) => ({ value: item.key, label: item.title }))}
+                      .map((item) => ({ value: item.key, label: tr(item.title) }))}
                   />
                 )}
                 {record && record.type !== 'directory' && (
                   <p>
-                    已绑定：
-                    {state?.catalog.items.find((item) => item.key === record.permissionKey)
-                      ?.title ?? record.name}
-                    。已有节点不能更换绑定功能。
+                    {tr('已绑定：')}
+                    {tr(
+                      state?.catalog.items.find((item) => item.key === record.permissionKey)
+                        ?.title ?? record.name,
+                    )}
+                    {tr('。已有节点不能更换绑定功能。')}
                   </p>
                 )}
               </>
@@ -213,28 +219,34 @@ export default function MenuFormDialog({
       </ProFormDependency>
       <ProFormSelect
         name="icon"
-        label="图标"
+        label={tr('图标')}
         allowClear
         options={(state?.catalog.icons ?? [])
           .filter(Boolean)
           .map((icon) => ({ value: icon, label: icon }))}
       />
-      <ProFormDigit name="sort" label="排序" min={0} max={100000} fieldProps={{ precision: 0 }} />
+      <ProFormDigit
+        name="sort"
+        label={tr('排序')}
+        min={0}
+        max={100000}
+        fieldProps={{ precision: 0 }}
+      />
       <ProFormSwitch
         name="hidden"
-        label="隐藏导航"
+        label={tr('隐藏导航')}
         disabled={record?.protected}
-        extra="隐藏只影响菜单展示，已授权用户仍可直接访问。"
+        extra={tr('隐藏只影响菜单展示，已授权用户仍可直接访问。')}
       />
       <ProFormSelect
         name="status"
-        label="功能状态"
+        label={tr('功能状态')}
         disabled={record?.protected}
         options={[
-          { value: 'active', label: '启用' },
-          { value: 'disabled', label: '停用' },
+          { value: 'active', label: tr('启用') },
+          { value: 'disabled', label: tr('停用') },
         ]}
-        extra="停用会阻断节点及下级功能，管理员也受此限制。"
+        extra={tr('停用会阻断节点及下级功能，管理员也受此限制。')}
       />
     </ModalForm>
   )

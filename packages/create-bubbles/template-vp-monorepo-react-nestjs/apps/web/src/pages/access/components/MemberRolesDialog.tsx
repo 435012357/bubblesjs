@@ -1,5 +1,6 @@
 import { ModalForm, ProFormSelect } from '@ant-design/pro-components'
 import { Alert } from 'antd'
+import { useI18n } from '@bubblesjs/i18n-react'
 import type { AccountRecord, MemberRecord, RoleRecord } from 'shared/types'
 
 export interface MemberRolesDialogRef {
@@ -17,6 +18,7 @@ export default function MemberRolesDialog({
   const [open, setOpen] = useState(false)
   const [record, setRecord] = useState<MemberRecord | AccountRecord>()
   const [roles, setRoles] = useState<RoleRecord[]>([])
+  const { tr } = useI18n()
   const hide = () => setOpen(false)
   const selected = record
     ? 'platformRoleIds' in record
@@ -34,7 +36,7 @@ export default function MemberRolesDialog({
   }))
   return (
     <ModalForm<{ roleIds: string[] }>
-      title={`分配角色 · ${record?.name ?? ''}`}
+      title={tr('分配角色 · {name}', { name: record?.name ?? '' })}
       open={open}
       width={580}
       initialValues={{ roleIds: selected }}
@@ -42,7 +44,7 @@ export default function MemberRolesDialog({
       onOpenChange={(visible) => {
         if (!visible) hide()
       }}
-      submitter={{ searchConfig: { submitText: '保存角色' } }}
+      submitter={{ searchConfig: { submitText: tr('保存角色') } }}
       onFinish={
         /** 提交成员最新角色集合，保存成功后关闭弹窗。 */ async (values) => {
           if (!record) return false
@@ -55,18 +57,20 @@ export default function MemberRolesDialog({
       <Alert
         type="info"
         showIcon
-        title="多个角色的权限合并生效"
-        description="这里只修改当前工作空间的角色。撤销管理员身份受委派资格和最后有效管理员保护。"
+        title={tr('多个角色的权限合并生效')}
+        description={tr(
+          '这里只修改当前工作空间的角色。撤销管理员身份受委派资格和最后有效管理员保护。',
+        )}
         style={{ marginBottom: 20 }}
       />
       <ProFormSelect
         name="roleIds"
-        label="角色"
+        label={tr('角色')}
         mode="multiple"
-        placeholder="选择角色；留空表示撤销当前范围全部角色"
+        placeholder={tr('选择角色；留空表示撤销当前范围全部角色')}
         options={roles.map((role) => ({
           value: role.id,
-          label: `${role.name}${role.builtin ? '（内置）' : ''}`,
+          label: `${role.name}${role.builtin ? tr('（内置）') : ''}`,
           disabled: !role.assignable && !selected.includes(role.id),
         }))}
         fieldProps={{ optionFilterProp: 'label', allowClear: true }}

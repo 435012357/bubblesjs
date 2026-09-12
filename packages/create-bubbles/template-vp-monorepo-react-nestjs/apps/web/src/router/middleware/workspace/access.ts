@@ -1,3 +1,4 @@
+import { tr } from '@/i18n'
 import { firstAccessiblePagePath, type RegisteredPage } from '@/router/page-registry'
 import { scopeAccessContext } from './data'
 
@@ -15,7 +16,7 @@ export function accessMiddleware(routeKey: RegisteredPage): MiddlewareFunction {
     // 零 loader 路由先完成空处理链，让错误归属当前叶子边界；此时页面尚未渲染。
     await next()
     if (destination) throw redirect(destination)
-    throw Object.assign(new Error('你没有访问此页面的权限，请联系管理员授权。'), {
+    throw Object.assign(new Error(tr('你没有访问此页面的权限，请联系管理员授权。')), {
       status: 403,
     })
   }

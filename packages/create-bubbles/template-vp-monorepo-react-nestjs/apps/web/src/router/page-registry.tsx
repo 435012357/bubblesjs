@@ -14,26 +14,27 @@ import {
 } from '@ant-design/icons'
 import type { AccessContext, AccessScope, MenuNode } from 'shared/types'
 import { accessRoutePath, filterSupportedAccessMenus } from 'shared/utils'
+import { tr } from '@/i18n'
 
 /** 此表随 Web 发布；服务端下发的 routeKey 不能动态 import 任意组件。 */
 export const pageRegistry = {
-  'platform.home': { path: '', title: '平台工作台' },
-  'platform.companies': { path: 'companies', title: '企业管理' },
-  'platform.accounts': { path: 'accounts', title: '全局账号' },
-  'platform.roles': { path: 'roles', title: '平台角色' },
-  'platform.menus': { path: 'menus', title: '菜单管理' },
-  'platform.audit': { path: 'audit', title: '平台操作日志' },
-  'company.home': { path: '', title: '企业工作台' },
-  'company.profile': { path: 'profile', title: '企业资料' },
-  'company.members': { path: 'members', title: '企业成员' },
-  'company.roles': { path: 'roles', title: '企业角色' },
-  'company.projects': { path: 'projects', title: '项目管理' },
-  'company.audit': { path: 'audit', title: '企业操作日志' },
-  'project.home': { path: '', title: '项目工作台' },
-  'project.profile': { path: 'profile', title: '项目资料' },
-  'project.members': { path: 'members', title: '项目成员' },
-  'project.roles': { path: 'roles', title: '项目角色' },
-  'project.audit': { path: 'audit', title: '项目操作日志' },
+  'platform.home': { path: '', title: () => tr('平台工作台') },
+  'platform.companies': { path: 'companies', title: () => tr('企业管理') },
+  'platform.accounts': { path: 'accounts', title: () => tr('全局账号') },
+  'platform.roles': { path: 'roles', title: () => tr('平台角色') },
+  'platform.menus': { path: 'menus', title: () => tr('菜单管理') },
+  'platform.audit': { path: 'audit', title: () => tr('平台操作日志') },
+  'company.home': { path: '', title: () => tr('企业工作台') },
+  'company.profile': { path: 'profile', title: () => tr('企业资料') },
+  'company.members': { path: 'members', title: () => tr('企业成员') },
+  'company.roles': { path: 'roles', title: () => tr('企业角色') },
+  'company.projects': { path: 'projects', title: () => tr('项目管理') },
+  'company.audit': { path: 'audit', title: () => tr('企业操作日志') },
+  'project.home': { path: '', title: () => tr('项目工作台') },
+  'project.profile': { path: 'profile', title: () => tr('项目资料') },
+  'project.members': { path: 'members', title: () => tr('项目成员') },
+  'project.roles': { path: 'roles', title: () => tr('项目角色') },
+  'project.audit': { path: 'audit', title: () => tr('项目操作日志') },
 } as const
 
 export type RegisteredPage = keyof typeof pageRegistry
@@ -103,10 +104,11 @@ export function navigationTree(nodes: MenuNode[], scope: AccessScope): Navigatio
       const icon = menuIcons[node.icon as keyof typeof menuIcons] ?? <ApartmentOutlined />
       if (node.type === 'page') {
         const path = pagePath(scope, node.routeKey ?? '')
-        return path ? [{ key: path, path, name: node.name, icon }] : []
+        const page = pageRegistry[node.routeKey as RegisteredPage]
+        return path ? [{ key: path, path, name: page?.title() ?? node.name, icon }] : []
       }
       const routes = navigationTree(node.children, scope)
-      return routes.length ? [{ key: node.id, name: node.name, icon, routes }] : []
+      return routes.length ? [{ key: node.id, name: tr(node.name), icon, routes }] : []
     },
   )
 }

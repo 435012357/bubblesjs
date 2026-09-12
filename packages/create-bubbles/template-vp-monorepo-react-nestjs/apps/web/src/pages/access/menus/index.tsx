@@ -1,6 +1,7 @@
 import { ClearOutlined, PlusOutlined, ReloadOutlined } from '@ant-design/icons'
 import type { ProColumns } from '@ant-design/pro-components'
 import { Alert, App, Button, Popconfirm, Space, Tabs, Tag } from 'antd'
+import { useI18n } from '@bubblesjs/i18n-react'
 import type {
   CreateMenuRequest,
   FunctionCatalogResult,
@@ -33,6 +34,7 @@ export default function MenusPage() {
   const [previewing, setPreviewing] = useState(false)
   const formRef = useRef<MenuFormDialogRef>(null)
   const cleanupRef = useRef<CleanupDialogRef>(null)
+  const { tr } = useI18n()
   const allowed = (action: string) => access.permissionKeys.includes(`platform.menus.${action}`)
 
   useEffect(
@@ -56,7 +58,7 @@ export default function MenusPage() {
         )
         .catch((cause: unknown) => {
           if (current && (cause as Error).name !== 'AbortError')
-            setError(cause instanceof Error ? cause.message : '无法加载菜单')
+            setError(cause instanceof Error ? cause.message : tr('无法加载菜单'))
         })
         .finally(() => {
           if (current) setLoading(false)
@@ -73,10 +75,10 @@ export default function MenusPage() {
   const append = (items: MenuNode[], parentName: string) => {
     for (const item of items) {
       rows.push({ ...item, children: [], parentName })
-      append(item.children, `${parentName === '根目录' ? '' : `${parentName} / `}${item.name}`)
+      append(item.children, `${parentName === tr('根目录') ? '' : `${parentName} / `}${item.name}`)
     }
   }
-  append(tree?.items ?? [], '根目录')
+  append(tree?.items ?? [], tr('根目录'))
   const filteredRows = rows.filter(
     /** 按菜单名称或功能标识匹配关键字，并叠加状态及节点类型筛选。 */
     (row) =>
@@ -95,7 +97,7 @@ export default function MenusPage() {
       cleanupRef.current?.show(await menuApi.cleanupPreview())
     } catch (cause) {
       if ((cause as Error).name !== 'AbortError')
-        void message.error(cause instanceof Error ? cause.message : '无法加载预览')
+        void message.error(cause instanceof Error ? cause.message : tr('无法加载预览'))
     } finally {
       setPreviewing(false)
     }
@@ -103,56 +105,61 @@ export default function MenusPage() {
 
   const columns: ProColumns<MenuRow>[] = [
     {
-      title: '搜索',
+      title: tr('搜索'),
       dataIndex: 'query',
       hideInTable: true,
-      fieldProps: { placeholder: '名称或功能标识' },
+      fieldProps: { placeholder: tr('名称或功能标识') },
     },
     {
-      title: '名称',
+      title: tr('名称'),
       dataIndex: 'name',
       search: false,
       width: 180,
       render: (_, record) => (
         <Space>
           {record.name}
-          {record.protected && <Tag color="blue">保护</Tag>}
+          {record.protected && <Tag color="blue">{tr('保护')}</Tag>}
         </Space>
       ),
     },
     {
-      title: '类型',
+      title: tr('类型'),
       dataIndex: 'type',
       width: 100,
-      valueEnum: { directory: '目录', page: '页面', operation: '按钮 / 操作' },
+      valueEnum: {
+        directory: tr('目录'),
+        page: tr('页面'),
+        operation: tr('按钮 / 操作'),
+      },
     },
-    { title: '父级', dataIndex: 'parentName', search: false, ellipsis: true, width: 200 },
+    { title: tr('父级'), dataIndex: 'parentName', search: false, ellipsis: true, width: 200 },
     {
-      title: '绑定功能',
+      title: tr('绑定功能'),
       search: false,
       width: 240,
       render: (_, record) =>
-        catalog?.items.find((item) => item.key === record.permissionKey)?.title ?? '—',
+        tr(catalog?.items.find((item) => item.key === record.permissionKey)?.title ?? '—'),
     },
     {
-      title: '导航',
+      title: tr('导航'),
       dataIndex: 'hidden',
       search: false,
       width: 80,
-      render: (_, record) => (record.type === 'operation' ? '—' : record.hidden ? '隐藏' : '显示'),
+      render: (_, record) =>
+        record.type === 'operation' ? '—' : record.hidden ? tr('隐藏') : tr('显示'),
     },
     {
-      title: '状态',
+      title: tr('状态'),
       dataIndex: 'status',
       width: 90,
       valueEnum: {
-        active: { text: '启用', status: 'Success' },
-        disabled: { text: '停用', status: 'Default' },
+        active: { text: tr('启用'), status: 'Success' },
+        disabled: { text: tr('停用'), status: 'Default' },
       },
     },
-    { title: '排序', dataIndex: 'sort', search: false, width: 70 },
+    { title: tr('排序'), dataIndex: 'sort', search: false, width: 70 },
     {
-      title: '操作',
+      title: tr('操作'),
       valueType: 'option',
       width: 140,
       render: (_, record) => (
@@ -165,13 +172,13 @@ export default function MenusPage() {
                 if (tree && catalog) formRef.current?.show({ record, tree, catalog })
               }}
             >
-              编辑
+              {tr('编辑')}
             </Button>
           )}
           {allowed('delete') && !record.protected && (
             <Popconfirm
-              title="删除菜单节点？"
-              description="仍有子节点或角色授权引用时不能删除。"
+              title={tr('删除菜单节点？')}
+              description={tr('仍有子节点或角色授权引用时不能删除。')}
               onConfirm={() =>
                 execute(
                   () => menuApi.remove(record.id, tree!.version),
@@ -180,7 +187,7 @@ export default function MenusPage() {
               }
             >
               <Button type="link" size="small" danger>
-                删除
+                {tr('删除')}
               </Button>
             </Popconfirm>
           )}
@@ -201,9 +208,9 @@ export default function MenusPage() {
           }
         }
         items={[
-          { key: 'platform', label: '平台菜单' },
-          { key: 'company', label: '企业菜单' },
-          { key: 'project', label: '项目菜单' },
+          { key: 'platform', label: tr('平台菜单') },
+          { key: 'company', label: tr('企业菜单') },
+          { key: 'project', label: tr('项目菜单') },
         ]}
       />
       {error && (
@@ -212,7 +219,7 @@ export default function MenusPage() {
           type="error"
           showIcon
           title={error}
-          action={<Button onClick={() => setRefresh((value) => value + 1)}>重试</Button>}
+          action={<Button onClick={() => setRefresh((value) => value + 1)}>{tr('重试')}</Button>}
         />
       )}
       <div className="menu-table">
@@ -222,7 +229,7 @@ export default function MenusPage() {
           columns={columns}
           dataSource={filteredRows}
           loading={loading}
-          headerTitle="菜单与操作"
+          headerTitle={tr('菜单与操作')}
           options={{ reload: false }}
           pagination={{
             defaultPageSize: 20,
@@ -238,7 +245,7 @@ export default function MenusPage() {
                 icon={<ReloadOutlined />}
                 onClick={() => setRefresh((value) => value + 1)}
               >
-                刷新
+                {tr('刷新')}
               </Button>,
               allowed('cleanup') && access.administrator === 'platform' && (
                 <Button
@@ -247,7 +254,7 @@ export default function MenusPage() {
                   loading={previewing}
                   onClick={() => void previewCleanup()}
                 >
-                  清理废弃权限
+                  {tr('清理废弃权限')}
                 </Button>
               ),
               allowed('create') && (
@@ -260,7 +267,7 @@ export default function MenusPage() {
                     if (tree && catalog) formRef.current?.show({ tree, catalog })
                   }}
                 >
-                  新增节点
+                  {tr('新增节点')}
                 </Button>
               ),
             ].filter(Boolean)

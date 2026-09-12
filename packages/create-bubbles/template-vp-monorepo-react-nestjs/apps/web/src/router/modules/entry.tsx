@@ -1,3 +1,4 @@
+import RouteTransition from '@/components/RouteTransition/RouteTransition'
 import RouteError from '@/pages/error/error'
 import { lazyLoad } from '@/router/lazy-load'
 import { authMiddleware, entryMiddleware, workspacesMiddleware } from '@/router/middleware'
@@ -8,8 +9,12 @@ export const entryRoutes: RouteObject[] = [
   {
     id: 'workspaces',
     path: '/workspaces',
-    element: lazyLoad('workspaces'),
+    element: <RouteTransition>{lazyLoad('workspaces')}</RouteTransition>,
     middleware: [authMiddleware, workspacesMiddleware],
-    errorElement: <RouteError />,
+    errorElement: (
+      <RouteTransition>
+        <RouteError />
+      </RouteTransition>
+    ),
   },
 ]

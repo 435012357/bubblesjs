@@ -1,3 +1,4 @@
+import RouteTransition from '@/components/RouteTransition/RouteTransition'
 import WorkspaceLayout from '@/layouts/WorkspaceLayout'
 import RouteError from '@/pages/error/error'
 import { authMiddleware, scopeMiddleware } from '@/router/middleware'
@@ -9,7 +10,11 @@ export const companyRoutes: RouteObject[] = [
     path: '/companies/:companyId',
     element: <WorkspaceLayout />,
     middleware: [authMiddleware, scopeMiddleware('company')],
-    errorElement: <RouteError />,
+    errorElement: (
+      <RouteTransition>
+        <RouteError />
+      </RouteTransition>
+    ),
     children: [
       page('company.home', 'access', 'home'),
       page('company.profile', 'access', 'profile'),

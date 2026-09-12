@@ -1,6 +1,6 @@
 import './RouteTransition.css'
 
-/** 只为已提交的新路由播放整页滑动，忽略同一路由的加载完成及异步更新。 */
+/** 为已提交的新路由播放页面区域滑动，并忽略同一路由的加载完成及异步更新。 */
 export default function RouteTransition({ children }: PropsWithChildren) {
   const { key: locationKey } = useLocation()
   const previousLocationKey = useRef(locationKey)
@@ -10,7 +10,7 @@ export default function RouteTransition({ children }: PropsWithChildren) {
     previousLocationKey.current = locationKey
   }, [locationKey])
 
-  /** 同一导航只保留首次滑动，取消页内更新产生的整页快照动画。 */
+  /** 同一导航只保留首次滑动，取消页内更新产生的页面快照动画。 */
   function handleUpdate() {
     if (previousLocationKey.current !== locationKey) {
       previousLocationKey.current = locationKey
@@ -34,6 +34,7 @@ export default function RouteTransition({ children }: PropsWithChildren) {
     <ReactViewTransition
       name="route-page"
       default="none"
+      share="route-page"
       update="route-page"
       onUpdate={handleUpdate}
     >

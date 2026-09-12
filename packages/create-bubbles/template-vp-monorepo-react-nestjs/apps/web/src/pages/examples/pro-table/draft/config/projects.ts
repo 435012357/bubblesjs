@@ -1,4 +1,5 @@
 import type { DraftTableView } from '@/components/DraftProTable/DraftProTable'
+import { tr } from '@/i18n'
 import type { ProjectSearchValues } from '../../config'
 import { currentUser, type DraftProjectRecord, type SaveProjectInput } from '.'
 
@@ -43,7 +44,7 @@ export function filterProjectRecords({
           return false
         if (
           keyword &&
-          !`${record.name ?? '未命名项目'} ${record.id}`.toLowerCase().includes(keyword)
+          !`${record.name ?? tr('未命名项目')} ${record.id}`.toLowerCase().includes(keyword)
         )
           return false
         if (search.status && record.status !== search.status) return false

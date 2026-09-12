@@ -7,6 +7,12 @@
     padding: 54px 0 74px 24px;
   }
 
+  .login-locale-switch {
+    position: absolute;
+    top: 8px;
+    right: 0;
+  }
+
   .login-form-content {
     width: 100%;
     max-width: 456px;

@@ -1,6 +1,7 @@
 import { PlusOutlined } from '@ant-design/icons'
 import type { ActionType, ProColumns } from '@ant-design/pro-components'
 import { App, Button, Popconfirm, Space, Tag } from 'antd'
+import { useI18n } from '@bubblesjs/i18n-react'
 import type { AccountRecord, EntityStatus, MemberRecord } from 'shared/types'
 import FullHeightProTable from '@/components/FullHeightProTable/FullHeightProTable'
 import { managementApi } from './api'
@@ -19,6 +20,7 @@ export default function MembersPage() {
   const addRef = useRef<AddMemberDialogRef>(null)
   const rolesRef = useRef<MemberRolesDialogRef>(null)
   const [openingId, setOpeningId] = useState<string>()
+  const { tr } = useI18n()
   const prefix = `${access.scope.type}.${platform ? 'accounts' : 'members'}`
   const allowed = (action: string) => access.permissionKeys.includes(`${prefix}.${action}`)
   /** 重新查询当前表格，使管理操作立即反映到列表。 */
@@ -39,7 +41,7 @@ export default function MembersPage() {
       rolesRef.current?.show(record, [...first.items, ...rest.flatMap((page) => page.items)])
     } catch (error) {
       if ((error as Error).name !== 'AbortError')
-        void message.error(error instanceof Error ? error.message : '无法加载角色')
+        void message.error(error instanceof Error ? error.message : tr('无法加载角色'))
     } finally {
       setOpeningId(undefined)
     }
@@ -47,40 +49,40 @@ export default function MembersPage() {
 
   const columns: ProColumns<MemberRecord | AccountRecord>[] = [
     {
-      title: '搜索',
+      title: tr('搜索'),
       dataIndex: 'query',
       hideInTable: true,
-      fieldProps: { placeholder: '搜索姓名或账号' },
+      fieldProps: { placeholder: tr('搜索姓名或账号') },
     },
-    { title: '姓名', dataIndex: 'name', search: false, width: 150 },
-    { title: '完整账号', dataIndex: 'account', search: false, copyable: true, width: 180 },
+    { title: tr('姓名'), dataIndex: 'name', search: false, width: 150 },
+    { title: tr('完整账号'), dataIndex: 'account', search: false, copyable: true, width: 180 },
     {
-      title: platform ? '账号状态' : '成员状态',
+      title: platform ? tr('账号状态') : tr('成员状态'),
       dataIndex: 'status',
       width: 100,
       valueEnum: {
-        active: { text: '启用', status: 'Success' },
-        disabled: { text: '停用', status: 'Default' },
-        ...(platform ? { locked: { text: '锁定', status: 'Warning' } } : {}),
+        active: { text: tr('启用'), status: 'Success' },
+        disabled: { text: tr('停用'), status: 'Default' },
+        ...(platform ? { locked: { text: tr('锁定'), status: 'Warning' } } : {}),
       },
     },
     ...(!platform
       ? [
           {
-            title: '账号状态',
+            title: tr('账号状态'),
             dataIndex: 'accountStatus',
             width: 100,
             search: false,
             valueEnum: {
-              active: { text: '启用', status: 'Success' },
-              disabled: { text: '停用', status: 'Default' },
-              locked: { text: '锁定', status: 'Warning' },
+              active: { text: tr('启用'), status: 'Success' },
+              disabled: { text: tr('停用'), status: 'Default' },
+              locked: { text: tr('锁定'), status: 'Warning' },
             },
           } as ProColumns<MemberRecord | AccountRecord>,
         ]
       : []),
     {
-      title: platform ? '平台角色' : '角色',
+      title: platform ? tr('平台角色') : tr('角色'),
       search: false,
       render: (_, record) =>
         'roleNames' in record ? (
@@ -90,12 +92,18 @@ export default function MembersPage() {
             ))}
           </Space>
         ) : (
-          `${record.platformRoleIds.length} 个角色`
+          tr('{count} 个角色', { count: record.platformRoleIds.length })
         ),
     },
-    { title: '加入时间', dataIndex: 'createdAt', valueType: 'dateTime', search: false, width: 180 },
     {
-      title: '操作',
+      title: tr('加入时间'),
+      dataIndex: 'createdAt',
+      valueType: 'dateTime',
+      search: false,
+      width: 180,
+    },
+    {
+      title: tr('操作'),
       valueType: 'option',
       width: 240,
       render: (_, record) => (
@@ -107,16 +115,19 @@ export default function MembersPage() {
               loading={openingId === record.id}
               onClick={() => void openRoles(record)}
             >
-              分配角色
+              {tr('分配角色')}
             </Button>
           )}
           {allowed('status') && (
             <Popconfirm
-              title={`${record.status === 'active' ? '停用' : '启用'}${platform ? '账号' : '成员'}？`}
+              title={tr('{action}{type}？', {
+                action: record.status === 'active' ? tr('停用') : tr('启用'),
+                type: platform ? tr('账号') : tr('成员'),
+              })}
               description={
                 platform
-                  ? '账号停用后所有工作空间均不可访问；重新启用后须重新登录。'
-                  : '停用保留成员关系和角色，阻断此身份提供的访问。'
+                  ? tr('账号停用后所有工作空间均不可访问；重新启用后须重新登录。')
+                  : tr('停用保留成员关系和角色，阻断此身份提供的访问。')
               }
               onConfirm={() =>
                 execute(
@@ -134,17 +145,17 @@ export default function MembersPage() {
               }
             >
               <Button type="link" size="small" danger={record.status === 'active'}>
-                {record.status === 'active' ? '停用' : '启用'}
+                {record.status === 'active' ? tr('停用') : tr('启用')}
               </Button>
             </Popconfirm>
           )}
           {!platform && allowed('remove') && (
             <Popconfirm
-              title="移除成员？"
+              title={tr('移除成员？')}
               description={
                 access.scope.type === 'company'
-                  ? '同时清理该成员的企业角色及下属项目关系和角色。重新加入不会恢复旧授权。'
-                  : '清理该成员在此项目的关系和角色。'
+                  ? tr('同时清理该成员的企业角色及下属项目关系和角色。重新加入不会恢复旧授权。')
+                  : tr('清理该成员在此项目的关系和角色。')
               }
               onConfirm={() =>
                 execute(
@@ -154,7 +165,7 @@ export default function MembersPage() {
               }
             >
               <Button type="link" size="small" danger>
-                移除
+                {tr('移除')}
               </Button>
             </Popconfirm>
           )}
@@ -169,7 +180,11 @@ export default function MembersPage() {
         actionRef={actionRef}
         columns={columns}
         headerTitle={
-          platform ? '全局账号' : access.scope.type === 'company' ? '企业成员' : '项目成员'
+          platform
+            ? tr('全局账号')
+            : access.scope.type === 'company'
+              ? tr('企业成员')
+              : tr('项目成员')
         }
         pagination={{ defaultPageSize: 20, showSizeChanger: true, pageSizeOptions: [20, 50, 100] }}
         request={
@@ -196,7 +211,7 @@ export default function MembersPage() {
                   icon={<PlusOutlined />}
                   onClick={() => addRef.current?.show()}
                 >
-                  添加成员
+                  {tr('添加成员')}
                 </Button>,
               ]
             : []

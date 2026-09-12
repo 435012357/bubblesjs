@@ -2,6 +2,7 @@ import DraftProTable, { type DraftTableView } from '@/components/DraftProTable/D
 import { local } from '@/utils/storage/session'
 import { PlusOutlined } from '@ant-design/icons'
 import type { ProFormInstance } from '@ant-design/pro-components'
+import { useI18n } from '@bubblesjs/i18n-react'
 import { App, Button, Empty, Popconfirm } from 'antd'
 import type { ProjectSearchValues } from '../config'
 import DraftProjectFormDialog, {
@@ -20,6 +21,7 @@ import { filterProjectRecords, saveProjectRecord } from './config/projects'
 /** 演示已发布项目与个人草稿的切换、编辑及本地持久化。 */
 export default function ProTableDraftExample() {
   const { message } = App.useApp()
+  const { tr } = useI18n()
   const dialogRef = useRef<DraftProjectFormDialogRef>(null)
   const searchFormRef = useRef<ProFormInstance>(undefined)
   const [records, setRecords] = useState<DraftProjectRecord[]>(
@@ -66,7 +68,7 @@ export default function ProTableDraftExample() {
       setRecords(next)
       return true
     } catch {
-      void message.error('保存失败，请检查浏览器存储空间后重试。')
+      void message.error(tr('保存失败，请检查浏览器存储空间后重试。'))
       return false
     }
   }
@@ -77,10 +79,10 @@ export default function ProTableDraftExample() {
     changeView(input.stage === 'draft' ? 'draft' : 'list')
     void message.success(
       input.stage === 'draft'
-        ? '草稿已保存'
+        ? tr('草稿已保存')
         : input.original?.stage === 'published'
-          ? '项目已保存'
-          : '提交成功，已进入项目列表',
+          ? tr('项目已保存')
+          : tr('提交成功，已进入项目列表'),
     )
     return true
   }
@@ -89,7 +91,12 @@ export default function ProTableDraftExample() {
   function deleteProjects(ids: Key[]) {
     if (!persist(records.filter((record) => !ids.includes(record.id)))) return
     setSelectedRowKeys([])
-    void message.success(`已删除 ${ids.length} 个${view === 'draft' ? '草稿' : '项目'}`)
+    void message.success(
+      tr('已删除 {count} 个{type}', {
+        count: ids.length,
+        type: view === 'draft' ? tr('草稿') : tr('项目'),
+      }),
+    )
   }
 
   return (
@@ -123,19 +130,22 @@ export default function ProTableDraftExample() {
             icon={<PlusOutlined />}
             onClick={() => dialogRef.current?.show()}
           >
-            新增项目
+            {tr('新增项目')}
           </Button>,
         ]}
         rowSelection={{ selectedRowKeys, onChange: setSelectedRowKeys }}
         tableAlertOptionRender={() => (
           <Popconfirm
-            title={`删除选中的 ${selectedRowKeys.length} 个${view === 'draft' ? '草稿' : '项目'}？`}
+            title={tr('删除选中的 {count} 个{type}？', {
+              count: selectedRowKeys.length,
+              type: view === 'draft' ? tr('草稿') : tr('项目'),
+            })}
             onConfirm={() => deleteProjects(selectedRowKeys)}
-            okText="删除"
+            okText={tr('删除')}
             okButtonProps={{ danger: true }}
           >
             <Button type="link" danger size="small">
-              批量删除
+              {tr('批量删除')}
             </Button>
           </Popconfirm>
         )}
@@ -145,7 +155,7 @@ export default function ProTableDraftExample() {
           showSizeChanger: true,
           showQuickJumper: true,
           pageSizeOptions: [10, 20, 50],
-          showTotal: (total) => `共 ${total} 条`,
+          showTotal: (total) => tr('共 {count} 条', { count: total }),
           /** 同步分页页码与每页条数。 */
           onChange: (current, size) => {
             setPage(current)
@@ -159,9 +169,9 @@ export default function ProTableDraftExample() {
               description={
                 view === 'draft'
                   ? draftCount > 0
-                    ? '暂无匹配草稿，请调整筛选条件。'
-                    : '暂无草稿，可以新增项目并保存为草稿。'
-                  : '暂无匹配项目，请调整筛选条件或新增项目。'
+                    ? tr('暂无匹配草稿，请调整筛选条件。')
+                    : tr('暂无草稿，可以新增项目并保存为草稿。')
+                  : tr('暂无匹配项目，请调整筛选条件或新增项目。')
               }
             />
           ),

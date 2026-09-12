@@ -1,6 +1,7 @@
 import DraftIcon from '@/assets/svg/draft.svg?react'
 import { InfoCircleOutlined } from '@ant-design/icons'
 import type { ParamsType } from '@ant-design/pro-components'
+import { useI18n } from '@bubblesjs/i18n-react'
 import { Badge } from 'antd'
 import classNames from 'classnames'
 import FullHeightProTable, {
@@ -31,14 +32,16 @@ export default function DraftProTable<
   view,
   onViewChange,
   draftCount,
-  draftHint = '草稿提交后进入列表',
+  draftHint,
   toolbar,
   toolBarRender,
   optionsRender,
   tableViewRender,
   ...props
 }: DraftProTableProps<DataType, Params, ValueType>) {
+  const { tr } = useI18n()
   const isDraft = view === 'draft'
+  const activeDraftHint = draftHint === undefined ? tr('草稿提交后进入列表') : draftHint
   const { actions, settings, className: toolbarClassName, ...toolbarProps } = toolbar ?? {}
   const draftToggle = (
     <Badge
@@ -53,7 +56,11 @@ export default function DraftProTable<
       <button
         type="button"
         className={styles.draftToggle}
-        aria-label={draftCount === undefined ? '草稿箱' : `草稿箱，${draftCount} 条草稿`}
+        aria-label={
+          draftCount === undefined
+            ? tr('草稿箱')
+            : tr('草稿箱，{count} 条草稿', { count: draftCount })
+        }
         aria-pressed={isDraft}
         onClick={() => onViewChange(isDraft ? 'list' : 'draft')}
       >
@@ -80,10 +87,10 @@ export default function DraftProTable<
       ]}
       tableViewRender={(tableProps, defaultDom) => (
         <>
-          {isDraft && draftHint && (
+          {isDraft && activeDraftHint && (
             <div className={styles.hint}>
               <InfoCircleOutlined />
-              {draftHint}
+              {activeDraftHint}
             </div>
           )}
           {tableViewRender

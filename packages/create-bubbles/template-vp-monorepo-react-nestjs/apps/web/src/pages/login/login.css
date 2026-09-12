@@ -41,16 +41,6 @@
     padding: 8px 36px 14px 0;
   }
 
-  .login-brand {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    font-family: 'Songti SC', SimSun, serif;
-    font-size: 25px;
-    font-weight: 600;
-    letter-spacing: 0.14em;
-  }
-
   .login-story {
     position: relative;
     display: flex;
@@ -186,11 +176,6 @@
 
     .login-brand-panel {
       padding: 0;
-    }
-
-    .login-brand {
-      gap: 12px;
-      font-size: 24px;
     }
 
     .login-story,

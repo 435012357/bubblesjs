@@ -1,4 +1,7 @@
 import { logout } from '@/api/auth'
+import Brand, { BrandMark } from '@/components/Brand/Brand'
+import LocaleSwitch from '@/components/LocaleSwitch/LocaleSwitch'
+import RouteTransition from '@/components/RouteTransition/RouteTransition'
 import { workspaceLayoutToken } from '@/config/theme'
 import { cookie } from '@/utils/storage/cookie'
 import {
@@ -10,23 +13,27 @@ import {
 import { ProLayout } from '@ant-design/pro-components'
 import { useRequest } from 'alova/client'
 import { App, Button } from 'antd'
+import { useI18n } from '@bubblesjs/i18n-react'
+import type { I18nState } from '@bubblesjs/i18n-core'
 import '../WorkspaceLayout/workspace.css'
-import styles from './BasicLayout.module.css'
 
-const menuRoutes = [
-  { path: '/home', name: '工作台', icon: <DashboardOutlined /> },
-  {
-    path: '/examples/pro-table',
-    key: 'pro-table-examples',
-    name: 'ProTable 示例',
-    icon: <TableOutlined />,
-    routes: [
-      { path: '/examples/pro-table', key: 'pro-table-basic', name: '基础' },
-      { path: '/examples/pro-table/draft', name: '草稿' },
-    ],
-  },
-  { path: '/examples/i18n', name: '国际化示例', icon: <TranslationOutlined /> },
-]
+/** 使用当前语言构建基础示例导航。 */
+function createMenuRoutes(tr: I18nState['tr']) {
+  return [
+    { path: '/home', name: tr('工作台'), icon: <DashboardOutlined /> },
+    {
+      path: '/examples/pro-table',
+      key: 'pro-table-examples',
+      name: tr('ProTable 示例'),
+      icon: <TableOutlined />,
+      routes: [
+        { path: '/examples/pro-table', key: 'pro-table-basic', name: tr('基础') },
+        { path: '/examples/pro-table/draft', name: tr('草稿') },
+      ],
+    },
+    { path: '/examples/i18n', name: tr('国际化示例'), icon: <TranslationOutlined /> },
+  ]
+}
 
 /** 组织基础导航、登录入口及退出登录，页面懒加载交由全局边界等待。 */
 export default function BasicLayout() {
@@ -34,7 +41,9 @@ export default function BasicLayout() {
   const navigate = useNavigate()
   const token = cookie.get('token')
   const { message } = App.useApp()
+  const { tr } = useI18n()
   const { send, loading } = useRequest(logout, { immediate: false })
+  const menuRoutes = createMenuRoutes(tr)
 
   /** 结束当前登录会话，清理本地令牌并返回登录页。 */
   async function handleLogout() {
@@ -44,7 +53,7 @@ export default function BasicLayout() {
       cookie.remove('token')
       void navigate('/login', { replace: true })
     } catch (error) {
-      void message.error(error instanceof Error ? error.message : '退出失败，请重试')
+      void message.error(error instanceof Error ? error.message : tr('退出失败，请重试'))
     }
   }
 
@@ -53,8 +62,8 @@ export default function BasicLayout() {
       className="platform-layout workspace-layout"
       style={{ height: '100dvh', overflow: 'hidden' }}
       contentStyle={{ minHeight: 0, padding: 0, overflow: 'auto' }}
-      title="万物"
-      logo={<span className="wanwu-mark" aria-hidden="true" />}
+      title={tr('万物')}
+      logo={<BrandMark />}
       token={workspaceLayoutToken}
       layout="mix"
       fixedHeader
@@ -63,6 +72,7 @@ export default function BasicLayout() {
       actionsRender={() =>
         token
           ? [
+              <LocaleSwitch key="locale" />,
               <Button
                 key="logout"
                 type="text"
@@ -70,12 +80,13 @@ export default function BasicLayout() {
                 loading={loading}
                 onClick={() => void handleLogout()}
               >
-                退出登录1
+                {tr('退出登录')}
               </Button>,
             ]
           : [
+              <LocaleSwitch key="locale" />,
               <Link key="login" to="/login">
-                登录
+                {tr('登录')}
               </Link>,
             ]
       }
@@ -92,14 +103,11 @@ export default function BasicLayout() {
           {dom}
         </Link>
       )}
-      headerTitleRender={(logo, title) => (
-        <Link className={styles.brand} to="/home" aria-label="万物首页">
-          {logo}
-          {title}
-        </Link>
-      )}
+      headerTitleRender={() => <Brand variant="basic" to="/home" ariaLabel={tr('万物首页')} />}
     >
-      <Outlet />
+      <RouteTransition>
+        <Outlet />
+      </RouteTransition>
     </ProLayout>
   )
 }

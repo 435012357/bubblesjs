@@ -1,5 +1,6 @@
 import { ProForm, ProFormText, ProFormTextArea } from '@ant-design/pro-components'
 import { Alert, Button, Card, Descriptions, Space, Spin, Tag } from 'antd'
+import { useI18n } from '@bubblesjs/i18n-react'
 import type { CompanyDetail, ProjectDetail, UpdateProfileRequest } from 'shared/types'
 import { accessScopeKey } from 'shared/utils'
 import { managementApi } from './api'
@@ -16,6 +17,7 @@ export default function ProfilePage() {
   const execute = useManagementAction()
   const api = managementApi(access.scope)
   const canEdit = access.permissionKeys.includes(`${access.scope.type}.profile.update`)
+  const { locale, tr } = useI18n()
 
   useEffect(
     /** 加载当前工作空间资料，避免过期请求覆盖最新页面状态。 */ () => {
@@ -29,7 +31,7 @@ export default function ProfilePage() {
         })
         .catch((cause: unknown) => {
           if (active && (cause as Error).name !== 'AbortError')
-            setError(cause instanceof Error ? cause.message : '无法加载资料')
+            setError(cause instanceof Error ? cause.message : tr('无法加载资料'))
         })
         .finally(() => {
           if (active) setLoading(false)
@@ -44,15 +46,15 @@ export default function ProfilePage() {
   return (
     <div className="workspace-page">
       <div className="workspace-page-title">
-        <h1>{access.scope.type === 'company' ? '企业资料' : '项目资料'}</h1>
-        <p>维护当前工作空间的名称、编码与说明。</p>
+        <h1>{access.scope.type === 'company' ? tr('企业资料') : tr('项目资料')}</h1>
+        <p>{tr('维护当前工作空间的名称、编码与说明。')}</p>
       </div>
       {error ? (
         <Alert
           type="error"
           showIcon
           title={error}
-          action={<Button onClick={() => setRefresh((value) => value + 1)}>重试</Button>}
+          action={<Button onClick={() => setRefresh((value) => value + 1)}>{tr('重试')}</Button>}
         />
       ) : loading ? (
         <Spin />
@@ -65,27 +67,29 @@ export default function ProfilePage() {
               items={[
                 {
                   key: 'status',
-                  label: '当前状态',
+                  label: tr('当前状态'),
                   children: (
                     <Tag color={record.status === 'active' ? 'success' : 'default'}>
-                      {record.status === 'active' ? '启用' : '停用'}
+                      {record.status === 'active' ? tr('启用') : tr('停用')}
                     </Tag>
                   ),
                 },
                 {
                   key: 'created',
-                  label: '创建时间',
-                  children: new Date(record.createdAt).toLocaleString(),
+                  label: tr('创建时间'),
+                  children: new Date(record.createdAt).toLocaleString(
+                    locale === 'en_US' ? 'en-US' : 'zh-CN',
+                  ),
                 },
                 {
                   key: 'administrators',
-                  label: '管理员',
+                  label: tr('管理员'),
                   span: 2,
                   children: (
                     <Space wrap>
                       {record.administrators.map((admin) => (
                         <Tag key={admin.id} color={admin.effective ? 'cyan' : 'default'}>
-                          {admin.name}（{admin.account}）{admin.effective ? '' : ' · 当前无效'}
+                          {admin.name} ({admin.account}){admin.effective ? '' : tr(' · 当前无效')}
                         </Tag>
                       ))}
                     </Space>
@@ -99,7 +103,7 @@ export default function ProfilePage() {
               disabled={!canEdit}
               submitter={
                 canEdit
-                  ? { searchConfig: { submitText: '保存资料' }, resetButtonProps: false }
+                  ? { searchConfig: { submitText: tr('保存资料') }, resetButtonProps: false }
                   : false
               }
               onFinish={(values) =>
@@ -118,33 +122,33 @@ export default function ProfilePage() {
             >
               <ProFormText
                 name="name"
-                label="名称"
+                label={tr('名称')}
                 rules={[
                   {
                     required: true,
                     whitespace: true,
                     min: 2,
                     max: 100,
-                    message: '请输入 2–100 字名称',
+                    message: tr('请输入 2–100 字名称'),
                   },
                 ]}
                 fieldProps={{ maxLength: 100 }}
               />
               <ProFormText
                 name="code"
-                label="编码"
+                label={tr('编码')}
                 rules={[
                   {
                     required: true,
                     pattern: /^[A-Za-z0-9_-]{2,32}$/,
-                    message: '请输入 2–32 位字母、数字、下划线或短横线',
+                    message: tr('请输入 2–32 位字母、数字、下划线或短横线'),
                   },
                 ]}
                 fieldProps={{ maxLength: 32 }}
               />
               <ProFormTextArea
                 name="description"
-                label="说明"
+                label={tr('说明')}
                 fieldProps={{ rows: 4, maxLength: 500, showCount: true }}
               />
             </ProForm>

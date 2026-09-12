@@ -1,3 +1,5 @@
+import { tr } from '@/i18n'
+
 export type ProjectStatus = 'planning' | 'active' | 'paused' | 'completed'
 export type ProjectPriority = 'high' | 'medium' | 'low'
 
@@ -23,17 +25,23 @@ export interface ProjectSearchValues {
   dueDate?: [string, string]
 }
 
-export const statusOptions = {
-  planning: { text: '待启动', status: 'Default' },
-  active: { text: '进行中', status: 'Processing' },
-  paused: { text: '已暂停', status: 'Warning' },
-  completed: { text: '已完成', status: 'Success' },
+/** 按当前应用语言生成项目状态选项。 */
+export function getStatusOptions() {
+  return {
+    planning: { text: tr('待启动'), status: 'Default' },
+    active: { text: tr('进行中'), status: 'Processing' },
+    paused: { text: tr('已暂停'), status: 'Warning' },
+    completed: { text: tr('已完成'), status: 'Success' },
+  }
 }
 
-export const priorityOptions = {
-  high: { text: '高', color: 'volcano' },
-  medium: { text: '中', color: 'gold' },
-  low: { text: '低', color: 'default' },
+/** 按当前应用语言生成项目优先级选项。 */
+export function getPriorityOptions() {
+  return {
+    high: { text: tr('高'), color: 'volcano' },
+    medium: { text: tr('中'), color: 'gold' },
+    low: { text: tr('低'), color: 'default' },
+  }
 }
 
 export const owners = ['林知夏', '陈一舟', '周予安', '许清和', '沈亦宁']

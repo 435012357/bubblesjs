@@ -21,7 +21,7 @@ pnpm --filter web test --run
 
 | 依赖 | 接入版本 | 用途 |
 | --- | --- | --- |
-| `antd` | `^6.6.2` | 基础组件、中文语言包与主题 |
+| `antd` | `^6.6.2` | 基础组件、中英文语言包与主题 |
 | `@ant-design/pro-components` | `3.1.14-7`（固定 beta 版本） | ProLayout、PageContainer、ProCard，以及后续的 ProTable / ProForm |
 | `@ant-design/icons` | `^6.3.4` | 平台导航图标 |
 | `@ant-design/cssinjs` | `^2.1.2` | CSS 样式层级配置 |
@@ -34,7 +34,7 @@ ProComponents 3 的部分 API 已调整，例如 ProCard 使用 `variant="outlin
 ## 全局配置
 
 - `src/App.tsx`：`StyleProvider → ConfigProvider → ProConfigProvider → AntdApp`。
-  Ant Design 使用 `zh_CN`，ProComponents 跟随 ConfigProvider 的语言；Day.js 使用 `zh-cn`。
+  Ant Design、ProComponents、Day.js 和 `<html lang>` 跟随应用当前语言。
 - `src/config/theme.ts`：统一配置主题 token，Ant Design 与 ProComponents 共同使用。
 - `src/styles/index.css`：声明 `theme → base → antd → antd-pro → components → utilities`
   样式层级、引入基础重置并设置 `html / body / #root` 的全局基础样式，配合 `StyleProvider layer` 使用。
@@ -48,15 +48,40 @@ ProComponents 3 的部分 API 已调整，例如 ProCard 使用 `variant="outlin
 需要消息提示、通知或确认弹窗时，在 AntdApp 子组件中使用上下文实例：
 
 ```tsx
+import { useI18n } from '@bubblesjs/i18n-react'
 import { App, Button } from 'antd'
 
 export default function MessageExample() {
   const { message } = App.useApp()
-  return <Button onClick={() => void message.success('操作成功')}>显示提示</Button>
+  const { tr } = useI18n()
+  return <Button onClick={() => void message.success(tr('操作成功'))}>{tr('显示提示')}</Button>
 }
 ```
 
 组件内通过上下文实例继承主题与语言设置；请求配置沿用直接调用 `message.success()` / `message.error()` 的简单写法。
+
+## 国际化规则
+
+- 国际化仅作用于 `apps/web` 前端，统一使用 `@bubblesjs/i18n-core` 和
+  `@bubblesjs/i18n-react`。应用只在 `src/main.tsx` 注册一个 `I18nProvider`，页面或功能模块不得创建独立
+  store 或嵌套 Provider。
+- 支持的语言在 `src/i18n/config.ts` 中统一声明；词条由 `src/i18n/instance.ts` 懒加载，并将用户选择保存到
+  localStorage。新增语言时必须同步补充语言配置、词条加载器、Ant Design 与 Day.js 语言包。
+- React 组件内使用 `useI18n()` 获取 `tr`、`locale` 和 `loadLocale`；组件外的路由、请求等逻辑从
+  `@/i18n` 导入全局 `tr`。用户可见的标题、按钮、表单标签、校验提示、空状态、通知、错误信息和无障碍文本
+  均不得硬编码。
+- 词条使用简体中文原文作为 key，例如 `tr('保存')`。动态内容使用占位符和参数
+  `tr('你好，{name}', { name })`，不要通过字符串拼接组成可翻译句子。
+- 需要在切换语言后更新的静态配置必须在渲染时重新生成，或使用 `() => tr('菜单名称')` 等延迟解析函数；
+  长期存活的请求实例，其默认成功和错误提示同样必须使用 `() => tr(...)`，不得在模块初始化时固定翻译结果。
+- 中英文词典分别位于 `src/locales/zh_CN.json` 和 `src/locales/en_US.json`。新增或修改文案后，在 Monorepo
+  根目录先执行 `pnpm i18n:sync` 同步词条，补全 `en_US.json` 的英文翻译，再执行
+  `pnpm i18n:check`，确保不存在缺失、废弃或未使用词条：
+
+```bash
+pnpm i18n:sync
+pnpm i18n:check
+```
 
 ## 布局与页面
 
@@ -68,7 +93,7 @@ export default function MessageExample() {
   状态/负责人/优先级/日期筛选、排序、分页、列设置、新增、编辑、删除和批量删除。
   数据仅保存在页面内存中，刷新或离开页面后恢复初始状态。新增和编辑使用 ModalForm，
   通过组件 ref 的 `show(project?)` / `hide()` 打开和关闭，不请求后端接口。
-- `/examples/i18n`：保留原有的独立语言作用域示例。
+- `/examples/i18n`：展示应用级语言切换、插值翻译和语言偏好持久化。
 - 未匹配的地址显示 404，并可返回工作台。
 
 新增页面时，在 `src/pages` 创建组件，在 `src/router/index.tsx` 注册懒加载子路由，
@@ -127,7 +152,7 @@ session.remove('draft')
 - 登录成功后跳转 `/home`；路由直接渲染页面，不进行前置会话校验或登录回跳。
 - 顶部根据令牌是否存在显示登录或退出入口；退出时先请求 Server 撤销会话，成功后清除令牌并跳转登录页。
 - 登录和退出请求关闭缓存与请求共享。
-- 请求成功和失败提示直接写在 `successMessageFunc`、`errorMessageFunc` 中；
+- 请求成功和失败提示由 `successMessageFunc`、`errorMessageFunc` 展示，默认文案通过延迟翻译函数解析；
   `unAuthorizedResponseFunc` 清除令牌、提示并跳转登录页。
 - 请求配置不设置客户端超时，统一由 Nginx 控制。
 

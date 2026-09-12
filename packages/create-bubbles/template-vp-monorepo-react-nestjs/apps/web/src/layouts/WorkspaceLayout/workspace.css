@@ -35,32 +35,6 @@
   .workspace-layout .ant-pro-sider .ant-menu-item {
     margin-block: 6px;
   }
-  .workspace-brand {
-    display: inline-flex;
-    align-items: center;
-    gap: 16px;
-    color: var(--wanwu-ink);
-    white-space: nowrap;
-  }
-  .workspace-brand:hover {
-    color: var(--wanwu-accent);
-  }
-  .workspace-wordmark {
-    font-family: 'STSong', 'SimSun', serif;
-    font-size: 27px;
-    font-weight: 600;
-    letter-spacing: 0.16em;
-    line-height: 1.15;
-  }
-  .workspace-wordmark small {
-    display: block;
-    margin-top: 4px;
-    font:
-      9px/1.2 'Segoe UI',
-      sans-serif;
-    letter-spacing: 0.35em;
-    color: var(--wanwu-muted);
-  }
   .workspace-context {
     display: flex;
     width: fit-content;
@@ -225,15 +199,9 @@
     .workspace-user,
     .workspace-context-dot,
     .workspace-context-parent,
-    .workspace-layout .ant-pro-global-header .wanwu-mark,
-    .workspace-layout .ant-pro-global-header .workspace-wordmark small,
     .workspace-logout > span:not(.ant-btn-icon),
     .workspace-switch > span:not(.ant-btn-icon) {
       display: none;
-    }
-    .workspace-layout .ant-pro-global-header .workspace-wordmark {
-      font-size: 22px;
-      letter-spacing: 0.06em;
     }
     .workspace-switch,
     .workspace-logout {

@@ -9,9 +9,11 @@ import type {
 } from 'alova'
 import { createAlova } from 'alova'
 import type { AxiosResponse, AxiosResponseHeaders } from 'axios'
+import { tr } from '@/i18n'
 import { deepMergeObject, isPlainObject, isReadableStream, tryParseJsonString } from './utils.ts'
 
 type MaybePromise<T> = T | Promise<T>
+type MessageResolver = string | (() => string)
 type HeaderValue =
   | string
   | number
@@ -55,8 +57,8 @@ export interface BaseRequestOption<
   cacheFor?: GlobalCacheConfig<any> | null
   cacheLogger?: boolean
   statesHook?: StatesHook<SE>
-  successDefaultMessage?: string
-  errorDefaultMessage?: string
+  successDefaultMessage?: MessageResolver
+  errorDefaultMessage?: MessageResolver
   successMessageFunc?: (message: string) => void
   errorMessageFunc?: (message: string) => void
   unAuthorizedResponseFunc?: (response: RE) => void
@@ -112,9 +114,6 @@ type ResolvedRequestOption<RC extends object, RE, RH, SE extends StatesExport<an
 > &
   BaseRequestOption<RC, RE, RH, SE>
 
-const DEFAULT_SUCCESS_MESSAGE = '操作成功'
-const DEFAULT_ERROR_MESSAGE = '服务异常'
-
 const defaultRequestOption: BaseRequestOption<any, any, any, any> = {
   baseUrl: '/',
   timeout: undefined,
@@ -131,9 +130,9 @@ const defaultRequestOption: BaseRequestOption<any, any, any, any> = {
   isWrapped: true,
   isTransformResponse: true,
   isShowSuccessMessage: false,
-  successDefaultMessage: DEFAULT_SUCCESS_MESSAGE,
+  successDefaultMessage: () => tr('操作成功'),
   isShowErrorMessage: true,
-  errorDefaultMessage: DEFAULT_ERROR_MESSAGE,
+  errorDefaultMessage: () => tr('服务异常'),
   cacheFor: null,
   cacheLogger: true,
   requestAdapter: axiosRequestAdapter(),
@@ -187,6 +186,11 @@ function getResponseMessage(data: unknown, messageKey: string, defaultMessage: s
   if (typeof message === 'number') return String(message)
 
   return defaultMessage
+}
+
+/** 在请求实际完成时解析默认提示，使语言切换后无需重建请求实例。 */
+function resolveMessage(message: MessageResolver): string {
+  return typeof message === 'function' ? message() : message
 }
 
 /** 仅从普通对象读取指定响应字段，其他响应形态返回 undefined。 */
@@ -307,7 +311,13 @@ export function createInstance<
   function responseError(data: unknown, status: number) {
     const code = getResponseField(data, config.responseCodeKey)
     return Object.assign(
-      new Error(getResponseMessage(data, config.responseMessageKey, config.errorDefaultMessage)),
+      new Error(
+        getResponseMessage(
+          data,
+          config.responseMessageKey,
+          resolveMessage(config.errorDefaultMessage),
+        ),
+      ),
       { status, code: typeof code === 'string' || typeof code === 'number' ? code : undefined },
     )
   }
@@ -348,7 +358,7 @@ export function createInstance<
         const data = await getResponseData(response)
 
         if (!isWrapped) {
-          if (showSuccess) config.successMessageFunc?.(config.successDefaultMessage)
+          if (showSuccess) config.successMessageFunc?.(resolveMessage(config.successDefaultMessage))
           return data
         }
 
@@ -357,7 +367,7 @@ export function createInstance<
         const responseMessage = getResponseMessage(
           data,
           config.responseMessageKey,
-          config.successDefaultMessage,
+          resolveMessage(config.successDefaultMessage),
         )
 
         if (!isMatchedCode(code, config.codeMap.success)) {
@@ -366,7 +376,11 @@ export function createInstance<
 
           if (showError) {
             config.errorMessageFunc?.(
-              getResponseMessage(data, config.responseMessageKey, config.errorDefaultMessage),
+              getResponseMessage(
+                data,
+                config.responseMessageKey,
+                resolveMessage(config.errorDefaultMessage),
+              ),
             )
           }
           throw responseError(data, status)
@@ -391,7 +405,7 @@ export function createInstance<
           }
           failure = responseError(await getResponseData(response), status)
         } else {
-          failure = new Error('无法连接服务，请检查网络后重试')
+          failure = new Error(tr('无法连接服务，请检查网络后重试'))
         }
 
         if (showError) {

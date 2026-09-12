@@ -1,5 +1,8 @@
 import { logout } from '@/api/auth'
+import Brand, { BrandMark } from '@/components/Brand/Brand'
+import LocaleSwitch from '@/components/LocaleSwitch/LocaleSwitch'
 import PageLoading from '@/components/Loading/PageLoading'
+import RouteTransition from '@/components/RouteTransition/RouteTransition'
 import { workspaceLayoutToken } from '@/config/theme'
 import { getWorkspaceState } from '@/pages/workspaces/state'
 import { navigationTree } from '@/router/page-registry'
@@ -7,6 +10,7 @@ import { clearWorkspaceRequests } from '@/utils/request/workspace'
 import { cookie } from '@/utils/storage/cookie'
 import { LogoutOutlined, SwapOutlined } from '@ant-design/icons'
 import { ProLayout } from '@ant-design/pro-components'
+import { useI18n } from '@bubblesjs/i18n-react'
 import { App, Avatar, Button, Tooltip } from 'antd'
 import type { AccessScope } from 'shared/types'
 import { accessScopeKey } from 'shared/utils'
@@ -26,6 +30,7 @@ export default function WorkspaceLayout() {
   const navigate = useNavigate()
   const revalidator = useRevalidator()
   const { message } = App.useApp()
+  const { tr } = useI18n()
   const navigating = navigation.state !== 'idle'
   const refreshing = revalidator.state === 'loading'
 
@@ -57,7 +62,7 @@ export default function WorkspaceLayout() {
     try {
       await logout().send(true)
     } catch (error) {
-      void message.error(error instanceof Error ? error.message : '退出失败，请重试')
+      void message.error(error instanceof Error ? error.message : tr('退出失败，请重试'))
       return
     }
     cookie.remove('token')
@@ -69,27 +74,19 @@ export default function WorkspaceLayout() {
 
   const scopeName =
     access.scope.type === 'platform'
-      ? '平台空间'
+      ? tr('平台空间')
       : access.scope.type === 'company'
-        ? '企业空间'
-        : '项目空间'
+        ? tr('企业空间')
+        : tr('项目空间')
   const workspaceName = [access.workspace?.companyName, access.workspace?.name]
     .filter(Boolean)
     .join(' / ')
-  const brand = (
-    <Link className="workspace-brand" to="/workspaces" aria-label="万物工作空间">
-      <span className="wanwu-mark" aria-hidden="true" />
-      <span className="workspace-wordmark">
-        万物<small>WANWU</small>
-      </span>
-    </Link>
-  )
 
   return (
     <ProLayout
       className="workspace-layout"
-      title="万物"
-      logo={<span className="wanwu-mark" aria-hidden="true" />}
+      title={tr('万物')}
+      logo={<BrandMark />}
       token={workspaceLayoutToken}
       style={{ height: '100dvh', overflow: 'hidden' }}
       contentStyle={{ padding: 0, minHeight: 0, overflow: 'hidden' }}
@@ -110,8 +107,14 @@ export default function WorkspaceLayout() {
           dom
         )
       }
-      headerTitleRender={() => brand}
-      menuHeaderRender={(_logo, _title, props) => (props && !props.isMobile ? null : brand)}
+      headerTitleRender={() => (
+        <Brand variant="workspace" to="/workspaces" ariaLabel={tr('万物工作空间')} />
+      )}
+      menuHeaderRender={(_logo, _title, props) =>
+        props && !props.isMobile ? null : (
+          <Brand variant="workspace" to="/workspaces" ariaLabel={tr('万物工作空间')} />
+        )
+      }
       headerContentRender={() => (
         <div className={`workspace-context workspace-context-${access.scope.type}`}>
           <span className="workspace-context-dot" aria-hidden="true" />
@@ -125,42 +128,45 @@ export default function WorkspaceLayout() {
         </div>
       )}
       actionsRender={() => [
-        <Tooltip title={`账号：${access.user.account}`} key="user">
+        <Tooltip title={tr('账号：{account}', { account: access.user.account })} key="user">
           <div className="workspace-user" tabIndex={0}>
             <Avatar size={34}>{access.user.name.slice(0, 1).toUpperCase()}</Avatar>
             <span>
               {access.user.name}
-              <small>{access.administrator ? '管理员' : '成员'}</small>
+              <small>{access.administrator ? tr('管理员') : tr('成员')}</small>
             </span>
           </div>
         </Tooltip>,
-        <Link key="switch" to="/workspaces" aria-label="切换空间">
-          <Button className="workspace-switch" aria-label="切换空间" icon={<SwapOutlined />}>
-            切换空间
+        <LocaleSwitch key="locale" showLabel={false} />,
+        <Link key="switch" to="/workspaces" aria-label={tr('切换空间')}>
+          <Button className="workspace-switch" aria-label={tr('切换空间')} icon={<SwapOutlined />}>
+            {tr('切换空间')}
           </Button>
         </Link>,
         <Button
           key="logout"
           className="workspace-logout"
-          aria-label="退出登录"
+          aria-label={tr('退出登录')}
           type="text"
           icon={<LogoutOutlined />}
           onClick={() => void handleLogout()}
         >
-          退出
+          {tr('退出')}
         </Button>,
       ]}
     >
-      <title>{workspaceName || scopeName} - 万物</title>
+      <title>{`${workspaceName || scopeName} - ${tr('万物')}`}</title>
       <div className="workspace-content">
         <div
           className="workspace-body"
           key={accessScopeKey(scope)}
           aria-busy={navigating || refreshing}
         >
-          <div hidden={refreshing} inert={navigating || refreshing} style={{ height: '100%' }}>
-            <Outlet context={access} />
-          </div>
+          <RouteTransition>
+            <div hidden={refreshing} inert={navigating || refreshing} style={{ height: '100%' }}>
+              <Outlet context={access} />
+            </div>
+          </RouteTransition>
           {refreshing && <PageLoading />}
           {navigating && !refreshing && (
             <div className="workspace-navigation-loading">

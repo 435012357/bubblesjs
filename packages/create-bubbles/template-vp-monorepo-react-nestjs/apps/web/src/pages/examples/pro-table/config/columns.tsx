@@ -1,7 +1,8 @@
 import { FolderOutlined } from '@ant-design/icons'
 import type { ProColumns } from '@ant-design/pro-components'
 import { Avatar, Button, Popconfirm, Progress, Space, Tag, Tooltip } from 'antd'
-import { owners, priorityOptions, statusOptions, type ProjectRecord } from '.'
+import { tr } from '@/i18n'
+import { getPriorityOptions, getStatusOptions, owners, type ProjectRecord } from '.'
 import styles from '../index.module.css'
 
 interface ProjectColumnOptions {
@@ -14,12 +15,15 @@ export function createProjectColumns({
   onEdit,
   onDelete,
 }: ProjectColumnOptions): ProColumns<ProjectRecord>[] {
+  const priorityOptions = getPriorityOptions()
+  const statusOptions = getStatusOptions()
+
   return [
     {
-      title: '项目名称',
+      title: tr('项目名称'),
       dataIndex: 'name',
       width: 260,
-      fieldProps: { placeholder: '搜索项目名称或编号', allowClear: true },
+      fieldProps: { placeholder: tr('搜索项目名称或编号'), allowClear: true },
       render: (_, project) => (
         <div className={styles.project}>
           <span className={styles.projectIcon}>
@@ -37,14 +41,14 @@ export function createProjectColumns({
       ),
     },
     {
-      title: '项目状态',
+      title: tr('项目状态'),
       dataIndex: 'status',
       width: 115,
       valueType: 'select',
       valueEnum: statusOptions,
     },
     {
-      title: '负责人',
+      title: tr('负责人'),
       dataIndex: 'owner',
       width: 125,
       valueType: 'select',
@@ -59,7 +63,7 @@ export function createProjectColumns({
       ),
     },
     {
-      title: '优先级',
+      title: tr('优先级'),
       dataIndex: 'priority',
       width: 90,
       valueType: 'select',
@@ -71,7 +75,7 @@ export function createProjectColumns({
       ),
     },
     {
-      title: '完成进度',
+      title: tr('完成进度'),
       dataIndex: 'progress',
       width: 155,
       search: false,
@@ -87,33 +91,33 @@ export function createProjectColumns({
       ),
     },
     {
-      title: '截止日期',
+      title: tr('截止日期'),
       dataIndex: 'dueDate',
       width: 130,
       valueType: 'date',
       search: false,
       sorter: (first, second) => first.dueDate.localeCompare(second.dueDate),
     },
-    { title: '截止日期', dataIndex: 'dueDate', valueType: 'dateRange', hideInTable: true },
+    { title: tr('截止日期'), dataIndex: 'dueDate', valueType: 'dateRange', hideInTable: true },
     {
-      title: '操作',
+      title: tr('操作'),
       valueType: 'option',
       width: 120,
       fixed: 'right',
       render: (_, project) => [
         <Button key="edit" type="link" size="small" onClick={() => onEdit(project)}>
-          编辑
+          {tr('编辑')}
         </Button>,
         <Popconfirm
           key="delete"
-          title="删除项目"
-          description={`确定删除「${project.name}」吗？`}
+          title={tr('删除项目')}
+          description={tr('确定删除「{name}」吗？', { name: project.name })}
           onConfirm={() => onDelete(project)}
-          okText="删除"
+          okText={tr('删除')}
           okButtonProps={{ danger: true }}
         >
           <Button type="link" danger size="small">
-            删除
+            {tr('删除')}
           </Button>
         </Popconfirm>,
       ],

@@ -2,6 +2,7 @@ import { axiosRequestAdapter, type AlovaAxiosRequestConfig } from '@alova/adapte
 import reactHook, { type ReactHookExportType } from 'alova/react'
 import { message } from 'antd'
 import type { AxiosResponse, AxiosResponseHeaders } from 'axios'
+import { tr } from '@/i18n'
 import { envVariables } from '@/utils/env'
 import { cookie } from '@/utils/storage/cookie'
 import { createDualCallInstance, type BaseRequestOption } from './core/index.ts'
@@ -37,7 +38,7 @@ function getBaseConfig(): WebRequestOption {
     },
     responseDataKey: 'data',
     responseMessageKey: 'message',
-    errorDefaultMessage: '请求失败，请稍后重试',
+    errorDefaultMessage: () => tr('请求失败，请稍后重试'),
     /** 在发送请求时读取最新登录令牌，存在时附加 Bearer 鉴权头。 */
     commonHeaders: () => {
       const token = cookie.get('token')
@@ -52,7 +53,7 @@ function getBaseConfig(): WebRequestOption {
     /** 清除失效登录令牌，提示登录过期并跳转到登录页。 */
     unAuthorizedResponseFunc: () => {
       cookie.remove('token')
-      message.error('登录过期或未登录')
+      message.error(tr('登录过期或未登录'))
       window.location.assign('/login')
     },
     statesHook: reactHook,

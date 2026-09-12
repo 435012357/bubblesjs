@@ -1,6 +1,7 @@
 import { PlusOutlined } from '@ant-design/icons'
 import type { ActionType, ProColumns } from '@ant-design/pro-components'
 import { App, Button, Popconfirm, Space, Tag } from 'antd'
+import { useI18n } from '@bubblesjs/i18n-react'
 import type { RoleRecord } from 'shared/types'
 import FullHeightProTable from '@/components/FullHeightProTable/FullHeightProTable'
 import { managementApi } from './api'
@@ -20,6 +21,7 @@ export default function RolesPage() {
   const formRef = useRef<RoleFormDialogRef>(null)
   const permissionsRef = useRef<RolePermissionsDialogRef>(null)
   const [openingId, setOpeningId] = useState<string>()
+  const { tr } = useI18n()
   const allowed = (operation: string) =>
     access.permissionKeys.includes(`${access.scope.type}.roles.${operation}`)
   /** 重新查询当前表格，使管理操作立即反映到列表。 */
@@ -35,7 +37,7 @@ export default function RolesPage() {
       permissionsRef.current?.show(latest, tree, Boolean(latest.builtin) || !allowed('permissions'))
     } catch (error) {
       if ((error as Error).name !== 'AbortError')
-        void message.error(error instanceof Error ? error.message : '无法加载权限')
+        void message.error(error instanceof Error ? error.message : tr('无法加载权限'))
     } finally {
       setOpeningId(undefined)
     }
@@ -43,32 +45,32 @@ export default function RolesPage() {
 
   const columns: ProColumns<RoleRecord>[] = [
     {
-      title: '搜索',
+      title: tr('搜索'),
       dataIndex: 'query',
       hideInTable: true,
-      fieldProps: { placeholder: '搜索角色名称' },
+      fieldProps: { placeholder: tr('搜索角色名称') },
     },
-    { title: '角色名称', dataIndex: 'name', search: false, width: 180 },
+    { title: tr('角色名称'), dataIndex: 'name', search: false, width: 180 },
     {
-      title: '类型',
+      title: tr('类型'),
       search: false,
       width: 120,
       render: (_, record) => (
         <Tag color={record.builtin ? 'blue' : 'default'}>
-          {record.builtin ? '内置角色' : '自定义角色'}
+          {record.builtin ? tr('内置角色') : tr('自定义角色')}
         </Tag>
       ),
     },
-    { title: '说明', dataIndex: 'description', search: false, ellipsis: true },
-    { title: '已分配人数', dataIndex: 'memberCount', search: false, width: 120 },
+    { title: tr('说明'), dataIndex: 'description', search: false, ellipsis: true },
+    { title: tr('已分配人数'), dataIndex: 'memberCount', search: false, width: 120 },
     {
-      title: '权限数量',
+      title: tr('权限数量'),
       search: false,
       width: 100,
       render: (_, record) => record.permissionKeys.length,
     },
     {
-      title: '操作',
+      title: tr('操作'),
       valueType: 'option',
       width: 270,
       render: (_, record) => (
@@ -79,21 +81,21 @@ export default function RolesPage() {
             loading={openingId === record.id}
             onClick={() => void openPermissions(record)}
           >
-            {record.builtin || !allowed('permissions') ? '查看权限' : '配置权限'}
+            {record.builtin || !allowed('permissions') ? tr('查看权限') : tr('配置权限')}
           </Button>
           {!record.builtin && allowed('update') && (
             <Button type="link" size="small" onClick={() => formRef.current?.show(record)}>
-              编辑
+              {tr('编辑')}
             </Button>
           )}
           {!record.builtin && allowed('delete') && (
             <Popconfirm
-              title="删除角色？"
-              description="只能删除未分配给任何成员的自定义角色。"
+              title={tr('删除角色？')}
+              description={tr('只能删除未分配给任何成员的自定义角色。')}
               onConfirm={() => execute(() => api.deleteRole(record.id, record.version), refresh)}
             >
               <Button type="link" size="small" danger disabled={record.memberCount > 0}>
-                删除
+                {tr('删除')}
               </Button>
             </Popconfirm>
           )}
@@ -107,7 +109,7 @@ export default function RolesPage() {
         rowKey="id"
         actionRef={actionRef}
         columns={columns}
-        headerTitle="角色管理"
+        headerTitle={tr('角色管理')}
         pagination={{ defaultPageSize: 20, showSizeChanger: true, pageSizeOptions: [20, 50, 100] }}
         request={
           /** 查询当前作用域角色，并转换为表格分页结果。 */ async (params) => {
@@ -131,7 +133,7 @@ export default function RolesPage() {
                   icon={<PlusOutlined />}
                   onClick={() => formRef.current?.show()}
                 >
-                  创建角色
+                  {tr('创建角色')}
                 </Button>,
               ]
             : []

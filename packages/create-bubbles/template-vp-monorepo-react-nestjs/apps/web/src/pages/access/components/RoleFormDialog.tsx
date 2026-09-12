@@ -1,4 +1,5 @@
 import { ModalForm, ProFormText, ProFormTextArea } from '@ant-design/pro-components'
+import { useI18n } from '@bubblesjs/i18n-react'
 import type { CreateRoleRequest, RoleRecord } from 'shared/types'
 
 export interface RoleFormDialogRef {
@@ -15,6 +16,7 @@ export default function RoleFormDialog({
 }) {
   const [open, setOpen] = useState(false)
   const [record, setRecord] = useState<RoleRecord>()
+  const { tr } = useI18n()
   const hide = () => setOpen(false)
   useImperativeHandle(ref, () => ({
     /** 载入待编辑记录并打开表单；未传记录时进入新增模式。 */
@@ -26,7 +28,7 @@ export default function RoleFormDialog({
   }))
   return (
     <ModalForm<CreateRoleRequest>
-      title={record ? '编辑自定义角色' : '创建自定义角色'}
+      title={record ? tr('编辑自定义角色') : tr('创建自定义角色')}
       open={open}
       width={520}
       initialValues={record}
@@ -34,7 +36,7 @@ export default function RoleFormDialog({
       onOpenChange={(visible) => {
         if (!visible) hide()
       }}
-      submitter={{ searchConfig: { submitText: '保存角色' } }}
+      submitter={{ searchConfig: { submitText: tr('保存角色') } }}
       onFinish={
         /** 规范化角色名称与说明，提交新增或编辑后按结果关闭弹窗。 */ async (values) => {
           const ok = await onSave(
@@ -48,24 +50,24 @@ export default function RoleFormDialog({
     >
       <ProFormText
         name="name"
-        label="角色名称"
+        label={tr('角色名称')}
         rules={[
           {
             required: true,
             whitespace: true,
             min: 2,
             max: 100,
-            message: '请输入 2–100 字角色名称',
+            message: tr('请输入 2–100 字角色名称'),
           },
         ]}
         fieldProps={{ maxLength: 100 }}
       />
       <ProFormTextArea
         name="description"
-        label="角色说明"
+        label={tr('角色说明')}
         fieldProps={{ maxLength: 500, showCount: true, rows: 3 }}
       />
-      {!record && <p>创建后，通过“配置权限”选择此角色可以使用的功能。</p>}
+      {!record && <p>{tr('创建后，通过“配置权限”选择此角色可以使用的功能。')}</p>}
     </ModalForm>
   )
 }

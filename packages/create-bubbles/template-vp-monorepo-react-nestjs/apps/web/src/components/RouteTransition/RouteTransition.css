@@ -5,7 +5,7 @@
   }
 }
 
-/* 全局路由容器统一过渡，禁用浏览器默认的根节点动画。 */
+/* 只让当前路由页面区域过渡，禁用浏览器默认的根节点动画。 */
 ::view-transition-old(root),
 ::view-transition-new(root) {
   animation: none;

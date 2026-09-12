@@ -1,5 +1,6 @@
 import FullHeightProTable from '@/components/FullHeightProTable/FullHeightProTable'
 import { PlusOutlined } from '@ant-design/icons'
+import { useI18n } from '@bubblesjs/i18n-react'
 import { App, Button, Empty, Popconfirm } from 'antd'
 import ProjectFormDialog, { type ProjectFormDialogRef } from './components/ProjectFormDialog'
 import {
@@ -13,6 +14,7 @@ import { createProjectColumns } from './config/columns'
 /** 演示项目列表的筛选、分页、行选择及新增编辑删除。 */
 export default function ProTableExample() {
   const { message } = App.useApp()
+  const { tr } = useI18n()
   const formDialogRef = useRef<ProjectFormDialogRef>(null)
   const nextProjectId = useRef(initialProjects.length + 1)
   const [projects, setProjects] = useState(initialProjects)
@@ -56,14 +58,14 @@ export default function ProTableExample() {
       setProjects((current) => [{ ...values, id }, ...current])
       setPage(1)
     }
-    void message.success(original ? '项目已保存' : '项目已新增')
+    void message.success(original ? tr('项目已保存') : tr('项目已新增'))
   }
 
   /** 从项目列表及行选择中移除指定项目，并提示删除数量。 */
   function deleteProjects(ids: Key[]) {
     setProjects((current) => current.filter((project) => !ids.includes(project.id)))
     setSelectedRowKeys((current) => current.filter((id) => !ids.includes(id)))
-    void message.success(`已删除 ${ids.length} 个项目`)
+    void message.success(tr('已删除 {count} 个项目', { count: ids.length }))
   }
 
   const columns = createProjectColumns({
@@ -77,8 +79,8 @@ export default function ProTableExample() {
         rowKey="id"
         columns={columns}
         dataSource={filteredProjects}
-        headerTitle="项目列表"
-        tooltip="支持搜索筛选、排序、分页、列设置和批量删除。"
+        headerTitle={tr('项目列表')}
+        tooltip={tr('支持搜索筛选、排序、分页、列设置和批量删除。')}
         search={{ labelWidth: 'auto', defaultCollapsed: true }}
         form={{ name: 'project-search' }}
         dateFormatter="string"
@@ -104,20 +106,20 @@ export default function ProTableExample() {
             icon={<PlusOutlined />}
             onClick={() => formDialogRef.current?.show()}
           >
-            新增项目
+            {tr('新增项目')}
           </Button>,
         ]}
         rowSelection={{ selectedRowKeys, onChange: setSelectedRowKeys }}
         tableAlertOptionRender={() => (
           <Popconfirm
-            title={`删除选中的 ${selectedRowKeys.length} 个项目？`}
-            description="删除后将从当前演示列表中移除。"
+            title={tr('删除选中的 {count} 个项目？', { count: selectedRowKeys.length })}
+            description={tr('删除后将从当前演示列表中移除。')}
             onConfirm={() => deleteProjects(selectedRowKeys)}
-            okText="删除"
+            okText={tr('删除')}
             okButtonProps={{ danger: true }}
           >
             <Button type="link" danger size="small">
-              批量删除
+              {tr('批量删除')}
             </Button>
           </Popconfirm>
         )}
@@ -126,7 +128,7 @@ export default function ProTableExample() {
           pageSize,
           showSizeChanger: true,
           pageSizeOptions: [6, 12, 24],
-          showTotal: (total) => `共 ${total} 个项目`,
+          showTotal: (total) => tr('共 {count} 个项目', { count: total }),
           /** 同步分页页码与每页条数。 */
           onChange: (current, size) => {
             setPage(current)
@@ -137,7 +139,7 @@ export default function ProTableExample() {
           emptyText: (
             <Empty
               image={Empty.PRESENTED_IMAGE_SIMPLE}
-              description="暂无匹配项目，请调整筛选条件或新增项目。"
+              description={tr('暂无匹配项目，请调整筛选条件或新增项目。')}
             />
           ),
         }}

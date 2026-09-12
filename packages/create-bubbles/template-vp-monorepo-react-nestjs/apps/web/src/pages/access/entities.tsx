@@ -1,6 +1,7 @@
 import { PlusOutlined } from '@ant-design/icons'
 import type { ActionType, ProColumns } from '@ant-design/pro-components'
 import { App, Button, Empty, Popconfirm, Space } from 'antd'
+import { useI18n } from '@bubblesjs/i18n-react'
 import type { CompanyRecord, EntityStatus } from 'shared/types'
 import FullHeightProTable from '@/components/FullHeightProTable/FullHeightProTable'
 import { managementApi } from './api'
@@ -19,6 +20,7 @@ export default function EntitiesPage() {
   const [openingId, setOpeningId] = useState<string>()
   const { message } = App.useApp()
   const execute = useManagementAction()
+  const { tr } = useI18n()
   const prefix = project ? 'company.projects' : 'platform.companies'
   const allowed = (action: string) => access.permissionKeys.includes(`${prefix}.${action}`)
   const canCreate = allowed('create') && access.administrator === (project ? 'company' : 'platform')
@@ -37,7 +39,7 @@ export default function EntitiesPage() {
       administratorRef.current?.show(record, administrators)
     } catch (error) {
       if ((error as Error).name !== 'AbortError')
-        void message.error(error instanceof Error ? error.message : '无法加载管理员，请重试')
+        void message.error(error instanceof Error ? error.message : tr('无法加载管理员，请重试'))
     } finally {
       setOpeningId(undefined)
     }
@@ -45,38 +47,48 @@ export default function EntitiesPage() {
 
   const columns: ProColumns<CompanyRecord>[] = [
     {
-      title: '搜索',
+      title: tr('搜索'),
       dataIndex: 'query',
       hideInTable: true,
-      fieldProps: { placeholder: `搜索${project ? '项目' : '企业'}名称或编码` },
+      fieldProps: {
+        placeholder: tr('搜索{type}名称或编码', { type: project ? tr('项目') : tr('企业') }),
+      },
     },
     {
-      title: project ? '项目名称' : '企业名称',
+      title: project ? tr('项目名称') : tr('企业名称'),
       dataIndex: 'name',
       search: false,
       ellipsis: true,
       width: 220,
     },
-    { title: '编码', dataIndex: 'code', search: false, width: 150 },
+    { title: tr('编码'), dataIndex: 'code', search: false, width: 150 },
     {
-      title: '状态',
+      title: tr('状态'),
       dataIndex: 'status',
       valueEnum: {
-        active: { text: '启用', status: 'Success' },
-        disabled: { text: '停用', status: 'Default' },
+        active: { text: tr('启用'), status: 'Success' },
+        disabled: { text: tr('停用'), status: 'Default' },
       },
       width: 100,
     },
-    { title: '说明', dataIndex: 'description', search: false, ellipsis: true },
-    { title: '创建时间', dataIndex: 'createdAt', valueType: 'dateTime', search: false, width: 180 },
+    { title: tr('说明'), dataIndex: 'description', search: false, ellipsis: true },
     {
-      title: '操作',
+      title: tr('创建时间'),
+      dataIndex: 'createdAt',
+      valueType: 'dateTime',
+      search: false,
+      width: 180,
+    },
+    {
+      title: tr('操作'),
       valueType: 'option',
       width: 270,
       render: (_, record) => (
         <Space size={4} wrap>
           {project && record.status === 'active' && access.scope.type === 'company' && (
-            <Link to={`/companies/${access.scope.companyId}/projects/${record.id}`}>进入项目</Link>
+            <Link to={`/companies/${access.scope.companyId}/projects/${record.id}`}>
+              {tr('进入项目')}
+            </Link>
           )}
           {allowed('administrator') && (
             <Button
@@ -85,20 +97,20 @@ export default function EntitiesPage() {
               loading={openingId === record.id}
               onClick={() => void openAdministrator(record)}
             >
-              设置管理员
+              {tr('设置管理员')}
             </Button>
           )}
           {allowed('status') && (
             <Popconfirm
               title={
                 record.status === 'active'
-                  ? `停用${project ? '项目' : '企业'}？`
-                  : `启用${project ? '项目' : '企业'}？`
+                  ? tr('停用{type}？', { type: project ? tr('项目') : tr('企业') })
+                  : tr('启用{type}？', { type: project ? tr('项目') : tr('企业') })
               }
               description={
                 record.status === 'active'
-                  ? '停用后阻断访问，保留成员和角色。'
-                  : '恢复时检查有效管理员，保留子级原有状态。'
+                  ? tr('停用后阻断访问，保留成员和角色。')
+                  : tr('恢复时检查有效管理员，保留子级原有状态。')
               }
               onConfirm={() =>
                 execute(
@@ -112,7 +124,7 @@ export default function EntitiesPage() {
               }
             >
               <Button type="link" size="small" danger={record.status === 'active'}>
-                {record.status === 'active' ? '停用' : '启用'}
+                {record.status === 'active' ? tr('停用') : tr('启用')}
               </Button>
             </Popconfirm>
           )}
@@ -127,7 +139,7 @@ export default function EntitiesPage() {
         actionRef={actionRef}
         rowKey="id"
         columns={columns}
-        headerTitle={project ? '项目管理' : '企业管理'}
+        headerTitle={project ? tr('项目管理') : tr('企业管理')}
         locale={{
           emptyText: (
             <Empty
@@ -135,10 +147,15 @@ export default function EntitiesPage() {
               image={<span className="workspace-empty-orbit" aria-hidden="true" />}
               description={
                 <>
-                  <strong>暂无{project ? '项目' : '企业'}</strong>
+                  <strong>{tr('暂无{type}', { type: project ? tr('项目') : tr('企业') })}</strong>
                   <p>
-                    试试调整搜索条件
-                    {canCreate ? `，或${project ? '创建项目' : '开通企业'}` : ''}。
+                    {tr('试试调整搜索条件')}
+                    {canCreate
+                      ? tr('，或{action}', {
+                          action: project ? tr('创建项目') : tr('开通企业'),
+                        })
+                      : ''}
+                    {tr('。')}
                   </p>
                 </>
               }
@@ -170,7 +187,7 @@ export default function EntitiesPage() {
                   icon={<PlusOutlined />}
                   onClick={() => formRef.current?.show()}
                 >
-                  {project ? '创建项目' : '开通企业'}
+                  {project ? tr('创建项目') : tr('开通企业')}
                 </Button>,
               ]
             : []

@@ -1,4 +1,5 @@
 import { Alert, Button, Checkbox, Descriptions, Empty, List, Modal, Space, Tag } from 'antd'
+import { useI18n } from '@bubblesjs/i18n-react'
 import type { CleanupPreview, CleanupRequest } from 'shared/types'
 
 export interface CleanupDialogRef {
@@ -17,6 +18,7 @@ export default function CleanupDialog({
   const [preview, setPreview] = useState<CleanupPreview>()
   const [confirmed, setConfirmed] = useState(false)
   const [saving, setSaving] = useState(false)
+  const { tr } = useI18n()
   const hide = () => setOpen(false)
   useImperativeHandle(ref, () => ({
     /** 载入本次清理预览并重置人工确认状态。 */
@@ -46,14 +48,14 @@ export default function CleanupDialog({
 
   return (
     <Modal
-      title="废弃权限清理预览"
+      title={tr('废弃权限清理预览')}
       open={open}
       width={740}
       onCancel={hide}
       destroyOnHidden
       footer={
         <Space>
-          <Button onClick={hide}>关闭</Button>
+          <Button onClick={hide}>{tr('关闭')}</Button>
           <Button
             danger
             type="primary"
@@ -61,13 +63,13 @@ export default function CleanupDialog({
             loading={saving}
             onClick={() => void clean()}
           >
-            确认清理废弃权限
+            {tr('确认清理废弃权限')}
           </Button>
         </Space>
       }
     >
       {!preview?.items.length ? (
-        <Empty description="当前没有需要清理的废弃权限。" />
+        <Empty description={tr('当前没有需要清理的废弃权限。')} />
       ) : (
         <>
           <Alert
@@ -75,16 +77,18 @@ export default function CleanupDialog({
             showIcon
             title={
               executable
-                ? '执行后将清理这些权限及对应引用，请核对影响范围。'
-                : '当前条件不满足，暂不能执行清理。'
+                ? tr('执行后将清理这些权限及对应引用，请核对影响范围。')
+                : tr('当前条件不满足，暂不能执行清理。')
             }
-            description="仅处理功能目录明确标记为废弃的权限。执行时会重新检查当前引用和所有在用服务版本的发布条件。"
+            description={tr(
+              '仅处理功能目录明确标记为废弃的权限。执行时会重新检查当前引用和所有在用服务版本的发布条件。',
+            )}
           />
           {!!preview.blockedReasons.length && (
             <Alert
               style={{ marginTop: 16 }}
               type="warning"
-              title="暂不能清理"
+              title={tr('暂不能清理')}
               description={preview.blockedReasons.map((reason) => (
                 <div key={reason}>{reason}</div>
               ))}
@@ -94,9 +98,9 @@ export default function CleanupDialog({
             style={{ marginTop: 20 }}
             column={3}
             items={[
-              { key: 'permissions', label: '权限', children: preview.totals.permissions },
-              { key: 'menus', label: '菜单节点', children: preview.totals.menus },
-              { key: 'roles', label: '角色授权引用', children: preview.totals.roleAssignments },
+              { key: 'permissions', label: tr('权限'), children: preview.totals.permissions },
+              { key: 'menus', label: tr('菜单节点'), children: preview.totals.menus },
+              { key: 'roles', label: tr('角色授权引用'), children: preview.totals.roleAssignments },
             ]}
           />
           <List
@@ -107,9 +111,9 @@ export default function CleanupDialog({
                 <List.Item.Meta
                   title={
                     <Space>
-                      {item.title}
-                      <Tag>{item.menuIds.length} 个菜单</Tag>
-                      <Tag>{item.roleCount} 个角色</Tag>
+                      {tr(item.title)}
+                      <Tag>{tr('{count} 个菜单', { count: item.menuIds.length })}</Tag>
+                      <Tag>{tr('{count} 个角色', { count: item.roleCount })}</Tag>
                     </Space>
                   }
                   description={
@@ -126,7 +130,7 @@ export default function CleanupDialog({
           />
           {executable && (
             <Checkbox checked={confirmed} onChange={(event) => setConfirmed(event.target.checked)}>
-              已核对权限、菜单和角色授权引用的清理范围
+              {tr('已核对权限、菜单和角色授权引用的清理范围')}
             </Checkbox>
           )}
         </>

@@ -7,6 +7,8 @@ componets 尽可能放一些通用的组件
 
 一些静态变量和静态组件不要放在 react 组件方法内 可以在方法外（小 且页面独有） 或者抽离一个文件（config/index） 或components/xxx 内
 
+这个规则 也同步到 skills/init-agent-rules/SKILL.md
+
 2. 这个项目的 brand 可以提成公共组件
 
 3.RouteTransition

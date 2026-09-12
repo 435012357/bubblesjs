@@ -1,4 +1,5 @@
 import { ProTable, type ParamsType } from '@ant-design/pro-components'
+import { useI18n } from '@bubblesjs/i18n-react'
 import { Alert, Button, Flex, Modal, Tag, Typography } from 'antd'
 import { SelectorSelection } from './SelectorSelection'
 import type { SelectorProps } from './SelectorTypes'
@@ -26,6 +27,7 @@ export default function Selector<
   scroll,
   ...tableProps
 }: SelectorProps<T, Params, ValueType>) {
+  const { tr } = useI18n()
   const [session, setSession] = useState<{ id: number; selection: SelectorSelection<T> }>()
   const [confirming, setConfirming] = useState(false)
   const [error, setError] = useState<string>()
@@ -83,7 +85,7 @@ export default function Selector<
       if (sessionId.current === id) hide()
     } catch (cause) {
       if (sessionId.current === id) {
-        setError(cause instanceof Error ? cause.message : '确认选择失败，请重试')
+        setError(cause instanceof Error ? cause.message : tr('确认选择失败，请重试'))
       }
     } finally {
       if (sessionId.current === id) {
@@ -96,8 +98,8 @@ export default function Selector<
   return (
     <Modal
       width={960}
-      okText="确定"
-      cancelText="取消"
+      okText={tr('确定')}
+      cancelText={tr('取消')}
       {...modalProps}
       title={title}
       open={!!session}
@@ -113,13 +115,15 @@ export default function Selector<
       {session && (
         <>
           <Flex align="center" justify="space-between">
-            <Typography.Text>已选择 {session.selection.value.length} 项</Typography.Text>
+            <Typography.Text>
+              {tr('已选择 {count} 项', { count: session.selection.value.length })}
+            </Typography.Text>
             <Button
               type="link"
               disabled={confirming || !session.selection.value.length}
               onClick={() => changeSelection(session.selection.select({ value: [] }))}
             >
-              清空选择
+              {tr('清空选择')}
             </Button>
           </Flex>
           <Flex wrap gap={4} style={{ maxHeight: 96, overflowY: 'auto', marginBottom: 12 }}>
@@ -183,7 +187,7 @@ export default function Selector<
             onRequestError={
               /** 仅向当前选择会话展示加载错误，并转发请求失败通知。 */ (cause) => {
                 if (session.id !== sessionId.current) return
-                setError(cause.message || '加载选择数据失败，请刷新重试')
+                setError(cause.message || tr('加载选择数据失败，请刷新重试'))
                 onRequestError?.(cause)
               }
             }

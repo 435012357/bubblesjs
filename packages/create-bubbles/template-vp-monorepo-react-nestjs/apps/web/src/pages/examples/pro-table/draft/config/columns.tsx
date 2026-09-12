@@ -2,7 +2,8 @@ import { FolderOutlined } from '@ant-design/icons'
 import type { ProColumns } from '@ant-design/pro-components'
 import { Avatar, Badge, Button, Divider, Popconfirm, Space, Tag, Tooltip } from 'antd'
 import dayjs from 'dayjs'
-import { owners, statusOptions } from '../../config'
+import { tr } from '@/i18n'
+import { getStatusOptions, owners } from '../../config'
 import type { DraftProjectRecord } from '.'
 import styles from '../index.module.css'
 
@@ -16,12 +17,14 @@ export function createDraftProjectColumns({
   onEdit,
   onDelete,
 }: ProjectColumnOptions): ProColumns<DraftProjectRecord>[] {
+  const statusOptions = getStatusOptions()
+
   return [
     {
-      title: '项目名称',
+      title: tr('项目名称'),
       dataIndex: 'name',
       width: 360,
-      fieldProps: { placeholder: '搜索项目名称或编号', allowClear: true },
+      fieldProps: { placeholder: tr('搜索项目名称或编号'), allowClear: true },
       render: (_, project) => (
         <div className={styles.project}>
           <span className={styles.projectIcon}>
@@ -30,11 +33,11 @@ export function createDraftProjectColumns({
           <div className={styles.projectInfo}>
             <Space size={8}>
               <Button type="link" className={styles.projectName} onClick={() => onEdit(project)}>
-                {project.name || '未命名项目'}
+                {project.name || tr('未命名项目')}
               </Button>
               {project.stage === 'draft' && (
                 <Tag color="orange" variant="filled">
-                  草稿
+                  {tr('草稿')}
                 </Tag>
               )}
             </Space>
@@ -44,26 +47,26 @@ export function createDraftProjectColumns({
       ),
     },
     {
-      title: '项目状态',
+      title: tr('项目状态'),
       dataIndex: 'status',
       width: 140,
       valueType: 'select',
       valueEnum: statusOptions,
-      fieldProps: { placeholder: '全部状态' },
+      fieldProps: { placeholder: tr('全部状态') },
       render: (dom, project) =>
         project.status ? (
           dom
         ) : (
-          <Badge status="default" text={<span className={styles.muted}>未填写</span>} />
+          <Badge status="default" text={<span className={styles.muted}>{tr('未填写')}</span>} />
         ),
     },
     {
-      title: '负责人',
+      title: tr('负责人'),
       dataIndex: 'owner',
       width: 150,
       valueType: 'select',
       fieldProps: {
-        placeholder: '全部负责人',
+        placeholder: tr('全部负责人'),
         options: owners.map((owner) => ({ label: owner, value: owner })),
       },
       render: (_, project) =>
@@ -75,11 +78,11 @@ export function createDraftProjectColumns({
             {project.owner}
           </Space>
         ) : (
-          <span className={styles.muted}>未填写</span>
+          <span className={styles.muted}>{tr('未填写')}</span>
         ),
     },
     {
-      title: '最后保存时间',
+      title: tr('最后保存时间'),
       dataIndex: 'savedAt',
       width: 200,
       search: false,
@@ -88,9 +91,9 @@ export function createDraftProjectColumns({
       render: (_, project) => {
         const date = dayjs(project.savedAt)
         const prefix = date.isSame(dayjs(), 'day')
-          ? '今天'
+          ? tr('今天')
           : date.isSame(dayjs().subtract(1, 'day'), 'day')
-            ? '昨天'
+            ? tr('昨天')
             : date.format('YYYY-MM-DD')
         return (
           <Tooltip title={date.format('YYYY-MM-DD HH:mm:ss')}>
@@ -102,24 +105,26 @@ export function createDraftProjectColumns({
       },
     },
     {
-      title: '操作',
+      title: tr('操作'),
       valueType: 'option',
       width: 170,
       fixed: 'right',
       render: (_, project) => (
         <Space size={0} separator={<Divider orientation="vertical" />}>
           <Button type="link" size="small" onClick={() => onEdit(project)}>
-            {project.stage === 'draft' ? '继续编辑' : '编辑'}
+            {project.stage === 'draft' ? tr('继续编辑') : tr('编辑')}
           </Button>
           <Popconfirm
-            title={project.stage === 'draft' ? '删除草稿' : '删除项目'}
-            description={`确定删除「${project.name || '未命名项目'}」吗？`}
+            title={project.stage === 'draft' ? tr('删除草稿') : tr('删除项目')}
+            description={tr('确定删除「{name}」吗？', {
+              name: project.name || tr('未命名项目'),
+            })}
             onConfirm={() => onDelete(project)}
-            okText="删除"
+            okText={tr('删除')}
             okButtonProps={{ danger: true }}
           >
             <Button type="link" danger size="small">
-              删除
+              {tr('删除')}
             </Button>
           </Popconfirm>
         </Space>

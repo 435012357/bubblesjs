@@ -1,3 +1,4 @@
+import { tr } from '@/i18n'
 import type { SelectorRowKey, SelectorShowOptions } from './SelectorTypes'
 
 /** 选择器内部的会话快照。仅保留已选对象，不累积缓存所有访问过的页面。 */
@@ -46,7 +47,7 @@ export class SelectorSelection<T extends object> {
     return this.value.map(
       /** 按选中键读取缓存记录，缺失时抛错避免提交不完整选择。 */ (key) => {
         const row = this.records.get(key)
-        if (!row) throw new Error('部分已选数据尚未加载，请重新选择后重试')
+        if (!row) throw new Error(tr('部分已选数据尚未加载，请重新选择后重试'))
         return row
       },
     )
@@ -72,10 +73,10 @@ export class SelectorSelection<T extends object> {
   async resolve(requestByKeys?: (keys: Key[]) => Promise<T[]>) {
     const missing = this.missingKeys
     if (!missing.length) return this
-    if (!requestByKeys) throw new Error('部分已选数据尚未加载，请重新选择后重试')
+    if (!requestByKeys) throw new Error(tr('部分已选数据尚未加载，请重新选择后重试'))
     const resolved = this.remember(await requestByKeys(missing))
     if (resolved.missingKeys.length) {
-      throw new Error('部分已选数据已不可用，请取消对应选择后重试')
+      throw new Error(tr('部分已选数据已不可用，请取消对应选择后重试'))
     }
     return resolved
   }
