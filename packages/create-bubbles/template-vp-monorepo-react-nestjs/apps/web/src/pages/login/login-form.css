@@ -82,19 +82,33 @@
   .login-form-content .ant-input-lg {
     min-height: 46px;
     border-color: #e5dfef;
-    border-radius: 12px;
+    /* 直角：圆角弧线会在输入起始位与光标重叠，让 1px 光标看起来被切掉一截 */
+    border-radius: 0;
     background: #ffffffb3;
   }
 
   .login-form-content .ant-input-affix-wrapper .ant-input {
     min-height: auto;
     background: transparent;
+    caret-color: var(--login-accent);
   }
 
   .login-form-content .ant-input-affix-wrapper-focused,
   .login-form-content .ant-input:focus {
     border-color: var(--login-accent);
     box-shadow: 0 0 0 3px #8270db14;
+  }
+
+  /* 浏览器自动填充会强制注入浅蓝底色和黑色文字（UA 样式且带 !important）：
+     用超长 background-color 过渡把底色冻结在透明态，保持输入框自身底色；
+     文字色只能通过 -webkit-text-fill-color 覆盖，caret-color 保证光标仍醒目 */
+  .login-form-content .ant-input:-webkit-autofill,
+  .login-form-content .ant-input:-webkit-autofill:hover,
+  .login-form-content .ant-input:-webkit-autofill:focus,
+  .login-form-content .ant-input:-webkit-autofill:active {
+    -webkit-text-fill-color: var(--login-text);
+    caret-color: var(--login-accent);
+    transition: background-color 900000000s ease-in-out 0s;
   }
 
   .login-form-content .ant-btn-primary {
